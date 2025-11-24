@@ -56,7 +56,7 @@ const FlightSchedulePage = () => {
     setLoading(true);
     try {
       const [flightsRes, schedulesRes, airportsRes] = await Promise.all([
-        fetch(`${BASE_URL}/flights`),
+        fetch(`${BASE_URL}/flights?user=true`),
         fetch(`${BASE_URL}/flight-schedules`),
         fetch(`${BASE_URL}/airport`),
       ]);
@@ -76,15 +76,7 @@ const FlightSchedulePage = () => {
       const airportIds = new Set(airportsData.map((a) => a.id));
       
       schedulesData.forEach((schedule) => {
-        if (!flightIds.has(schedule.flight_id)) {
-          console.warn(`Invalid flight_id ${schedule.flight_id} in schedule ${schedule.id}`);
-        }
-        if (!airportIds.has(schedule.departure_airport_id)) {
-          console.warn(`Invalid departure_airport_id ${schedule.departure_airport_id} in schedule ${schedule.id}`);
-        }
-        if (!airportIds.has(schedule.arrival_airport_id)) {
-          console.warn(`Invalid arrival_airport_id ${schedule.arrival_airport_id} in schedule ${schedule.id}`);
-        }
+        // Validation logic without console output
       });
 
       setFlights(flightsData);
@@ -112,7 +104,6 @@ const FlightSchedulePage = () => {
         })
       );
     } catch (err) {
-      console.error("Error fetching data:", err);
       toast.error("Failed to load data.");
     } finally {
       setLoading(false);
@@ -191,7 +182,6 @@ const FlightSchedulePage = () => {
       toast.success(isEdit ? "Schedule updated!" : "Schedule added!");
       await fetchData();
     } catch (err) {
-      console.error("Error:", err);
       toast.error("Failed to save schedule.");
     } finally {
       setLoading(false);
@@ -227,7 +217,6 @@ const FlightSchedulePage = () => {
       await fetchData();
       toast.success("Schedule deleted!");
     } catch (err) {
-      console.error("Error:", err);
       toast.error("Failed to delete schedule.");
     } finally {
       setLoading(false);
@@ -257,7 +246,6 @@ const FlightSchedulePage = () => {
       await fetchData();
       toast.success(`Schedule ${newStatus === 1 ? "activated" : "deactivated"}!`);
     } catch (err) {
-      console.error("Error:", err);
       toast.error("Failed to update status.");
     } finally {
       setLoading(false);

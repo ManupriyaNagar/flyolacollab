@@ -34,6 +34,7 @@ import {
   ArcElement,
   PointElement,
   LineElement,
+  Filler,
 } from "chart.js";
 
 ChartJS.register(
@@ -45,7 +46,8 @@ ChartJS.register(
   Legend,
   ArcElement,
   PointElement,
-  LineElement
+  LineElement,
+  Filler
 );
 
 export default function AdminDashboard() {
@@ -75,6 +77,8 @@ export default function AdminDashboard() {
       return;
     }
 
+    let isMounted = true;
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -82,7 +86,10 @@ export default function AdminDashboard() {
       try {
         const token = localStorage.getItem("token") || "";
         if (!token) {
-          throw new Error("No authentication token found. Please log in again.");
+          // No token found - redirect immediately
+          localStorage.clear();
+          router.push("/sign-in");
+          return;
         }
 
         const commonOpts = {
@@ -93,133 +100,70 @@ export default function AdminDashboard() {
           credentials: 'include',
         };
 
-        const endpoints = [
-          "flights",
-          "flight-schedules",
-          "airport",
-          "bookings",
-          "passenger",
-          "users",
-          "reviews",
-          "payments",
-        ];
-
-        const responses = await Promise.all(
-          endpoints.map((endpoint) =>
-            fetch(`${BASE_URL}/${endpoint}`, commonOpts).catch(() => ({ ok: false, status: 404 }))
-          )
-        );
-
-        const errors = responses
-          .map((res, index) => ({ res, endpoint: endpoints[index] }))
-          .filter(({ res }) => !res.ok);
-
-        if (errors.length > 0) {
-          console.warn("Some endpoints failed:", errors);
-        }
-
-        const [
-          flightsData,
-          schedulesData,
-          airportsData,
-          bookingsData,
-          passengersData,
-          usersData,
-          reviewsData,
-          paymentsData,
-        ] = await Promise.all(
-          responses.map(async (res, index) => {
-            if (res.ok) {
-              try {
-                const data = await res.json();
-                // Handle passenger endpoint special case
-                if (index === 4) {
-                  return data.data || data || [];
-                }
-                return data || [];
-              } catch (err) {
-                console.error(`Error parsing response for endpoint ${endpoints[index]}:`, err);
-                return [];
-              }
-            } else {
-              console.warn(`Endpoint ${endpoints[index]} failed with status:`, res.status);
-              return [];
-            }
-          })
-        );
-
-        // Fetch joyride bookings (all website data)
-        try {
-          const joyrideBookingsRes = await fetch(`${BASE_URL}/api/joyride-slots/joyride-bookings`, commonOpts);
-          if (joyrideBookingsRes.ok) {
-            const joyrideBookingsData = await joyrideBookingsRes.json();
-            const joyrideArray = Array.isArray(joyrideBookingsData) ? joyrideBookingsData : [];
-            setJoyrideBookings(joyrideArray);
-            console.log("[AdminDashboard] Joyride bookings fetched:", joyrideArray.length);
-          } else {
-            console.warn("Joyride bookings endpoint failed:", joyrideBookingsRes.status);
-            setJoyrideBookings([]);
+        // Single API call to fetch all dashboard data
+        const response = await fetch(`${BASE_URL}/api/admin/dashboard-stats`, commonOpts);
+        
+        if (!response.ok) {
+          if (response.status === 401) {
+            // Redirect immediately on 401, don't retry
+            localStorage.removeItem("token");
+            router.push("/sign-in");
+            return;
           }
-        } catch (err) {
-          console.log("Joyride bookings not available:", err);
-          setJoyrideBookings([]);
+          throw new Error(`Failed to fetch dashboard data: ${response.status}`);
         }
 
-        // Fetch joyride slots (all website data)
-        try {
-          const joyrideSlotsRes = await fetch(`${BASE_URL}/api/joyride-slots`, commonOpts);
-          if (joyrideSlotsRes.ok) {
-            const joyrideSlotsData = await joyrideSlotsRes.json();
-            const slotsArray = Array.isArray(joyrideSlotsData) ? joyrideSlotsData : [];
-            setJoyrideSlots(slotsArray);
-            console.log("[AdminDashboard] Joyride slots fetched:", slotsArray.length);
-          } else {
-            console.warn("Joyride slots endpoint failed:", joyrideSlotsRes.status);
-            setJoyrideSlots([]);
-          }
-        } catch (err) {
-          console.log("Joyride slots not available:", err);
-          setJoyrideSlots([]);
+        const result = await response.json();
+        
+        if (!isMounted) return; // Prevent state updates if component unmounted
+        
+        if (result.success && result.data) {
+          const {
+            flights: flightsData,
+            schedules: schedulesData,
+            airports: airportsData,
+            bookings: bookingsData,
+            passengers: passengersData,
+            users: usersData,
+            reviews: reviewsData,
+            payments: paymentsData,
+            joyrideBookings: joyrideBookingsData,
+            joyrideSlots: joyrideSlotsData
+          } = result.data;
+
+          // Set all state at once
+          setFlights(Array.isArray(flightsData) ? flightsData : []);
+          setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
+          setAirports(Array.isArray(airportsData) ? airportsData : []);
+          setBookings(Array.isArray(bookingsData) ? bookingsData : []);
+          setPassengers(Array.isArray(passengersData) ? passengersData : []);
+          setUsers(Array.isArray(usersData) ? usersData : []);
+          setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+          setPayments(Array.isArray(paymentsData) ? paymentsData : []);
+          setJoyrideBookings(Array.isArray(joyrideBookingsData) ? joyrideBookingsData : []);
+          setJoyrideSlots(Array.isArray(joyrideSlotsData) ? joyrideSlotsData : []);
+        } else {
+          throw new Error("Invalid response format from server");
         }
-
-        setFlights(Array.isArray(flightsData) ? flightsData : []);
-        setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
-        setAirports(Array.isArray(airportsData) ? airportsData : []);
-        setBookings(Array.isArray(bookingsData) ? bookingsData : []);
-        setPassengers(Array.isArray(passengersData) ? passengersData : []);
-        setUsers(Array.isArray(usersData) ? usersData : []);
-        setReviews(Array.isArray(reviewsData) ? reviewsData : []);
-        setPayments(Array.isArray(paymentsData) ? paymentsData : []);
-
-        console.log("[AdminDashboard] All website data fetched successfully", {
-          flights: Array.isArray(flightsData) ? flightsData.length : 0,
-          schedules: Array.isArray(schedulesData) ? schedulesData.length : 0,
-          airports: Array.isArray(airportsData) ? airportsData.length : 0,
-          bookings: Array.isArray(bookingsData) ? bookingsData.length : 0,
-          passengers: Array.isArray(passengersData) ? passengersData.length : 0,
-          users: Array.isArray(usersData) ? usersData.length : 0,
-          reviews: Array.isArray(reviewsData) ? reviewsData.length : 0,
-          payments: Array.isArray(paymentsData) ? paymentsData.length : 0,
-          joyrideBookings: joyrideBookings.length,
-          joyrideSlots: joyrideSlots.length,
-          samplePayment: paymentsData[0],
-          sampleBooking: bookingsData[0],
-          sampleJoyride: joyrideBookings[0]
-        });
       } catch (err) {
-        console.error("[AdminDashboard] Error fetching dashboard data:", err);
+        if (!isMounted) return; // Prevent state updates if component unmounted
+        
+        console.error('Dashboard data fetch error:', err);
         setError(err.message);
-        toast.error(err.message);
-        if (err.message.includes("Authentication failed")) {
-          router.push("/sign-in");
-        }
+        toast.error(err.message, { toastId: 'dashboard-error' }); // Prevent duplicate toasts
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchData();
-  }, [authState, router]);
+
+    return () => {
+      isMounted = false; // Cleanup function
+    };
+  }, [authState.isLoading, authState.isLoggedIn, authState.userRole, router]);
 
   const stats = useMemo(() => {
     const totalFlights = flights.length;
@@ -241,11 +185,8 @@ export default function AdminDashboard() {
     let totalRevenue = 0;
     let joyrideRevenue = 0;
 
-    // Calculate payment revenue with detailed logging
+    // Calculate payment revenue
     if (payments.length > 0) {
-      console.log("[AdminDashboard] Sample payment object:", payments[0]);
-      console.log("[AdminDashboard] Payment fields available:", Object.keys(payments[0] || {}));
-
       totalRevenue = payments.reduce((sum, p) => {
         // Try all possible field names for payment amount
         const possibleAmounts = [
@@ -272,18 +213,14 @@ export default function AdminDashboard() {
         }
 
         if (amount > 0) {
-          console.log(`[AdminDashboard] Found payment amount: ${amount} from payment:`, p);
         }
 
         return sum + amount;
       }, 0);
     }
 
-    // Calculate joyride revenue with detailed logging
+    // Calculate joyride revenue
     if (joyrideBookings.length > 0) {
-      console.log("[AdminDashboard] Sample joyride booking:", joyrideBookings[0]);
-      console.log("[AdminDashboard] Joyride fields available:", Object.keys(joyrideBookings[0] || {}));
-
       joyrideRevenue = joyrideBookings.reduce((sum, b) => {
         // Try all possible field names for joyride amount
         const possibleAmounts = [
@@ -309,7 +246,6 @@ export default function AdminDashboard() {
         }
 
         if (amount > 0) {
-          console.log(`[AdminDashboard] Found joyride amount: ${amount} from booking:`, b);
         }
 
         return sum + amount;
@@ -319,10 +255,6 @@ export default function AdminDashboard() {
     // Also try to get revenue from bookings if payments are empty
     let bookingRevenue = 0;
     if (totalRevenue === 0 && bookings.length > 0) {
-      console.log("[AdminDashboard] No payment revenue found, checking bookings for amounts");
-      console.log("[AdminDashboard] Sample booking object:", bookings[0]);
-      console.log("[AdminDashboard] Booking fields available:", Object.keys(bookings[0] || {}));
-
       bookingRevenue = bookings.reduce((sum, b) => {
         const possibleAmounts = [
           b.amount,
@@ -351,29 +283,6 @@ export default function AdminDashboard() {
     }
 
     const combinedRevenue = totalRevenue + joyrideRevenue + bookingRevenue;
-
-    // Enhanced debug revenue calculation
-    console.log("[AdminDashboard] Revenue calculation summary:", {
-      paymentsCount: payments.length,
-      totalRevenue,
-      joyrideBookingsCount: joyrideBookings.length,
-      joyrideRevenue,
-      bookingsCount: bookings.length,
-      bookingRevenue,
-      combinedRevenue,
-      allDataCounts: {
-        flights: flights.length,
-        schedules: schedules.length,
-        airports: airports.length,
-        bookings: bookings.length,
-        passengers: passengers.length,
-        users: users.length,
-        reviews: reviews.length,
-        payments: payments.length,
-        joyrideBookings: joyrideBookings.length,
-        joyrideSlots: joyrideSlots.length
-      }
-    });
 
     const today = new Date();
     const last7Days = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -629,6 +538,18 @@ export default function AdminDashboard() {
       .sort((a, b) => new Date(b.created_at || b.updated_at) - new Date(a.created_at || a.updated_at))
       .slice(0, 5);
   }, [bookings]);
+
+  // Don't show anything if not authenticated
+  if (authState.isLoading || !authState.isLoggedIn || authState.userRole !== "1") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">

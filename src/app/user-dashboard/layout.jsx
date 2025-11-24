@@ -134,8 +134,23 @@ export default function UserDashboardLayout({ children }) {
                   onClick={() => setSidebarVisible(false)}
                 >
                   <FaClock className={`text-lg ${isActive("/user-dashboard/bookings") ? "text-white" : "text-emerald-400"}`} />
-                  <span className="font-medium">Booking History</span>
+                  <span className="font-medium">Flight Bookings</span>
                   {isActive("/user-dashboard/bookings") && (
+                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </Link>
+
+                <Link
+                  href="/user-dashboard/helicopter-bookings"
+                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/helicopter-bookings")
+                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    }`}
+                  onClick={() => setSidebarVisible(false)}
+                >
+                  <FaClock className={`text-lg ${isActive("/user-dashboard/helicopter-bookings") ? "text-white" : "text-purple-400"}`} />
+                  <span className="font-medium">Helicopter Bookings</span>
+                  {isActive("/user-dashboard/helicopter-bookings") && (
                     <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
                   )}
                 </Link>

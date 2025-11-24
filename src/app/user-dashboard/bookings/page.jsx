@@ -59,9 +59,10 @@ export default function UserBookingsPage() {
         throw new Error(data.error || `Error ${res.status}: Failed to fetch bookings`);
       }
 
-      setBookings(data);
+      // Filter only flight bookings (bookingType !== 'helicopter')
+      const flightBookings = data.filter(booking => booking.bookingType !== 'helicopter');
+      setBookings(flightBookings);
     } catch (err) {
-      console.error("Failed to load bookings:", err.message);
       setError(err.message === "Unauthorized: No valid user token provided"
         ? "Please sign in again to view your bookings."
         : `Could not load bookings: ${err.message}`);
@@ -173,8 +174,8 @@ export default function UserBookingsPage() {
         {bookings.length === 0 ? (
           <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center">
             <TicketIcon className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Bookings Found</h3>
-            <p className="text-gray-600 mb-6">You haven't made any bookings yet. Start your journey today!</p>
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">No Flight Bookings Found</h3>
+            <p className="text-gray-600 mb-6">You haven't made any flight bookings yet. Start your journey today!</p>
             <button 
               onClick={() => router.push('/scheduled-flight')}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
@@ -286,12 +287,25 @@ export default function UserBookingsPage() {
                         View Ticket
                       </button>
                       {canCancelBooking(booking) && (
-                        <button 
-                          onClick={() => handleCancelBooking(booking)}
-                          className="px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-sm font-medium"
-                        >
-                          Cancel Booking
-                        </button>
+                        <>
+                          <button 
+                            onClick={() => {
+                              toast.info('Rescheduling feature coming soon!');
+                              // TODO: Implement rescheduling functionality
+                              // router.push(`/reschedule?bookingId=${booking.id}&pnr=${booking.pnr}`);
+                            }}
+                            className="px-4 py-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
+                          >
+                            <CalendarDaysIcon className="w-4 h-4" />
+                            Reschedule
+                          </button>
+                          <button 
+                            onClick={() => handleCancelBooking(booking)}
+                            className="px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg transition-colors text-sm font-medium"
+                          >
+                            Cancel Booking
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>

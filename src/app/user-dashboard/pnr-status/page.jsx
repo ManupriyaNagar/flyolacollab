@@ -42,7 +42,6 @@ const PnrStatusPage = () => {
 
       setBookingDetails(result);
     } catch (err) {
-      console.error("PNR status error:", err);
       setError(err.message);
     } finally {
       setLoading(false);

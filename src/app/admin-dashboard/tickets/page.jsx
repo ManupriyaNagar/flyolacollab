@@ -18,6 +18,8 @@ import {
   MagnifyingGlassIcon,
   ArrowsUpDownIcon,
 } from "@heroicons/react/24/outline";
+import { transformTicketData, buildAirportMap } from "@/utils/ticketDataTransformer";
+import { AirportService } from "@/services/api";
 
 const Page = () => {
   const { authState } = useAuth();
@@ -83,7 +85,8 @@ const Page = () => {
           fetch(`${BASE_URL}/booked-seat`, commonOpts).catch(() => ({ ok: false, status: 404 })),
           fetch(`${BASE_URL}/billings`, commonOpts).catch(() => ({ ok: false, status: 404 })),
           fetch(`${BASE_URL}/payments`, commonOpts).catch(() => ({ ok: false, status: 404 })),
-          fetch(`${BASE_URL}/airport`, commonOpts).catch(() => ({ ok: false, status: 404 })),
+          // Get airports data from centralized API service
+          AirportService.getAirports(),
         ]);
 
         const [
@@ -99,57 +102,37 @@ const Page = () => {
           bookedSeatRes.ok ? bookedSeatRes.json() : [],
           billingsRes.ok ? billingsRes.json() : [],
           paymentsRes.ok ? paymentsRes.json() : [],
-          airportRes.ok ? airportRes.json() : [],
+          // airportRes is already processed by AirportService
+          Promise.resolve(airportRes),
         ]);
 
         // Build airport map
-        const map = {};
-        (Array.isArray(airportData) ? airportData : []).forEach((a) => {
-          if (a?.id && a?.airport_name) map[a.id] = a.airport_name;
-        });
+        const map = buildAirportMap(Array.isArray(airportData) ? airportData : []);
         setAirportMap(map);
 
         // Merge & sort bookings with supporting data
         const merged = (Array.isArray(bookingsData) ? bookingsData : [])
           .map((booking) => {
-            const matchingSeat = (Array.isArray(bookedSeatData) ? bookedSeatData : []).find(
-              (seat) =>
-                seat?.schedule_id === booking?.schedule_id &&
-                seat?.bookDate === booking?.bookDate
-            ) || {};
-            const matchingPassengers = Array.isArray(passengersData)
-              ? passengersData.filter((p) => p?.bookingId === booking?.id)
-              : [];
-            const matchingPayment = (Array.isArray(paymentsData) ? paymentsData : []).find(
-              (p) => p?.booking_id === booking?.id
-            );
-            const matchingBilling = (Array.isArray(billingsData) ? billingsData : []).find(
-              (b) => b?.user_id === booking?.bookedUserId
-            );
-
-            const flightSchedule = booking.FlightSchedule || matchingSeat.FlightSchedule || {};
-            const depId = flightSchedule.departure_airport_id;
-            const arrId = flightSchedule.arrival_airport_id;
-
-            return {
-              ...booking,
-              FlightSchedule: flightSchedule,
-              booked_seat: booking.seatLabels || booking.booked_seat || matchingSeat?.booked_seat || "N/A",
-              passengers: matchingPassengers,
-              payment: matchingPayment || {},
-              billing: matchingBilling || {},
-              departureAirportName: depId && map[depId] ? map[depId] : "Unknown Airport",
-              arrivalAirportName: arrId && map[arrId] ? map[arrId] : "Unknown Airport",
-            };
+            // Use the centralized transformer for consistent data structure
+            try {
+              return transformTicketData(booking, map);
+            } catch (error) {
+              // Return raw booking data if transformation fails
+              return {
+                ...booking,
+                departureAirportName: 'Unknown Airport',
+                arrivalAirportName: 'Unknown Airport'
+              };
+            }
           })
           .sort(
             (a, b) =>
-              new Date(b.bookDate).getTime() - new Date(a.bookDate).getTime()
+              new Date(b.bookingData?.bookDate || b.bookDate).getTime() - 
+              new Date(a.bookingData?.bookDate || a.bookDate).getTime()
           );
 
         setBookings(merged);
       } catch (err) {
-        console.error("Error fetching bookings:", err);
         if (err.message.includes("No authentication token")) {
           setError("Please log in again to view bookings.");
           router.push("/sign-in");
@@ -204,15 +187,23 @@ const Page = () => {
     // Apply search filter
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase();
-      data = data.filter((booking) =>
-        [
-          booking.bookingNo?.toString().toLowerCase(),
-          booking.pnr?.toLowerCase(),
-          booking.passengers?.map((p) => p.name?.toLowerCase()).join(" "),
-          booking.departureAirportName?.toLowerCase(),
-          booking.arrivalAirportName?.toLowerCase(),
-        ].some((field) => field?.includes(term))
-      );
+      data = data.filter((booking) => {
+        // Handle both transformed and raw booking data
+        const bookingNo = booking.bookingResult?.booking?.bookingNo || booking.bookingNo;
+        const pnr = booking.bookingResult?.booking?.pnr || booking.pnr;
+        const passengerNames = booking.travelerDetails?.map(p => p.fullName?.toLowerCase()).join(' ') || 
+                              booking.passengers?.map(p => p.name?.toLowerCase()).join(' ');
+        const departure = booking.bookingData?.departure || booking.departureAirportName;
+        const arrival = booking.bookingData?.arrival || booking.arrivalAirportName;
+        
+        return [
+          bookingNo?.toString().toLowerCase(),
+          pnr?.toLowerCase(),
+          passengerNames,
+          departure?.toLowerCase(),
+          arrival?.toLowerCase(),
+        ].some((field) => field?.includes(term));
+      });
     }
 
     // Apply date filter
@@ -220,7 +211,7 @@ const Page = () => {
       const dateRange = getDateFilterRange(dateFilter);
       if (dateRange) {
         data = data.filter((booking) => {
-          const bookDate = new Date(booking.bookDate);
+          const bookDate = new Date(booking.bookingData?.bookDate || booking.bookDate);
           bookDate.setHours(0, 0, 0, 0);
           return (
             bookDate.getTime() >= dateRange.start.getTime() &&
@@ -237,8 +228,8 @@ const Page = () => {
         let bValue = b[sortConfig.key];
         
         if (sortConfig.key === 'bookDate') {
-          aValue = new Date(aValue).getTime();
-          bValue = new Date(bValue).getTime();
+          aValue = new Date(aValue || a.bookingData?.bookDate).getTime();
+          bValue = new Date(bValue || b.bookingData?.bookDate).getTime();
         } else if (typeof aValue === 'string') {
           aValue = aValue.toLowerCase();
           bValue = bValue.toLowerCase();
@@ -269,101 +260,21 @@ const Page = () => {
     }
   };
 
-  // Transform booking data for ProfessionalTicket component
-  const transformBookingData = (booking) => {
-    console.log("Transforming booking data for ticket display:", {
-      bookingId: booking.id,
-      pnr: booking.pnr,
-      totalFare: booking.totalFare,
-      passengers: booking.passengers?.length || 0,
-      flightSchedule: booking.FlightSchedule ? 'Present' : 'Missing',
-      bookedSeat: booking.booked_seat,
-      seatLabels: booking.seatLabels,
-      BookedSeats: booking.BookedSeats
-    }); // Debug log
-    
-    const flightSchedule = booking.FlightSchedule || {};
-    const payment = booking.payment || {};
-    const billing = booking.billing || {};
-    const passengers = booking.passengers || [];
-    
-    // Get contact info from booking first, then passengers, then billing
-    const primaryContact = passengers[0] || {};
-    const contactEmail = booking.email_id || primaryContact.email || billing.email || "contact@flyolaindia.com";
-    const contactPhone = booking.contact_no || primaryContact.phone || billing.phone || primaryContact.number || "+91-XXXXXXXXXX";
-    
-    // Calculate total price from various sources
-    const totalPrice = parseFloat(booking.totalFare) || 
-                      parseFloat(booking.totalPrice) || 
-                      parseFloat(booking.total_price) || 
-                      parseFloat(payment.amount) || 
-                      parseFloat(booking.amount) || 
-                      0; // Don't use fallback calculation, show 0 if no real data
-    
-    // Get flight number from flight schedule
-    const flightNumber = flightSchedule.Flight?.flight_number || 
-                        `FL${flightSchedule.flight_id || booking.schedule_id || '001'}`;
-    
-    // Parse booked seats
-    const bookedSeats = booking.booked_seat ? booking.booked_seat.split(', ') : [];
-    
-    return {
-      bookingData: {
-        id: booking.id || booking.schedule_id,
-        departure: booking.departureAirportName || "Departure City",
-        arrival: booking.arrivalAirportName || "Arrival City", 
-        departureCode: booking.departureAirportName?.substring(0, 3).toUpperCase() || "DEP",
-        arrivalCode: booking.arrivalAirportName?.substring(0, 3).toUpperCase() || "ARR",
-        departureTime: flightSchedule.departure_time || "09:00",
-        arrivalTime: flightSchedule.arrival_time || "11:00",
-        selectedDate: booking.bookDate || booking.book_date,
-        bookDate: booking.bookDate || booking.book_date,
-        totalPrice: totalPrice,
-        flightNumber: flightNumber,
-        bookedSeats: booking.booked_seat || 'Not Assigned'
-      },
-      travelerDetails: passengers.length > 0 ? passengers.map((passenger, index) => ({
-        title: passenger.title || (passenger.gender === 'Female' ? "Ms." : "Mr."),
-        fullName: passenger.name || passenger.passenger_name || `Passenger ${index + 1}`,
-        email: contactEmail,
-        phone: contactPhone,
-        address: passenger.address || billing.address || "Address not provided",
-        seat: bookedSeats[index] || 'Not Assigned'
-      })) : [{
-        title: "Mr.",
-        fullName: "Passenger Name",
-        email: contactEmail,
-        phone: contactPhone,
-        address: "Address not provided",
-        seat: bookedSeats[0] || 'Not Assigned'
-      }],
-      bookingResult: {
-        booking: {
-          pnr: booking.pnr || `PNR${booking.bookingNo || booking.id}`,
-          bookingNo: booking.bookingNo || booking.booking_no || booking.id,
-          bookingStatus: booking.bookingStatus || booking.booking_status || "CONFIRMED",
-          paymentStatus: payment.status || payment.payment_status || booking.paymentStatus || "COMPLETED",
-          totalFare: totalPrice,
-          noOfPassengers: booking.noOfPassengers || passengers.length || 1,
-          contact_no: contactPhone,
-          email_id: contactEmail,
-          bookedSeats: bookedSeats
-        },
-        passengers: passengers.length > 0 ? passengers.map((passenger, index) => ({
-          age: passenger.age || "25",
-          type: passenger.type || passenger.passenger_type || "Adult",
-          seat: bookedSeats[index] || 'Not Assigned'
-        })) : [{
-          age: "25",
-          type: "Adult",
-          seat: bookedSeats[0] || 'Not Assigned'
-        }]
-      }
-    };
-  };
-
+  // Handle viewing a ticket
   const handleViewTicket = (booking) => {
-    setSelectedBooking(booking);
+    // If booking is already transformed, use it directly
+    if (booking.bookingData && booking.travelerDetails && booking.bookingResult) {
+      setSelectedBooking(booking);
+    } else {
+      // Transform raw booking data
+      try {
+        const transformedData = transformTicketData(booking, airportMap);
+        setSelectedBooking(transformedData);
+      } catch (error) {
+        toast.error('Unable to display ticket. Data may be incomplete.');
+        return;
+      }
+    }
     setShowTicketModal(true);
   };
 
@@ -531,54 +442,65 @@ const Page = () => {
                   </td>
                 </tr>
               ) : (
-                currentBookings.map((booking) => (
-                  <tr key={booking.bookingNo} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-900">
-                      {booking.bookingNo || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-slate-700">
-                      {booking.pnr || "N/A"}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 max-w-[250px]">
-                        <UserGroupIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
-                        <span 
-                          className="text-slate-700 truncate" 
-                          title={booking.passengers?.map((p) => p.name).join(", ") || "N/A"}
+                currentBookings.map((booking) => {
+                  // Handle both transformed and raw booking data
+                  const bookingNo = booking.bookingResult?.booking?.bookingNo || booking.bookingNo;
+                  const pnr = booking.bookingResult?.booking?.pnr || booking.pnr;
+                  const bookDate = booking.bookingData?.bookDate || booking.bookDate;
+                  const passengerNames = booking.travelerDetails?.map(p => p.fullName).join(', ') || 
+                                        booking.passengers?.map(p => p.name).join(', ') || 'N/A';
+                  const departure = booking.bookingData?.departure || booking.departureAirportName;
+                  const arrival = booking.bookingData?.arrival || booking.arrivalAirportName;
+                  
+                  return (
+                    <tr key={bookingNo || booking.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-6 py-4 whitespace-nowrap font-semibold text-slate-900">
+                        {bookingNo || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-700">
+                        {pnr || "N/A"}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2 max-w-[250px]">
+                          <UserGroupIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
+                          <span 
+                            className="text-slate-700 truncate" 
+                            title={passengerNames}
+                          >
+                            {passengerNames}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          <CalendarDaysIcon className="w-4 h-4 text-slate-400" />
+                          <span className="text-slate-700">
+                            {bookDate ? new Date(bookDate).toLocaleDateString() : "N/A"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-slate-700 max-w-[200px]">
+                          <div className="font-medium truncate" title={departure}>
+                            {departure || 'Unknown'}
+                          </div>
+                          <div className="text-sm text-slate-500 truncate" title={`to ${arrival}`}>
+                            to {arrival || 'Unknown'}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={() => handleViewTicket(booking)}
+                          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all duration-200 shadow-sm font-medium"
                         >
-                          {booking.passengers?.map((p) => p.name).join(", ") || "N/A"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <CalendarDaysIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-700">
-                          {booking.bookDate ? new Date(booking.bookDate).toLocaleDateString() : "N/A"}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-slate-700 max-w-[200px]">
-                        <div className="font-medium truncate" title={booking.departureAirportName}>
-                          {booking.departureAirportName}
-                        </div>
-                        <div className="text-sm text-slate-500 truncate" title={`to ${booking.arrivalAirportName}`}>
-                          to {booking.arrivalAirportName}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <button
-                        onClick={() => handleViewTicket(booking)}
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white rounded-lg hover:from-pink-600 hover:to-rose-600 transition-all duration-200 shadow-sm font-medium"
-                      >
-                        <EyeIcon className="w-4 h-4" />
-                        View Ticket
-                      </button>
-                    </td>
-                  </tr>
-                ))
+                          <EyeIcon className="w-4 h-4" />
+                          View Ticket
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -639,7 +561,9 @@ const Page = () => {
               ×
             </button>
             <ProfessionalTicket
-              {...transformBookingData(selectedBooking)}
+              bookingData={selectedBooking.bookingData}
+              travelerDetails={selectedBooking.travelerDetails}
+              bookingResult={selectedBooking.bookingResult}
             />
           </div>
         </div>

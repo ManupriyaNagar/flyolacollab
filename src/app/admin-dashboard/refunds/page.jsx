@@ -63,7 +63,6 @@ export default function AdminRefundsPage() {
 
       setRefunds(data.data || []);
     } catch (err) {
-      console.error("Failed to load refunds:", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -100,7 +99,6 @@ export default function AdminRefundsPage() {
 
       toast.success(`Refund ${status.toLowerCase()} successfully`);
     } catch (err) {
-      console.error("Failed to process refund:", err.message);
       toast.error(err.message);
     } finally {
       setProcessingRefund(null);

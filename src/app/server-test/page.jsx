@@ -14,7 +14,6 @@ const ServerTestPage = () => {
         if (response.ok) {
           const data = await response.json();
           setServerStatus("online");
-          console.log("Server response:", data);
         } else {
           setServerStatus("error");
           setError(`Server responded with status: ${response.status}`);

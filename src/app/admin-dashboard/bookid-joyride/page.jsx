@@ -113,7 +113,6 @@ const AdminJoyrideSlotsPage = () => {
         toast.error(data.error || 'Failed to create joy ride slots');
       }
     } catch (err) {
-      console.error('Error creating joy ride slots:', err);
       toast.error('An error occurred while creating the joy ride slots');
     } finally {
       setLoading(false);

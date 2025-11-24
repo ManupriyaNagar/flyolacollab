@@ -25,7 +25,6 @@ const HireCharterPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Charter request submitted:', formData);
   };
 
   const charterTypes = [

@@ -42,7 +42,6 @@ const TourReviewStep = ({
           setFlightDetails(data);
         }
       } catch (error) {
-        console.error("Error fetching flight details:", error);
       } finally {
         setLoading(false);
       }

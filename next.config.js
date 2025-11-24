@@ -1,24 +1,35 @@
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+  enabled: process.env.ANALYZE === 'true',
+});
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Removed 'output: export' to enable proper server-side functionality
+  output: 'export',
   images: {
-    unoptimized: true,
+    unoptimized: true, // Required for static export
     domains: ['images.unsplash.com', 'flyola.in'],
   },
   env: {
     JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  // Enable proper routing and middleware
-  experimental: {
-    serverComponentsExternalPackages: [],
-  },
-  // Ensure proper handling of dynamic routes
-  trailingSlash: false,
-  // Enable proper client-side routing
-  async rewrites() {
-    return [];
+  // Static export optimizations
+  trailingSlash: true,
+  poweredByHeader: false,
+  
+  // Webpack optimizations for static export
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      // Reduce bundle size
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        net: false,
+        tls: false,
+      };
+    }
+    return config;
   },
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

@@ -5,7 +5,7 @@ import { XMarkIcon, ExclamationTriangleIcon, CurrencyRupeeIcon, CheckCircleIcon 
 import BASE_URL from '@/baseUrl/baseUrl';
 import { toast } from 'react-toastify';
 
-const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) => {
+const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess, bookingType = 'flight' }) => {
   const [cancellationDetails, setCancellationDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -22,7 +22,12 @@ const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSucces
   const fetchCancellationDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/cancellation/details/${booking.id}`);
+      // Use different endpoint based on booking type
+      const endpoint = bookingType === 'helicopter' 
+        ? `${BASE_URL}/helicopter-cancellation/details/${booking.id}`
+        : `${BASE_URL}/cancellation/details/${booking.id}`;
+      
+      const response = await fetch(endpoint);
       const data = await response.json();
       
       if (data.success) {
@@ -31,7 +36,6 @@ const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSucces
         toast.error(data.error || 'Failed to fetch cancellation details');
       }
     } catch (error) {
-      console.error('Error fetching cancellation details:', error);
       toast.error('Failed to fetch cancellation details');
     } finally {
       setLoading(false);
@@ -47,7 +51,13 @@ const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSucces
     setCancelling(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${BASE_URL}/cancellation/admin-cancel/${booking.id}`, {
+      
+      // Use different endpoint based on booking type
+      const endpoint = bookingType === 'helicopter'
+        ? `${BASE_URL}/helicopter-cancellation/admin-cancel/${booking.id}`
+        : `${BASE_URL}/cancellation/admin-cancel/${booking.id}`;
+      
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -64,14 +74,14 @@ const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSucces
       const data = await response.json();
       
       if (data.success) {
-        toast.success(`Booking cancelled successfully with ${cancellationType === 'full' ? 'full refund' : 'policy-based refund'}`);
+        const bookingTypeLabel = bookingType === 'helicopter' ? 'Helicopter booking' : 'Flight booking';
+        toast.success(`${bookingTypeLabel} cancelled successfully with ${cancellationType === 'full' ? 'full refund' : 'policy-based refund'}`);
         onCancellationSuccess(data.data);
         onClose();
       } else {
         toast.error(data.error || 'Failed to cancel booking');
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
       toast.error('Failed to cancel booking');
     } finally {
       setCancelling(false);
@@ -110,7 +120,9 @@ const AdminCancellationModal = ({ isOpen, onClose, booking, onCancellationSucces
               <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-gray-900">Admin Cancellation</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Admin Cancellation {bookingType === 'helicopter' ? '🚁' : '✈️'}
+              </h2>
               <p className="text-sm text-gray-500">PNR: {booking?.pnr}</p>
             </div>
           </div>

@@ -56,7 +56,6 @@ export default function UserRefundsPage() {
 
       setRefunds(data.data || []);
     } catch (err) {
-      console.error("Failed to load refunds:", err.message);
       setError(err.message);
     } finally {
       setLoading(false);

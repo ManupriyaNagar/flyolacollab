@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -50,7 +50,6 @@ export default function AdminJoyrideBookingsPage() {
         const data = await response.json();
         setBookings(data);
       } catch (err) {
-        console.error('[AdminJoyrideBookingsPage] Fetch error:', err.message);
         toast.error(err.message || 'An error occurred while fetching bookings');
       } finally {
         setLoading(false);

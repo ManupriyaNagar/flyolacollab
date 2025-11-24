@@ -97,7 +97,6 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
       setSelectedSeats(seats.slice(0, totalPassengers));
       setError(null);
     } catch (err) {
-      console.warn(`Failed to fetch seats for schedule ${flightSchedule.id}: ${err.message}`);
       setError(`Unable to load seats. Using fallback.`);
       setAvailableSeats(allSeats);
       setSelectedSeats(allSeats.slice(0, totalPassengers));
@@ -146,7 +145,6 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
       closePopup();
       router.push("/combined-booking-page");
     } catch (error) {
-      console.error("Error in handleConfirmBooking:", error);
       alert("An error occurred while processing your booking. Please try again.");
     }
   }, [closePopup, router, departure, arrival, formattedDate, passengers, calculateTotalPrice, flightSchedule, selectedSeats, totalPassengers]);
@@ -290,9 +288,15 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
               </h3>
 
               {loading ? (
-                <div className="flex items-center justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <span className="ml-3 text-gray-600">Loading available seats...</span>
+                <div className="py-8 space-y-4">
+                  <div className="flex items-center justify-center mb-4">
+                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 max-w-[8rem] mx-auto">
+                    {Array.from({ length: 6 }).map((_, i) => (
+                      <div key={i} className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                    ))}
+                  </div>
                 </div>
               ) : error && availableSeats.length === 0 ? (
                 <div className="text-center py-6 bg-red-50 rounded-xl border border-red-200">
@@ -382,7 +386,7 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
             >
               {loading ? (
                 <div className="flex items-center justify-center gap-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  <div className="h-5 w-5 bg-white/30 rounded animate-pulse"></div>
                   Processing...
                 </div>
               ) : selectedSeats.length !== totalPassengers ? (

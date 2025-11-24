@@ -34,7 +34,7 @@ const BookingSummary = ({ bookingData, travelerDetails, currentStep }) => {
         const [reviewsRes, couponsRes, airportsRes] = await Promise.allSettled([
           fetch(`${BASE_URL}/reviews`, { headers }),
           fetch(`${BASE_URL}/coupans`, { headers }),
-          fetch(`${BASE_URL}/airports`, { headers })
+          fetch(`${BASE_URL}/airport`, { headers })
         ]);
 
 
@@ -48,7 +48,6 @@ const BookingSummary = ({ bookingData, travelerDetails, currentStep }) => {
           setAirports(airportsData);
         }
       } catch (error) {
-        console.error("Error fetching additional data:", error);
       } finally {
         setLoading(false);
       }

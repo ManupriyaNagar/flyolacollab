@@ -26,7 +26,6 @@ const PersonalCharterPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Personal charter request submitted:', formData);
   };
 
   const features = [

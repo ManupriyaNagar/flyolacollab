@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import FilterSidebar from "@/components/ScheduledFlight/FilterSidebar";
 import FlightCard from "@/components/ScheduledFlight/FlightCard";
 import Header2 from "@/components/ScheduledFlight/Header";
@@ -23,7 +22,6 @@ const normaliseStops = (raw) => {
 };
 
 const ScheduledFlightsPage = () => {
-  const router = useRouter();
   const { authState, setAuthState } = useAuth();
 
   const [flightSchedules, setFlightSchedules] = useState([]);
@@ -59,15 +57,12 @@ const ScheduledFlightsPage = () => {
     try {
       const [schedulesRes, flightsRes, airportsRes] = await Promise.all([
         API.flights.getFlightSchedules({ user: true, month: `${year}-${month}` }).catch((err) => {
-          console.warn(`Schedules API failed: ${err.message}`);
           return [];
         }),
         API.flights.getFlights({ user: true }).catch((err) => {
-          console.warn(`Flights API failed: ${err.message}`);
           return [];
         }),
         API.airports.getAirports().catch((err) => {
-          console.warn(`Airports API failed: ${err.message}`);
           return [];
         }),
       ]);
@@ -95,7 +90,6 @@ const ScheduledFlightsPage = () => {
       setFlights(Array.isArray(flightsRes) ? flightsRes : []);
       setAirports(Array.isArray(airportsRes) ? airportsRes : []);
     } catch (err) {
-      console.warn("Fetch data error:", err.message);
       setFlightSchedules([]);
       setFlights([]);
       setAirports([]);
@@ -250,11 +244,14 @@ const ScheduledFlightsPage = () => {
 
   const filteredAndSortedFlightSchedules = getFilteredAndSortedFlightSchedules();
 
+  // Filter airports to only show locations with airport_code (exclude helipad-only locations)
+  const flightAirports = airports.filter(airport => airport.airport_code);
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
       <div className="w-full md:w-72 md:flex-shrink-0 overflow-y-auto h-auto md:h-screen bg-white shadow-lg md:sticky top-20">
         <FilterSidebar
-          airports={airports}
+          airports={flightAirports}
           sortOption={sortOption}
           setSortOption={setSortOption}
           filterDepartureCity={filterDepartureCity}

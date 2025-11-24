@@ -55,10 +55,23 @@ export default function UserDashboard() {
   const router = useRouter();
 
   useEffect(() => {
+    // Only redirect if we're sure the user is not logged in (not during loading)
     if (!authState.isLoading && !authState.isLoggedIn) {
       router.push("/sign-in");
     }
   }, [authState.isLoading, authState.isLoggedIn, router]);
+
+  // Show loading screen while auth is being verified
+  if (authState.isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading dashboard...</p>
+        </div>
+      </div>
+    );
+  }
 
   useEffect(() => {
     if (authState.isLoading || !authState.isLoggedIn) {
@@ -99,7 +112,6 @@ export default function UserDashboard() {
               return await userBookingsRes.json();
             }
           } catch (err) {
-            console.error("Error fetching user bookings:", err);
           }
           
           return [];
@@ -113,7 +125,6 @@ export default function UserDashboard() {
               return await userPaymentsRes.json();
             }
           } catch (err) {
-            console.error("Error fetching user payments:", err);
           }
           
           return [];
@@ -139,7 +150,6 @@ export default function UserDashboard() {
               ) : [];
             }
           } catch (err) {
-            console.log("Joyride bookings not available:", err);
           }
           
           return [];
@@ -151,15 +161,7 @@ export default function UserDashboard() {
         setBookings(Array.isArray(bookingsData) ? bookingsData : []);
         setPayments(Array.isArray(paymentsData) ? paymentsData : []);
         setJoyrideBookings(Array.isArray(joyrideData) ? joyrideData : []);
-
-        console.log("[UserDashboard] User-specific data fetched successfully", {
-          bookings: bookingsData.length,
-          payments: paymentsData.length,
-          joyrides: joyrideData.length,
-          userId
-        });
       } catch (err) {
-        console.error("[UserDashboard] Error fetching user data:", err);
         setError(err.message);
         toast.error(err.message);
         if (err.message.includes("Authentication failed")) {

@@ -115,7 +115,6 @@ const ForgotPasswordPage = () => {
         toast.error(data.error || 'Failed to send OTP. Please try again.');
       }
     } catch (error) {
-      console.error('Forgot password error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -153,7 +152,6 @@ const ForgotPasswordPage = () => {
         toast.error(data.error || 'Invalid OTP or failed to reset password.');
       }
     } catch (error) {
-      console.error('Verify OTP error:', error);
       toast.error('Something went wrong. Please try again.');
     } finally {
       setLoading(false);

@@ -57,7 +57,6 @@ const UserProfile = () => {
         
         if (res.status === 404) {
           // Profile endpoint doesn't exist, use empty profile
-          console.log("Profile endpoint not found, using empty profile");
           setLoading(false);
           return;
         }
@@ -86,10 +85,8 @@ const UserProfile = () => {
               : "",
           });
         } else {
-          console.log("No profile data in response, using empty profile");
         }
       } catch (e) {
-        console.error("Profile fetch error:", e);
         if (e.message.includes('fetch')) {
           setError("Unable to connect to server. Please check your internet connection.");
         } else {
@@ -157,7 +154,6 @@ const UserProfile = () => {
         }));
       }
     } catch (e) {
-      console.error("Profile save error:", e);
       if (e.message.includes('fetch')) {
         setError("Unable to connect to server. Please check your internet connection.");
       } else {
@@ -169,8 +165,31 @@ const UserProfile = () => {
   };
 
   if (loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+    <div className="space-y-6">
+      {/* Profile Header Skeleton */}
+      <div className="flex items-center space-x-4">
+        <div className="h-20 w-20 bg-gray-200 rounded-full animate-pulse"></div>
+        <div className="space-y-2">
+          <div className="h-6 w-32 bg-gray-200 rounded animate-pulse"></div>
+          <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      {/* Profile Form Skeleton */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <div className="space-y-6">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="space-y-2">
+              <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+              <div className="h-10 w-full bg-gray-200 rounded-lg animate-pulse"></div>
+            </div>
+          ))}
+          <div className="flex gap-4 pt-4">
+            <div className="h-10 w-24 bg-gray-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-20 bg-gray-200 rounded-lg animate-pulse"></div>
+          </div>
+        </div>
+      </div>
     </div>
   );
 
@@ -201,7 +220,6 @@ const UserProfile = () => {
                         });
                         
                         if (res.status === 404) {
-                          console.log("Profile endpoint not found, using empty profile");
                           setLoading(false);
                           return;
                         }
@@ -229,10 +247,8 @@ const UserProfile = () => {
                               : "",
                           });
                         } else {
-                          console.log("No profile data in response, using empty profile");
                         }
                       } catch (e) {
-                        console.error("Profile fetch error:", e);
                         if (e.message.includes('fetch')) {
                           setError("Unable to connect to server. Please check your internet connection.");
                         } else {

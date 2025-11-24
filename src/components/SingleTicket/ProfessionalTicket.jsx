@@ -20,14 +20,12 @@
 
 // const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => {
 //   // Debug logging
-//   console.log("ProfessionalTicket received data:", {
 //     bookingData,
 //     travelerDetails,
 //     bookingResult
 //   });
   
 //   // Debug seat data specifically
-//   console.log("Seat debug:", {
 //     travelerSeats: safeTravelerDetails.map(t => t.seat),
 //     passengerSeats: safeBookingResult?.passengers?.map(p => p.seat),
 //     bookedSeats: safeBookingResult?.booking?.bookedSeats,
@@ -52,7 +50,6 @@
 
 //   const downloadTicket = () => {
 //     if (!ticketRef.current) {
-//       console.error("Ticket content element not found");
 //       alert("Failed to generate PDF. Please try again.");
 //       return;
 //     }
@@ -68,7 +65,6 @@
 
 //     const clonedElement = container.querySelector("div");
 //     if (!clonedElement) {
-//       console.error("Cloned element not found");
 //       document.body.removeChild(container);
 //       return;
 //     }
@@ -92,7 +88,6 @@
 //         pdf.save(`flyola_ticket_${ticketNumber}.pdf`);
 //       })
 //       .catch((error) => {
-//         console.error("PDF generation failed:", error);
 //         alert("Failed to generate PDF. Please try again.");
 //       })
 //       .finally(() => {
@@ -389,7 +384,7 @@
 //                   color: "#0f172a",
 //                   margin: 0
 //                 }}>
-//                   {safeBookingData?.flightNumber || `FL-${safeBookingData?.flightId || safeBookingData?.id || "001"}`}
+//                   {safeBookingData?.flightNumber || 'N/A'}
 //                 </p>
 //               </div>
 //               <div>
@@ -865,6 +860,7 @@
 import React, { useRef } from "react";
 import {
   FaPlane,
+  FaHelicopter,
   FaClock,
   FaEnvelope,
   FaPhone,
@@ -881,32 +877,31 @@ import jsPDF from "jspdf";
 import domToImage from "dom-to-image";
 
 const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => {
-  // Debug logging
-  console.log("ProfessionalTicket received data:", {
-    bookingData,
-    travelerDetails,
-    bookingResult
-  });
-  
   // Ensure we have valid data
   const safeBookingData = bookingData || {};
   const safeTravelerDetails = Array.isArray(travelerDetails) ? travelerDetails : [];
   const safeBookingResult = bookingResult || {};
 
   const totalPassengers = safeTravelerDetails.length || 1;
-  const ticketNumber = safeBookingResult?.booking?.pnr || `FLYOLA-${Date.now().toString(36).toUpperCase()}`;
-  const bookingNumber = safeBookingResult?.booking?.bookingNo || `BK-${Date.now().toString(36).toUpperCase()}`;
+  const ticketNumber = safeBookingResult?.booking?.pnr || 'MISSING_PNR';
+  const bookingNumber = safeBookingResult?.booking?.bookingNo || 'MISSING_BOOKING_NO';
   const ticketRef = useRef(null);
 
-  // Format departure and arrival codes
-  const departureCode = safeBookingData?.departureCode || 
-                       (safeBookingData?.departure ? safeBookingData.departure.substring(0, 3).toUpperCase() : "DEP");
-  const arrivalCode = safeBookingData?.arrivalCode || 
-                     (safeBookingData?.arrival ? safeBookingData.arrival.substring(0, 3).toUpperCase() : "ARR");
+  // Detect if this is a helicopter booking - ONLY check bookingType field
+  const isHelicopterBooking = safeBookingData?.bookingType === 'helicopter';
+
+  // Set appropriate icons and labels based on booking type
+  const VehicleIcon = isHelicopterBooking ? FaHelicopter : FaPlane;
+  const vehicleType = isHelicopterBooking ? 'Helicopter' : 'Flight';
+  const vehicleLabel = isHelicopterBooking ? 'Helicopter Information' : 'Flight Information';
+  const routeLabel = isHelicopterBooking ? 'Direct Helicopter' : 'Direct Flight';
+
+  // Format departure and arrival codes - use only database codes, no name truncation
+  const departureCode = safeBookingData?.departureCode || 'DEP';
+  const arrivalCode = safeBookingData?.arrivalCode || 'ARR';
 
   const downloadTicket = () => {
     if (!ticketRef.current) {
-      console.error("Ticket content element not found");
       alert("Failed to generate PDF. Please try again.");
       return;
     }
@@ -922,7 +917,6 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
 
     const clonedElement = container.querySelector("div");
     if (!clonedElement) {
-      console.error("Cloned element not found");
       document.body.removeChild(container);
       return;
     }
@@ -946,7 +940,6 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
         pdf.save(`flyola_ticket_${ticketNumber}.pdf`);
       })
       .catch((error) => {
-        console.error("PDF generation failed:", error);
         alert("Failed to generate PDF. Please try again.");
       })
       .finally(() => {
@@ -1039,7 +1032,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
             </div>
           </div>
 
-          {/* Flight Information */}
+          {/* Vehicle Information */}
           <div style={{
             padding: "24px",
             borderBottom: "1px solid #e5e7eb",
@@ -1053,7 +1046,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
             }}>
               <div style={{ display: "flex", alignItems: "center" }}>
                 <div style={{
-                  backgroundColor: "#eff6ff",
+                  backgroundColor: isHelicopterBooking ? "#fef2f2" : "#eff6ff",
                   borderRadius: "50%",
                   width: "32px",
                   height: "32px",
@@ -1062,7 +1055,10 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   justifyContent: "center",
                   marginRight: "12px"
                 }}>
-                  <FaPlane style={{ color: "#2563eb", fontSize: "14px" }} />
+                  <VehicleIcon style={{ 
+                    color: isHelicopterBooking ? "#dc2626" : "#2563eb", 
+                    fontSize: "14px" 
+                  }} />
                 </div>
                 <h2 style={{
                   fontSize: "16px",
@@ -1070,7 +1066,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   color: "#0f172a",
                   margin: 0
                 }}>
-                  Flight Information
+                  {vehicleLabel}
                 </h2>
               </div>
               <div style={{
@@ -1173,7 +1169,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   margin: "8px 0 0 0",
                   textAlign: "center"
                 }}>
-                  Direct Flight
+                  {routeLabel}
                 </p>
               </div>
 
@@ -1235,7 +1231,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   textTransform: "uppercase",
                   letterSpacing: "0.5px"
                 }}>
-                  Flight
+                  {vehicleType}
                 </p>
                 <p style={{
                   fontSize: "14px",
@@ -1243,7 +1239,7 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   color: "#0f172a",
                   margin: 0
                 }}>
-                  FL-{safeBookingData?.flightId || safeBookingData?.id || "001"}
+                  {safeBookingData?.flightNumber || safeBookingData?.helicopterNumber || 'N/A'}
                 </p>
               </div>
               <div>
@@ -1428,9 +1424,11 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                         fontWeight: "600",
                         color: "#2563eb"
                       }}>
-                        {safeBookingResult?.booking?.bookedSeats?.[idx] || 
+                        {safeBookingResult?.passengers?.[idx]?.seat || 
+                         safeTravelerDetails[idx]?.seat ||
+                         safeBookingResult?.booking?.bookedSeats?.[idx] || 
                          safeBookingData?.bookedSeats?.[idx] ||
-                         `${String.fromCharCode(65 + idx)}${Math.floor(Math.random() * 30) + 1}`}
+                         'Not Assigned'}
                       </td>
                     </tr>
                   ))
@@ -1475,17 +1473,13 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <FaEnvelope style={{ color: "#64748b", fontSize: "12px" }} />
                     <span style={{ color: "#334155" }}>
-                      {safeTravelerDetails[0]?.email && safeTravelerDetails[0].email !== "N/A" 
-                        ? safeTravelerDetails[0].email 
-                        : "contact@flyolaindia.com"}
+                      {safeTravelerDetails[0]?.email || "Email not provided"}
                     </span>
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <FaPhone style={{ color: "#64748b", fontSize: "12px" }} />
                     <span style={{ color: "#334155" }}>
-                      {safeTravelerDetails[0]?.phone && safeTravelerDetails[0].phone !== "N/A" 
-                        ? safeTravelerDetails[0].phone 
-                        : "+91-9876543210"}
+                      {safeTravelerDetails[0]?.phone || "Phone not provided"}
                     </span>
                   </div>
                 </div>

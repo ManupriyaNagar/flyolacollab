@@ -37,9 +37,52 @@ export default function RootLayout({ children }) {
         {/* Performance optimizations */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_BASE_URL || "https://api.flyola.com"} />
+        <link 
+          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" 
+          rel="stylesheet" 
+        />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com      "} />
+        <link rel="prefetch" href={`${process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com      "}/airport`} />
+        <link rel="preload" href="/pp.svg" as="image" />
+        <link rel="preload" href="/logoo-04.png" as="image" />
+        <link rel="preload" href="/1.png" as="image" />
+        <link rel="preload" href="/2.png" as="image" />
+        <link rel="preload" href="/flight.png" as="image" />
+        <link rel="modulepreload" href="/_next/static/chunks/main.js" />
+        <link rel="modulepreload" href="/_next/static/chunks/pages/_app.js" />
 
         <link rel="manifest" href="/manifest.json" />
+        
+        {/* Service Worker Registration - Updated to avoid CORS issues */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', async () => {
+                  try {
+                    // Unregister any existing service workers first
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    for (let registration of registrations) {
+                      await registration.unregister();
+                    }
+                    
+                    // Clear all caches
+                    const cacheNames = await caches.keys();
+                    await Promise.all(
+                      cacheNames.map(cacheName => caches.delete(cacheName))
+                    );
+                    
+                    // Register the new service worker
+                    await navigator.serviceWorker.register('/sw.js');
+                    console.log('Service worker registered successfully');
+                  } catch (error) {
+                    console.log('Service worker registration failed:', error);
+                  }
+                });
+              }
+            `,
+          }}
+        />
         {/* Meta Pixel Code */}
         <script
           dangerouslySetInnerHTML={{

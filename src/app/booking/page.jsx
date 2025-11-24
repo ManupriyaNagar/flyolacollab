@@ -1,6 +1,6 @@
 "use client";
 
-import { FaUserFriends, FaClock, FaPlane, FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
+import { FaUserFriends, FaClock, FaPlane, FaHelicopter, FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
 import { motion } from "framer-motion";
@@ -38,6 +38,7 @@ const BookingPageContent = () => {
     const departureTime = searchParams.get('departureTime') || '';
     const arrivalTime = searchParams.get('arrivalTime') || '';
     const passengers = parseInt(searchParams.get('passengers') || '1');
+    const bookingType = searchParams.get('type') || 'flight'; // 'flight' or 'helicopter'
 
     const [passengerData] = useState({
         adults: passengers || 1,
@@ -84,7 +85,7 @@ const BookingPageContent = () => {
 
     const fetchAvailableSeats = useCallback(async () => {
         if (!scheduleId) {
-            setError("Missing flight schedule information");
+            setError(`Missing ${bookingType} schedule information`);
             setLoading(false);
             return;
         }
@@ -92,15 +93,16 @@ const BookingPageContent = () => {
         setLoading(true);
         try {
             const token = localStorage.getItem("token") || "";
-            const response = await fetch(
-                `${BASE_URL}/booked-seat/available-seats?schedule_id=${scheduleId}&bookDate=${formattedDate}`,
-                {
-                    headers: {
-                        "Content-Type": "application/json",
-                        Authorization: `Bearer ${token}`,
-                    },
-                }
-            );
+            const apiEndpoint = bookingType === 'helicopter' 
+                ? `${BASE_URL}/helicopter-seat/available-seats?schedule_id=${scheduleId}&bookDate=${formattedDate}`
+                : `${BASE_URL}/booked-seat/available-seats?schedule_id=${scheduleId}&bookDate=${formattedDate}`;
+            
+            const response = await fetch(apiEndpoint, {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
 
             if (!response.ok) {
                 throw new Error(`Seats API failed: ${response.status}`);
@@ -115,7 +117,6 @@ const BookingPageContent = () => {
             setSelectedSeats(seats.slice(0, totalPassengers));
             setError(null);
         } catch (err) {
-            console.warn(`Failed to fetch seats for schedule ${scheduleId}: ${err.message}`);
             setError(`Unable to load seats. Using fallback.`);
             setAvailableSeats(allSeats);
             setSelectedSeats(allSeats.slice(0, totalPassengers));
@@ -151,9 +152,17 @@ const BookingPageContent = () => {
             return;
         }
         try {
+            // Get additional params for helicopter bookings
+            const departureCode = searchParams.get('departureCode') || departure.substring(0, 3).toUpperCase();
+            const arrivalCode = searchParams.get('arrivalCode') || arrival.substring(0, 3).toUpperCase();
+            const helicopterNumber = searchParams.get('helicopterNumber');
+            const flightNumber = searchParams.get('flightNumber');
+            
             const bookingData = {
                 departure,
                 arrival,
+                departureCode,
+                arrivalCode,
                 selectedDate: formattedDate,
                 passengers: passengerData,
                 totalPrice: calculateTotalPrice,
@@ -164,14 +173,16 @@ const BookingPageContent = () => {
                     arrival_time: arrivalTime,
                 },
                 selectedSeats,
+                bookingType: bookingType,
+                helicopterNumber: helicopterNumber,
+                flightNumber: flightNumber,
             };
             localStorage.setItem("bookingData", JSON.stringify(bookingData));
             router.push("/combined-booking-page");
         } catch (error) {
-            console.error("Error in handleConfirmBooking:", error);
             alert("An error occurred while processing your booking. Please try again.");
         }
-    }, [router, departure, arrival, formattedDate, passengerData, calculateTotalPrice, scheduleId, basePrice, departureTime, arrivalTime, selectedSeats, totalPassengers]);
+    }, [router, departure, arrival, formattedDate, passengerData, calculateTotalPrice, scheduleId, basePrice, departureTime, arrivalTime, selectedSeats, totalPassengers, bookingType, searchParams]);
 
     const handleRetry = useCallback(() => {
         setError(null);
@@ -180,20 +191,29 @@ const BookingPageContent = () => {
 
     // Validate required parameters
     if (!departure || !arrival || !selectedDate || !scheduleId) {
+        
         return (
             <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
                 <div className="bg-white rounded-2xl shadow-xl p-8 max-w-lg w-full text-center">
                     <div className="text-red-500 text-6xl mb-4">⚠️</div>
                     <h1 className="text-2xl font-bold text-gray-800 mb-4">Missing Booking Information</h1>
                     <p className="text-gray-600 mb-6">
-                        Some required booking details are missing. Please go back and select a flight again.
+                        Some required booking details are missing. Please go back and select a {bookingType} again.
                     </p>
+                    <div className="text-sm text-gray-500 mb-4">
+                        Missing: {[
+                            !departure && 'departure',
+                            !arrival && 'arrival', 
+                            !selectedDate && 'date',
+                            !scheduleId && 'schedule ID'
+                        ].filter(Boolean).join(', ')}
+                    </div>
                     <Link
-                        href="/scheduled-flight"
+                        href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
                         className="inline-flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                     >
                         <FaArrowLeft />
-                        Back to Flights
+                        Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
                     </Link>
                 </div>
             </div>
@@ -208,27 +228,33 @@ const BookingPageContent = () => {
                     <div className="flex items-center justify-between">
                         <div>
                             <h1 className="text-3xl font-bold flex items-center gap-3">
-                                <FaPlane className="text-yellow-300" />
+                                {bookingType === 'helicopter' ? 
+                                    <FaHelicopter className="text-yellow-300" /> : 
+                                    <FaPlane className="text-yellow-300" />
+                                }
                                 Complete Your Booking
                             </h1>
                             <p className="text-blue-100 mt-2">Secure your seats in just a few clicks</p>
                         </div>
                         <Link
-                            href="/scheduled-flight"
+                            href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
                             className="text-white/80 hover:text-white hover:bg-white/20 p-3 rounded-full transition-all flex items-center gap-2"
                         >
                             <FaArrowLeft />
-                            <span className="hidden sm:inline">Back to Flights</span>
+                            <span className="hidden sm:inline">Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}</span>
                         </Link>
                     </div>
                 </div>
 
                 <div className="bg-white rounded-b-3xl shadow-xl p-6 space-y-6">
-                    {/* Flight Details */}
-                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
+                    {/* Flight/Helicopter Details */}
+                    <div className={`bg-gradient-to-br ${bookingType === 'helicopter' ? 'from-red-50 to-pink-50 border-red-200' : 'from-blue-50 to-indigo-50 border-blue-200'} p-6 rounded-2xl border`}>
                         <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <FaPlane className="text-blue-600" />
-                            Flight Details
+                            {bookingType === 'helicopter' ? 
+                                <FaHelicopter className="text-red-600" /> : 
+                                <FaPlane className="text-blue-600" />
+                            }
+                            {bookingType === 'helicopter' ? 'Helicopter' : 'Flight'} Details
                         </h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div className="space-y-3">
@@ -310,9 +336,15 @@ const BookingPageContent = () => {
                         </h3>
 
                         {loading ? (
-                            <div className="flex items-center justify-center py-8">
-                                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                                <span className="ml-3 text-gray-600">Loading available seats...</span>
+                            <div className="py-8 space-y-4">
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                                </div>
+                                <div className="grid grid-cols-6 gap-2">
+                                    {Array.from({ length: 24 }).map((_, i) => (
+                                        <div key={i} className="h-10 w-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                                    ))}
+                                </div>
                             </div>
                         ) : error && availableSeats.length === 0 ? (
                             <div className="text-center py-6 bg-red-50 rounded-xl border border-red-200">
@@ -397,10 +429,10 @@ const BookingPageContent = () => {
                     {/* Action Buttons */}
                     <div className="flex flex-col sm:flex-row gap-4">
                         <Link
-                            href="/scheduled-flight"
+                            href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
                             className="flex-1 py-4 px-6 bg-gray-100 text-gray-700 rounded-2xl text-lg font-bold hover:bg-gray-200 transition-colors text-center"
                         >
-                            ← Back to Flights
+                            ← Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
                         </Link>
                         <button
                             onClick={handleConfirmBooking}
@@ -409,7 +441,7 @@ const BookingPageContent = () => {
                         >
                             {loading ? (
                                 <div className="flex items-center justify-center gap-3">
-                                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                                    <div className="h-5 w-5 bg-white/30 rounded animate-pulse"></div>
                                     Processing...
                                 </div>
                             ) : selectedSeats.length !== totalPassengers ? (
@@ -428,8 +460,81 @@ const BookingPageContent = () => {
 const BookingPage = () => {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            <div className="min-h-screen bg-gray-50 py-8 px-4">
+                <div className="max-w-7xl mx-auto">
+                    {/* Header Skeleton */}
+                    <div className="bg-gradient-to-r from-gray-300 to-gray-400 p-6 rounded-t-3xl animate-pulse">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <div className="h-8 w-64 bg-gray-400 rounded mb-2"></div>
+                                <div className="h-4 w-48 bg-gray-400 rounded"></div>
+                            </div>
+                            <div className="h-12 w-32 bg-gray-400 rounded-full"></div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-b-3xl shadow-xl p-6 space-y-6">
+                        {/* Flight Details Skeleton */}
+                        <div className="bg-gray-50 p-6 rounded-2xl">
+                            <div className="h-6 w-32 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-3">
+                                    {Array.from({ length: 3 }).map((_, i) => (
+                                        <div key={i} className="flex items-center gap-3">
+                                            <div className="w-2 h-2 bg-gray-200 rounded-full animate-pulse"></div>
+                                            <div className="h-4 w-16 bg-gray-200 rounded animate-pulse"></div>
+                                            <div className="h-4 w-24 bg-gray-200 rounded animate-pulse"></div>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="space-y-3">
+                                    {Array.from({ length: 2 }).map((_, i) => (
+                                        <div key={i} className="bg-gray-100 p-3 rounded-xl">
+                                            <div className="flex items-center justify-between">
+                                                <div className="h-4 w-20 bg-gray-200 rounded animate-pulse"></div>
+                                                <div className="h-6 w-16 bg-gray-200 rounded animate-pulse"></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Passenger Details Skeleton */}
+                        <div className="bg-gray-50 p-6 rounded-2xl">
+                            <div className="h-6 w-40 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                            <div className="grid grid-cols-3 gap-4">
+                                {Array.from({ length: 3 }).map((_, i) => (
+                                    <div key={i} className="text-center bg-white p-4 rounded-xl">
+                                        <div className="h-8 w-8 bg-gray-200 rounded mx-auto mb-2 animate-pulse"></div>
+                                        <div className="h-4 w-16 bg-gray-200 rounded mx-auto animate-pulse"></div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Seat Selection Skeleton */}
+                        <div className="bg-gray-50 p-6 rounded-2xl">
+                            <div className="h-6 w-48 bg-gray-200 rounded mb-4 animate-pulse"></div>
+                            <div className="py-8 space-y-4">
+                                <div className="flex items-center justify-center mb-4">
+                                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                                </div>
+                                <div className="grid grid-cols-2 gap-3 max-w-[10rem] mx-auto">
+                                    {Array.from({ length: 6 }).map((_, i) => (
+                                        <div key={i} className="h-12 bg-gray-200 rounded-lg animate-pulse"></div>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Action Buttons Skeleton */}
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <div className="flex-1 h-16 bg-gray-200 rounded-2xl animate-pulse"></div>
+                            <div className="flex-1 h-16 bg-gray-200 rounded-2xl animate-pulse"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         }>
             <BookingPageContent />

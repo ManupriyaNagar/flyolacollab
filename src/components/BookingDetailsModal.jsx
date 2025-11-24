@@ -6,6 +6,9 @@ import { XMarkIcon } from "@heroicons/react/24/outline";
 const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
   if (!isOpen || !booking) return null;
 
+  // Detect if this is a helicopter booking
+  const isHelicopterBooking = booking.helicopterSchedule || booking.helicopterNumber;
+
   const formatDate = (dateString) => {
     if (!dateString) return "N/A";
     return new Date(dateString).toLocaleString();
@@ -80,8 +83,15 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
                   <p className="text-sm text-gray-900">{booking.pnr || "N/A"}</p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Flight Number</label>
-                  <p className="text-sm text-gray-900">{booking.flightNumber || "N/A"}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    {isHelicopterBooking ? "Helicopter Number" : "Flight Number"}
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {isHelicopterBooking 
+                      ? (booking.helicopterNumber ? `🚁 ${booking.helicopterNumber}` : "N/A")
+                      : (booking.flightNumber || "N/A")
+                    }
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Status</label>
@@ -100,30 +110,56 @@ const BookingDetailsModal = ({ booking, isOpen, onClose }) => {
 
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">
-                Flight Details
+                {isHelicopterBooking ? "🚁 Helicopter Details" : "Flight Details"}
               </h3>
               <div className="space-y-3">
                 <div>
-                  <label className="text-sm font-medium text-gray-500">Flight Date</label>
+                  <label className="text-sm font-medium text-gray-500">
+                    {isHelicopterBooking ? "Flight Date" : "Flight Date"}
+                  </label>
                   <p className="text-sm text-gray-900">
                     {booking.bookDate ? new Date(booking.bookDate).toLocaleDateString() : "N/A"}
                   </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Departure Time</label>
-                  <p className="text-sm text-gray-900">{booking.FlightSchedule?.departure_time || "N/A"}</p>
+                  <p className="text-sm text-gray-900">
+                    {isHelicopterBooking 
+                      ? (booking.helicopterSchedule?.departure_time || "N/A")
+                      : (booking.FlightSchedule?.departure_time || "N/A")
+                    }
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Arrival Time</label>
-                  <p className="text-sm text-gray-900">{booking.FlightSchedule?.arrival_time || "N/A"}</p>
+                  <p className="text-sm text-gray-900">
+                    {isHelicopterBooking 
+                      ? (booking.helicopterSchedule?.arrival_time || "N/A")
+                      : (booking.FlightSchedule?.arrival_time || "N/A")
+                    }
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">From</label>
-                  <p className="text-sm text-gray-900">{booking.departureAirportName || "N/A"}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    {isHelicopterBooking ? "From (Helipad)" : "From"}
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {isHelicopterBooking 
+                      ? (booking.departureHelipadName || "N/A")
+                      : (booking.departureAirportName || "N/A")
+                    }
+                  </p>
                 </div>
                 <div>
-                  <label className="text-sm font-medium text-gray-500">To</label>
-                  <p className="text-sm text-gray-900">{booking.arrivalAirportName || "N/A"}</p>
+                  <label className="text-sm font-medium text-gray-500">
+                    {isHelicopterBooking ? "To (Helipad)" : "To"}
+                  </label>
+                  <p className="text-sm text-gray-900">
+                    {isHelicopterBooking 
+                      ? (booking.arrivalHelipadName || "N/A")
+                      : (booking.arrivalAirportName || "N/A")
+                    }
+                  </p>
                 </div>
                 <div>
                   <label className="text-sm font-medium text-gray-500">Seats</label>

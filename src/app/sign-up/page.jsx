@@ -146,7 +146,6 @@ const SignUpPage = () => {
         router.push('/sign-in');
       }, 2000);
     } catch (error) {
-      console.error('Registration error:', error);
       const message = API.isApiError(error) ? error.message : 'Something went wrong. Please try again.';
       toast.error(message);
     } finally {

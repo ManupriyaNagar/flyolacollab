@@ -53,7 +53,6 @@ const ResetPasswordContent = () => {
         setMessage("");
       }
     } catch (error) {
-      console.error("Reset password error:", error);
       setErrorMsg("An error occurred. Please try again.");
       setMessage("");
     }

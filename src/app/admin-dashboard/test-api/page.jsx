@@ -12,9 +12,6 @@ export default function TestAPIPage() {
     setResult('Testing...');
     
     try {
-      console.log('Base URL:', BASE_URL);
-      console.log('Fetching from:', `${BASE_URL}/agents`);
-      
       const response = await fetch(`${BASE_URL}/agents`, {
         method: 'GET',
         headers: {
@@ -23,19 +20,14 @@ export default function TestAPIPage() {
         credentials: 'include',
       });
       
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Response data:', data);
       
       setResult(JSON.stringify(data, null, 2));
     } catch (error) {
-      console.error('API test error:', error);
       setResult(`Error: ${error.message}`);
     } finally {
       setLoading(false);
@@ -49,7 +41,6 @@ export default function TestAPIPage() {
     try {
       const agentId = 1; // Test with agent ID 1
       const url = `${BASE_URL}/agents/${agentId}/bookings?page=1&limit=10`;
-      console.log('Fetching from:', url);
       
       const response = await fetch(url, {
         method: 'GET',
@@ -59,19 +50,15 @@ export default function TestAPIPage() {
         credentials: 'include',
       });
       
-      console.log('Response status:', response.status);
-      
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
       }
       
       const data = await response.json();
-      console.log('Response data:', data);
       
       setResult(JSON.stringify(data, null, 2));
     } catch (error) {
-      console.error('API test error:', error);
       setResult(`Error: ${error.message}`);
     } finally {
       setLoading(false);

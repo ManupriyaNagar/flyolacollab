@@ -1,188 +1,143 @@
 "use client";
 
-import { useAuth } from '@/components/AuthContext';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import Link from 'next/link';
+import { FaDollarSign, FaFileInvoiceDollar, FaChartPie, FaCreditCard,  FaCalculator, FaAngleUp } from 'react-icons/fa';
 
 export default function AccountsAdminDashboard() {
-  const { authState } = useAuth();
-  const router = useRouter();
-
-  useEffect(() => {
-    if (!authState.isLoading && (!authState.isLoggedIn || authState.userRole !== '7')) {
-      router.push('/sign-in');
-    }
-  }, [authState, router]);
-
-  if (authState.isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
-  if (!authState.isLoggedIn || authState.userRole !== '7') {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <h1 className="text-3xl font-bold text-gray-900">Accounts Admin Dashboard</h1>
+    <div className="space-y-6">
+      {/* Welcome Section */}
+      <div className="text-center">
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Accounts Dashboard</h1>
+        <p className="text-gray-600">Financial management and accounting oversight</p>
+      </div>
+
+      {/* Financial KPIs */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 p-6 rounded-xl text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-green-100">Total Revenue</p>
+              <p className="text-2xl font-bold">₹45.2L</p>
+              <p className="text-sm text-green-200">+15.2% growth</p>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-500">Welcome, {authState.user?.name || 'Accounts Admin'}</span>
-              <button
-                onClick={() => authState.logout?.()}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-              >
-                Logout
-              </button>
+            <FaDollarSign className="text-3xl text-green-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-blue-500 to-cyan-600 p-6 rounded-xl text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-blue-100">Net Profit</p>
+              <p className="text-2xl font-bold">₹12.8L</p>
+              <p className="text-sm text-blue-200">28.3% margin</p>
             </div>
+            <FaChartPie className="text-3xl text-blue-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-purple-500 to-pink-600 p-6 rounded-xl text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-purple-100">Expenses</p>
+              <p className="text-2xl font-bold">₹32.4L</p>
+              <p className="text-sm text-purple-200">-3.2% reduction</p>
+            </div>
+            <FaCalculator className="text-3xl text-purple-200" />
+          </div>
+        </div>
+
+        <div className="bg-gradient-to-r from-orange-500 to-red-600 p-6 rounded-xl text-white">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-orange-100">Pending Payments</p>
+              <p className="text-2xl font-bold">23</p>
+              <p className="text-sm text-orange-200">₹4.2L value</p>
+            </div>
+            <FaCreditCard className="text-3xl text-orange-200" />
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <div className="px-4 py-6 sm:px-0">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Financial Overview Cards */}
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-green-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Total Revenue</dt>
-                      <dd className="text-lg font-medium text-gray-900">-</dd>
-                    </dl>
-                  </div>
-                </div>
+      {/* Financial Management */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <Link href="/accounts-admin-dashboard/financial-reports">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <FaFileInvoiceDollar className="text-green-600 text-xl" />
               </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-red-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Total Expenses</dt>
-                      <dd className="text-lg font-medium text-gray-900">-</dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-blue-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Net Profit</dt>
-                      <dd className="text-lg font-medium text-gray-900">-</dd>
-                    </dl>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-white overflow-hidden shadow rounded-lg">
-              <div className="p-5">
-                <div className="flex items-center">
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-yellow-500 rounded-md flex items-center justify-center">
-                      <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="ml-5 w-0 flex-1">
-                    <dl>
-                      <dt className="text-sm font-medium text-gray-500 truncate">Pending Payments</dt>
-                      <dd className="text-lg font-medium text-gray-900">-</dd>
-                    </dl>
-                  </div>
-                </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Financial Reports</h3>
+                <p className="text-gray-600">Generate comprehensive financial reports</p>
               </div>
             </div>
           </div>
+        </Link>
 
-          {/* Financial Actions */}
-          <div className="mt-8">
-            <h2 className="text-lg font-medium text-gray-900 mb-4">Financial Management</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <button className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900">Financial Reports</h3>
-                  <p className="text-xs text-gray-500 mt-1">Generate financial reports</p>
-                </div>
-              </button>
+        <Link href="/accounts-admin-dashboard/payment-management">
+          <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200 hover:shadow-md transition-shadow cursor-pointer">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <FaCreditCard className="text-blue-600 text-xl" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Payment Management</h3>
+                <p className="text-gray-600">Monitor and manage payment transactions</p>
+              </div>
+            </div>
+          </div>
+        </Link>
+      </div>
 
-              <button className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-blue-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900">Payment Management</h3>
-                  <p className="text-xs text-gray-500 mt-1">Manage payments and refunds</p>
-                </div>
-              </button>
+      {/* Financial Summary */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Summary</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <FaAngleUp className="text-3xl text-green-600 mx-auto mb-2" />
+            <p className="text-sm text-green-800 font-medium">Revenue Growth</p>
+            <p className="text-2xl font-bold text-green-600">+18.5%</p>
+            <p className="text-xs text-green-600">vs last quarter</p>
+          </div>
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <FaChartPie className="text-3xl text-blue-600 mx-auto mb-2" />
+            <p className="text-sm text-blue-800 font-medium">Profit Margin</p>
+            <p className="text-2xl font-bold text-blue-600">28.3%</p>
+            <p className="text-xs text-blue-600">Industry leading</p>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <FaCalculator className="text-3xl text-purple-600 mx-auto mb-2" />
+            <p className="text-sm text-purple-800 font-medium">Cost Efficiency</p>
+            <p className="text-2xl font-bold text-purple-600">92.1%</p>
+            <p className="text-xs text-purple-600">Optimized operations</p>
+          </div>
+        </div>
+      </div>
 
-              <button className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900">Budget Analysis</h3>
-                  <p className="text-xs text-gray-500 mt-1">Analyze budget and expenses</p>
-                </div>
-              </button>
-
-              <button className="bg-white p-4 rounded-lg shadow hover:shadow-md transition-shadow">
-                <div className="text-center">
-                  <div className="w-12 h-12 bg-red-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                    <svg className="w-6 h-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
-                    </svg>
-                  </div>
-                  <h3 className="text-sm font-medium text-gray-900">Audit Trail</h3>
-                  <p className="text-xs text-gray-500 mt-1">View audit logs and compliance</p>
-                </div>
-              </button>
+      {/* Recent Financial Activity */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Recent Financial Activity</h3>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Large payment received: ₹2,45,000</p>
+              <p className="text-xs text-gray-500">Charter service booking - 5 minutes ago</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Monthly financial report generated</p>
+              <p className="text-xs text-gray-500">January 2024 summary - 1 hour ago</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-gray-900">Refund processed: ₹18,500</p>
+              <p className="text-xs text-gray-500">Flight cancellation refund - 2 hours ago</p>
             </div>
           </div>
         </div>

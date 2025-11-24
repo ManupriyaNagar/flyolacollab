@@ -73,7 +73,6 @@ const WeatherInfo = ({ bookingData }) => {
           error: null
         });
       } catch (error) {
-        console.error("Error fetching weather data:", error);
         setWeather(prev => ({
           ...prev,
           loading: false,

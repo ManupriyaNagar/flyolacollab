@@ -21,7 +21,6 @@ const TestDataPage = () => {
         const result = await response.json();
         setTestData(result);
       } catch (err) {
-        console.error("Error fetching test data:", err);
         setError(err.message);
       } finally {
         setLoading(false);

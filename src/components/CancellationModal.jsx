@@ -29,7 +29,6 @@ const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) 
         toast.error(data.error || 'Failed to fetch cancellation details');
       }
     } catch (error) {
-      console.error('Error fetching cancellation details:', error);
       toast.error('Failed to fetch cancellation details');
     } finally {
       setLoading(false);
@@ -65,7 +64,6 @@ const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) 
         toast.error(data.error || 'Failed to cancel booking');
       }
     } catch (error) {
-      console.error('Error cancelling booking:', error);
       toast.error('Failed to cancel booking');
     } finally {
       setCancelling(false);

@@ -48,7 +48,6 @@ const FlightRecommendations = ({ currentBooking }) => {
           setRecommendations(filtered);
         }
       } catch (error) {
-        console.error("Error fetching recommendations:", error);
       } finally {
         setLoading(false);
       }

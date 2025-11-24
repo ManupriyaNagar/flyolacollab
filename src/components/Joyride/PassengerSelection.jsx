@@ -30,10 +30,8 @@ const PassengerSelection = ({ selectedSlot, onSubmit, userId, showPopup }) => {
       script.async = true;
       script.onload = () => {
         setIsRazorpayLoaded(true);
-        console.log('[PassengerSelection] Razorpay script loaded successfully');
       };
       script.onerror = () => {
-        console.error('[PassengerSelection] Failed to load Razorpay script');
         setIsRazorpayLoaded(false);
         showPopup('Failed to load payment system. Please try again.', true);
       };

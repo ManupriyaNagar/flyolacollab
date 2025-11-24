@@ -17,7 +17,7 @@ const SignIn = () => {
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [otpSent, setOtpSent] = useState(false);
-  const { setAuthState } = useAuth();
+  const { setAuthState, login } = useAuth();
   const router = useRouter();
 
   const handleSubmit = async (e) => {
@@ -45,23 +45,12 @@ const SignIn = () => {
           userRole: String(user.role), // Keep for compatibility
         };
 
-        console.log("[SignIn] Setting authState:", newAuthState); // Debug
-        setAuthState(newAuthState);
-        localStorage.setItem("authState", JSON.stringify(newAuthState));
-
-        const redirectPath =
-          user.role === 1
-            ? "/admin-dashboard"
-            : user.role === 2
-              ? "/booking-agent-dashboard" // New dashboard for Booking Agents
-              : "/user-dashboard"; // Default for normal users
-        console.log("[SignIn] Redirecting to:", redirectPath);
-        router.push(redirectPath);
+        // Use the AuthContext login function which handles redirects
+        login(data.token, user);
       } else {
         setErrorMessage(data.error || "Login failed");
       }
     } catch (err) {
-      console.error("[SignIn] Error:", err);
       setErrorMessage("An error occurred. Please try again.");
     }
   };
@@ -85,7 +74,6 @@ const SignIn = () => {
         setErrorMessage(data.error || "Failed to send OTP.");
       }
     } catch (err) {
-      console.error("[Forgot Password] Error:", err);
       setErrorMessage("An error occurred. Please try again.");
     }
   };
@@ -114,7 +102,6 @@ const SignIn = () => {
         setErrorMessage(data.error || "Invalid OTP or error resetting password.");
       }
     } catch (err) {
-      console.error("[Verify OTP] Error:", err);
       setErrorMessage("An error occurred. Please try again.");
     }
   };

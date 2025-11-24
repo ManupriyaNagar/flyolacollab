@@ -57,16 +57,47 @@ const SignInPage = () => {
   const { login, authState } = useAuth();
   const router = useRouter();
 
+  // Get returnUrl from query parameters
+  const [returnUrl, setReturnUrl] = useState(null);
+  
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const url = params.get('returnUrl');
+      if (url) {
+        setReturnUrl(decodeURIComponent(url));
+      }
+    }
+  }, []);
+
+  // Helper function to get redirect path based on user role
+  const getRedirectPath = (role) => {
+    // If there's a returnUrl, use it instead of role-based redirect
+    if (returnUrl) {
+      return returnUrl;
+    }
+    
+    switch (role) {
+      case '1': return '/admin-dashboard';
+      case '2': return '/agent-dashboard';
+      case '3': return '/';
+      case '4': return '/head-admin-dashboard';
+      case '5': return '/chairman-admin-dashboard';
+      case '6': return '/director-admin-dashboard';
+      case '7': return '/accounts-admin-dashboard';
+      case '8': return '/operations-dashboard';
+      default: return '/';
+    }
+  };
+
   // Redirect if already logged in (only when user directly visits sign-in page)
   useEffect(() => {
     if (authState.isLoggedIn && !authState.isLoading) {
       // Only redirect if user directly navigated to sign-in page, not from auth errors
-      const redirectTo = authState.userRole === '1' ? '/admin-dashboard' : 
-                        authState.userRole === '2' ? '/agent-dashboard' : 
-                        '/user-dashboard';
+      const redirectTo = getRedirectPath(authState.userRole);
       router.push(redirectTo);
     }
-  }, [authState.isLoggedIn, authState.userRole, authState.isLoading, router]);
+  }, [authState.isLoggedIn, authState.userRole, authState.isLoading, router, returnUrl]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -135,13 +166,10 @@ const SignInPage = () => {
 
       // Redirect based on user role
       setTimeout(() => {
-        const redirectTo = data.user.role === '1' ? '/admin-dashboard' : 
-                          data.user.role === '2' ? '/agent-dashboard' : 
-                          '/user-dashboard';
+        const redirectTo = getRedirectPath(String(data.user.role));
         router.push(redirectTo);
       }, 1500);
     } catch (error) {
-      console.error('Login error:', error);
       const message = API.isApiError(error) ? error.message : 'Something went wrong. Please try again.';
       toast.error(message);
     } finally {

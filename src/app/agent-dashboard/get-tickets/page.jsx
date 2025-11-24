@@ -90,7 +90,6 @@ const Page = () => {
             : booking.BookedSeats?.map(s => s.seat_label).join(", ") || "N/A";
 
           if (!depId || !arrId) {
-            console.warn(`Booking ${booking.bookingNo} is missing airport IDs.`);
           }
 
           return {
@@ -105,10 +104,8 @@ const Page = () => {
           };
         }).sort((a, b) => new Date(b.bookDate).getTime() - new Date(a.bookDate).getTime());
 
-        console.log("Processed Bookings:", processedBookings);
         setBookings(processedBookings);
       } catch (err) {
-        console.error("Error fetching bookings:", err);
         if (err.message.includes("No authentication token")) {
           setError("Please log in again to view bookings.");
           router.push("/sign-in");

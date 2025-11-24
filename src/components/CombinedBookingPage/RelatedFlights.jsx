@@ -28,7 +28,6 @@ const RelatedFlights = ({ currentBooking }) => {
           setRelatedFlights(filtered);
         }
       } catch (error) {
-        console.error("Error fetching related flights:", error);
       } finally {
         setLoading(false);
       }

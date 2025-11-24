@@ -4,6 +4,7 @@ import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import ProfessionalTicket from "../../components/SingleTicket/ProfessionalTicket";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { transformTicketData, buildAirportMap } from "@/utils/ticketDataTransformer";
 
 // Loading component for Suspense fallback
 const GetTicketLoadingFallback = () => (
@@ -74,7 +75,6 @@ const GetTicketContent = () => {
 
       // Use the tickets endpoint for better data formatting
       const url = `${BASE_URL}/tickets/get-ticket?pnr=${encodeURIComponent(identifier)}`;
-      console.log('Fetching ticket from:', url); // Debug log
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -88,22 +88,32 @@ const GetTicketContent = () => {
         throw new Error(result.message || "No booking found for this PNR");
       }
 
-      console.log("Ticket API Response:", result); // Debug log
 
-      // Use the properly formatted data from the tickets API
+      // The backend already returns properly formatted data, use it directly
       const ticketData = result.data;
       const booking = ticketData.booking;
       const flight = ticketData.flight;
       const passengers = ticketData.passengers || [];
       const payment = ticketData.payment || {};
+      const seats = ticketData.seats || {};
+
+      // Debug logging to identify the issue
+      console.log('Flight data:', {
+        departureCode: flight.departureCode,
+        arrivalCode: flight.arrivalCode,
+        departure: flight.departure,
+        arrival: flight.arrival,
+        seatDetails: seats.details
+      });
 
       const formattedData = {
         bookingData: {
           id: booking.id,
           departure: flight.departure,
           arrival: flight.arrival,
-          departureCode: flight.departureCode,
-          arrivalCode: flight.arrivalCode,
+          // Use backend airport codes directly - no fallback to name truncation
+          departureCode: flight.departureCode || 'DEP',
+          arrivalCode: flight.arrivalCode || 'ARR',
           departureTime: flight.departureTime,
           arrivalTime: flight.arrivalTime,
           selectedDate: flight.selectedDate,
@@ -111,7 +121,9 @@ const GetTicketContent = () => {
           bookDate: booking.bookDate,
           flightId: flight.id,
           flightNumber: flight.flightNumber,
-          bookedSeats: ticketData.seats?.labels || 'Not Assigned'
+          helicopterNumber: flight.helicopterNumber,
+          bookedSeats: seats.labels || 'Not Assigned',
+          bookingType: flight.bookingType || 'flight' // Add bookingType from backend
         },
         travelerDetails: passengers.map((passenger, index) => ({
           title: passenger.title || "Mr",
@@ -120,7 +132,8 @@ const GetTicketContent = () => {
           email: passenger.email || booking.email_id || "contact@flyolaindia.com",
           phone: passenger.phone || booking.contact_no || "+91-9876543210",
           address: passenger.address || "",
-          seat: passenger.seat || ticketData.seats?.details?.[index]?.label || 'Not Assigned'
+          // Use actual seat label from backend
+          seat: passenger.seat || seats.details?.[index]?.label || 'Not Assigned'
         })),
         bookingResult: {
           booking: {
@@ -133,14 +146,16 @@ const GetTicketContent = () => {
             noOfPassengers: booking.noOfPassengers,
             contact_no: booking.contact_no,
             email_id: booking.email_id,
-            bookedSeats: ticketData.seats?.details?.map(seat => seat.label) || []
+            // Use actual seat labels from backend
+            bookedSeats: seats.details?.map(seat => seat.label) || []
           },
           passengers: passengers.map((passenger, index) => ({
             age: passenger.age || "25",
             type: passenger.type || "Adult",
             name: passenger.name || passenger.fullName,
             title: passenger.title,
-            seat: passenger.seat || ticketData.seats?.details?.[index]?.label || 'Not Assigned'
+            // Use actual seat label from backend
+            seat: passenger.seat || seats.details?.[index]?.label || 'Not Assigned'
           })),
           payment: {
             status: payment.status || booking.paymentStatus || "COMPLETED",
@@ -151,7 +166,6 @@ const GetTicketContent = () => {
 
       setTicketData(formattedData);
     } catch (err) {
-      console.error("Error fetching ticket data:", err);
       setError(err.message || "Failed to load ticket data");
     } finally {
       setLoading(false);

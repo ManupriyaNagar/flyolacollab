@@ -233,6 +233,10 @@ const TravelerInfoStep = ({
               </div>
               <div className="grid md:grid-cols-2 gap-4 mt-4">
                 <InputField label="Address" type="text" value={trav.address} onChange={v=>handleInputChange(i,'address',v)} onBlur={v=>handleBlur(i,'address',v)} placeholder="Complete address" icon={FaMapMarkerAlt} status={getStatus(i,'address')} error={getError(i,'address')} />
+                <InputField label="State" type="text" value={trav.state} onChange={v=>handleInputChange(i,'state',v)} onBlur={v=>handleBlur(i,'state',v)} placeholder="State" icon={FaMapMarkerAlt} status={getStatus(i,'state')} error={getError(i,'state')} />
+              </div>
+              <div className="grid md:grid-cols-2 gap-4 mt-4">
+                <InputField label="Pin Code" type="text" value={trav.pinCode} onChange={v=>handleInputChange(i,'pinCode',v)} onBlur={v=>handleBlur(i,'pinCode',v)} placeholder="6-digit PIN code" icon={FaMapMarkerAlt} status={getStatus(i,'pinCode')} error={getError(i,'pinCode')} />
                 <InputField label="GST Number (Optional)" type="text" value={trav.gstNumber} onChange={v=>handleInputChange(i,'gstNumber',v)} onBlur={v=>handleBlur(i,'gstNumber',v)} placeholder="For business travel" icon={FaIdCard} status={getStatus(i,'gstNumber')} error={getError(i,'gstNumber')} />
               </div>
             </>}

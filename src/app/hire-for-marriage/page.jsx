@@ -27,7 +27,6 @@ export default function MarriageHelicopterHire() {
   const handleSubmit = (e) => {
     e.preventDefault();
     // Simulate form submission
-    console.log('Form submitted:', formData);
     alert('Your helicopter hire request has been submitted successfully!');
     // Reset form
     setFormData({

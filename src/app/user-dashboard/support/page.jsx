@@ -73,7 +73,6 @@ export default function SupportTicketPage() {
         throw new Error(data.error || `Error ${res.status}: Failed to fetch support tickets`);
       }
     } catch (err) {
-      console.error("Failed to load support tickets:", err.message);
       // Don't show error for missing endpoint, just use empty array
       if (!err.message.includes('404')) {
         setError(err.message);
@@ -117,7 +116,6 @@ export default function SupportTicketPage() {
         setNewTicket({ subject: '', category: '', priority: 'medium', message: '' });
       }
     } catch (err) {
-      console.error("Failed to create support ticket:", err);
       toast.error("Failed to create support ticket. Please try again.");
     } finally {
       setSubmitting(false);

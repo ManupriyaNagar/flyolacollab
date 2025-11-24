@@ -90,7 +90,6 @@ const FlightInsights = ({ bookingData }) => {
         });
 
       } catch (error) {
-        console.error("Error fetching flight insights:", error);
         setInsights(prev => ({ ...prev, loading: false }));
       }
     };

@@ -301,7 +301,6 @@ export const usePayment = () => {
       const result = await API.payments.getPaymentStatus(paymentId);
       return result;
     } catch (error) {
-      console.error('Payment status check failed:', error);
       throw error;
     }
   }, []);

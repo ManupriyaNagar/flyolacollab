@@ -74,9 +74,6 @@ const AllUsersPage = () => {
           throw new Error("No authentication token found. Please log in again.");
         }
 
-        console.log("[AllUsersPage] Fetching users with token:", token ? "present" : "missing");
-        console.log("[AllUsersPage] Request URL:", `${BASE_URL}/users/all`);
-
         const res = await fetch(`${BASE_URL}/users/all`, {
           method: "GET",
           headers: {
@@ -84,8 +81,6 @@ const AllUsersPage = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-
-        console.log("[AllUsersPage] Response status:", res.status);
 
         if (!res.ok) {
           if (res.status === 401) {
@@ -100,12 +95,10 @@ const AllUsersPage = () => {
         }
 
         const data = await res.json();
-        console.log("[AllUsersPage] Users data received:", data);
 
         setUsers(Array.isArray(data) ? data : []);
         toast.success(`Successfully loaded ${Array.isArray(data) ? data.length : 0} users`);
       } catch (err) {
-        console.error("[AllUsersPage] Error fetching users:", err);
         setError(`Failed to load users: ${err.message}`);
         toast.error(`Failed to load users: ${err.message}`);
 
@@ -262,6 +255,8 @@ const AllUsersPage = () => {
       const url = isEdit ? `${BASE_URL}/users/${selectedUser.id}` : `${BASE_URL}/users/create`;
       const method = isEdit ? 'PUT' : 'POST';
 
+      console.log('Submitting user data:', { url, method, formData });
+
       const response = await fetch(url, {
         method,
         headers: {
@@ -273,7 +268,8 @@ const AllUsersPage = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || `Failed to ${isEdit ? 'update' : 'create'} user`);
+        console.error('Error response:', errorData);
+        throw new Error(errorData.error || errorData.details || `Failed to ${isEdit ? 'update' : 'create'} user`);
       }
 
       const result = await response.json();
@@ -297,7 +293,6 @@ const AllUsersPage = () => {
       setShowEditModal(false);
       setSelectedUser(null);
     } catch (err) {
-      console.error(`Error ${showEditModal ? 'updating' : 'creating'} user:`, err);
       toast.error(err.message);
     } finally {
       setLoading(false);
@@ -325,7 +320,6 @@ const AllUsersPage = () => {
       setUsers(users.filter(u => u.id !== showDeleteConfirm.id));
       toast.success(`User ${showDeleteConfirm.name} deleted successfully!`);
     } catch (err) {
-      console.error("Error deleting user:", err);
       toast.error("Failed to delete user. Please try again.");
     } finally {
       setLoading(false);
@@ -355,6 +349,13 @@ const AllUsersPage = () => {
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
           <UserCircleIcon className="w-3 h-3" />
           Booking Agent
+        </span>
+      );
+    } else if (role === 8) {
+      return (
+        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+          <ShieldCheckIcon className="w-3 h-3" />
+          MP Tourism Portal
         </span>
       );
     } else if (role === 3) {
@@ -426,6 +427,7 @@ const AllUsersPage = () => {
               <option value="1">Admins (Role 1)</option>
               <option value="2">Booking Agents (Role 2)</option>
               <option value="3">Regular Users (Role 3)</option>
+              <option value="8">MP Tourism Portal (Role 8)</option>
             </select>
           </div>
 
@@ -466,10 +468,7 @@ const AllUsersPage = () => {
                   </button>
                   <button
                     onClick={() => {
-                      console.log("Debug info:");
-                      console.log("Auth State:", authState);
-                      console.log("Token:", localStorage.getItem("token"));
-                      console.log("Base URL:", BASE_URL);
+                      // Debug info removed for production
                     }}
                     className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
                   >
@@ -799,6 +798,7 @@ const AllUsersPage = () => {
                     <option value="1">Admin (Role 1)</option>
                     <option value="2">Booking Agent (Role 2)</option>
                     <option value="3">Regular User (Role 3)</option>
+                    <option value="8">MP Tourism Portal (Role 8)</option>
                   </select>
                 </div>
 
@@ -924,6 +924,11 @@ const AllUsersPage = () => {
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       <UserCircleIcon className="w-3 h-3" />
                       Booking Agent
+                    </span>
+                  ) : selectedUser.role === 8 ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                      <ShieldCheckIcon className="w-3 h-3" />
+                      MP Tourism Portal
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">

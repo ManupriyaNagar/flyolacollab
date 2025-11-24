@@ -23,19 +23,15 @@ export function AuthProvider({ children }) {
 
     if (token && saved) {
       const parsed = JSON.parse(saved);
+
+      // IMPORTANT: Set auth state immediately from localStorage to prevent redirect
       setAuthState({ ...parsed, isLoading: true });
-      
-      // Ensure token is also in cookies for middleware (for existing users)
-      const getCookie = (name) => {
-        const value = `; ${document.cookie}`;
-        const parts = value.split(`; ${name}=`);
-        if (parts.length === 2) return parts.pop().split(';').shift();
-        return null;
-      };
-      
-      if (!getCookie('token')) {
-        document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`;
-      }
+
+      // ALWAYS ensure token is in cookies for middleware
+      const isSecure = window.location.protocol === 'https:';
+      document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
+
+      console.log('[AuthContext] Token set in cookie for middleware');
 
       // Try to verify the token with retry logic for hosted environments
       const verifyToken = async (retryCount = 0) => {
@@ -47,45 +43,43 @@ export function AuthProvider({ children }) {
             user: { id, email, role: String(role) },
             userRole: String(role),
           };
-          console.log("[AuthProvider] Verified authState:", newState);
           setAuthState(newState);
           localStorage.setItem("authState", JSON.stringify(newState));
         } catch (err) {
-          console.error("[AuthContext] Profile fetch error:", err);
 
           // Only log out for specific authentication errors
-          const isAuthError = err?.response?.status === 401 || 
-                             err?.response?.status === 403 ||
-                             (err?.response?.status === 404 && err?.message?.includes("User not found"));
+          const isAuthError = err?.response?.status === 401 ||
+            err?.response?.status === 403 ||
+            (err?.response?.status === 404 && err?.message?.includes("User not found"));
 
           if (isAuthError) {
-            console.log("[AuthContext] Authentication error detected, logging out user");
+            console.log('[AuthContext] Authentication error, logging out');
             setAuthState({ ...INITIAL, isLoading: false });
             localStorage.removeItem("authState");
             localStorage.removeItem("token");
             localStorage.removeItem("userData");
             sessionStorage.removeItem("token");
             sessionStorage.removeItem("userData");
-            
+
             // Clear the cookie
             document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-            
+
             // Only redirect to sign-in if user is on a protected route
             const currentPath = window.location.pathname;
             const protectedRoutes = ['/admin-dashboard', '/agent-dashboard', '/user-dashboard', '/booking-agent-dashboard'];
             const isOnProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
-            
+
             if (isOnProtectedRoute) {
               router.push("/sign-in");
             }
           } else {
             // For network/server errors, retry once after a delay, then keep user logged in
+            console.log('[AuthContext] Network/server error, retrying...', err?.message);
             if (retryCount === 0) {
-              console.log("[AuthContext] Network/server error, retrying in 2 seconds...");
               setTimeout(() => verifyToken(1), 2000);
             } else {
-              console.log("[AuthContext] Retry failed, keeping user logged in with cached data");
               // Use cached user data and keep them logged in
+              console.log('[AuthContext] Using cached auth state after retry failed');
               setAuthState((prev) => ({ ...prev, isLoading: false }));
             }
           }
@@ -98,14 +92,13 @@ export function AuthProvider({ children }) {
     }
   }, [router]);
 
-  const login = (token, user) => {
-    console.log('[AuthContext] Login called with:', { token: token ? 'present' : 'missing', user });
-
+  const login = (token, user, skipRedirect = false) => {
     // Store token in both localStorage and cookies
     localStorage.setItem("token", token);
-    
-    // Set cookie with proper settings for middleware
-    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax; Secure=${window.location.protocol === 'https:'}`;
+
+    // Set cookie with proper settings for middleware (7 days expiry)
+    const isSecure = window.location.protocol === 'https:';
+    document.cookie = `token=${token}; path=/; max-age=${7 * 24 * 60 * 60}; SameSite=Lax${isSecure ? '; Secure' : ''}`;
 
     // Update auth state
     const newState = {
@@ -118,20 +111,28 @@ export function AuthProvider({ children }) {
     setAuthState(newState);
     localStorage.setItem("authState", JSON.stringify(newState));
 
-    console.log('[AuthContext] Login successful, new state:', newState);
+    // Only redirect if not skipping redirect (for modal-based logins)
+    if (!skipRedirect) {
+      const redirectPath =
+        user.role === 1
+          ? "/admin-dashboard"
+          : user.role === 2
+            ? "/booking-agent-dashboard"
+            : "/user-dashboard";
+      router.push(redirectPath);
+    }
   };
 
   const logout = () => {
-    console.log('[AuthContext] Logout called');
     localStorage.removeItem("token");
     localStorage.removeItem("authState");
     localStorage.removeItem("userData");
     sessionStorage.removeItem("token");
     sessionStorage.removeItem("userData");
-    
+
     // Clear the cookie
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
-    
+
     setAuthState({ ...INITIAL, isLoading: false });
     router.push("/sign-in");
   };

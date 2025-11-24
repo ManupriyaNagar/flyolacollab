@@ -214,27 +214,6 @@ export default function AllBookingsPage() {
                         ? irctcBookingsData
                         : [];
 
-                console.log('IRCTC Bookings Data:', processedIrctcBookings);
-                console.log('Agent Map:', agentMap);
-                console.log('Regular Bookings Count:', bookingsData.length);
-                console.log('IRCTC Bookings Count:', processedIrctcBookings.length);
-
-                // Debug: Check how many IRCTC bookings are in regular bookings
-                const irctcInRegular = bookingsData.filter(b => agentMap[b.agentId] === "IRCTC");
-                console.log('IRCTC bookings found in regular endpoint:', irctcInRegular.length);
-                
-                // Debug: Log specific booking details
-                console.log('Sample regular bookings with agentId:', bookingsData.slice(0, 3).map(b => ({
-                    id: b.id,
-                    pnr: b.pnr,
-                    agentId: b.agentId,
-                    mappedAgent: agentMap[b.agentId],
-                    bookingStatus: b.bookingStatus
-                })));
-                
-                // Debug: Check current status filter
-                console.log('Current status filter:', status);
-
                 // 6) merge regular bookings
                 const mergedRegularBookings = bookingsData
                     .map((booking) => {
@@ -369,7 +348,6 @@ export default function AllBookingsPage() {
                 setCurrentPage(1);
                 toast.success(`Successfully loaded ${sortedMerged.length} bookings`);
             } catch (err) {
-                console.error("[BookingList] Error fetching data:", err);
                 const msg = err.message || "Failed to load data. Please try again.";
                 setError(msg);
 
@@ -910,7 +888,7 @@ export default function AllBookingsPage() {
 
             {/* Status Analytics */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                         <CheckCircleIcon className="w-6 h-6 text-emerald-600" />
                         <h3 className="text-lg font-semibold text-slate-800">Confirmed</h3>
@@ -921,7 +899,7 @@ export default function AllBookingsPage() {
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                         <ClockIcon className="w-6 h-6 text-yellow-600" />
                         <h3 className="text-lg font-semibold text-slate-800">Pending</h3>
@@ -932,7 +910,7 @@ export default function AllBookingsPage() {
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                     <div className="flex items-center gap-3 mb-4">
                         <XCircleIcon className="w-6 h-6 text-red-600" />
                         <h3 className="text-lg font-semibold text-slate-800">Cancelled</h3>
@@ -945,7 +923,7 @@ export default function AllBookingsPage() {
             </div>
 
             {/* Status Filters */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div className="flex flex-wrap gap-3">
                     {["Confirmed", "Pending", "Cancelled", "All Booking"].map((filter) => (
                         <button
@@ -963,7 +941,7 @@ export default function AllBookingsPage() {
                                 setFlightDateRange([null, null]);
                             }}
                             className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${status === filter
-                                ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-lg"
+                                ? "bg-gradient-to-r from-blue-500 to-indigo-500 text-white shadow-sm"
                                 : "bg-slate-100 text-slate-700 hover:bg-slate-200"
                                 }`}
                         >
@@ -974,186 +952,229 @@ export default function AllBookingsPage() {
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div className="space-y-4">
-                    {/* Search Bar */}
-                    <div className="relative">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                            type="text"
-                            onChange={(e) => debouncedSearch(e.target.value)}
-                            placeholder="Search by ID, PNR, email, phone, passenger name, billing name, transaction ID, agent ID, airports..."
-                            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        />
-                    </div>
-
-                    {/* Filter Row 1: Agent, Role, Airports */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <select
-                            value={selectedAgent}
-                            onChange={(e) => {
-                                setSelectedAgent(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        >
-                            {agentOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={selectedRole}
-                            onChange={(e) => {
-                                setSelectedRole(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        >
-                            {roleOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={selectedDepartureAirport}
-                            onChange={(e) => {
-                                setSelectedDepartureAirport(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        >
-                            {departureAirportOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-
-                        <select
-                            value={selectedArrivalAirport}
-                            onChange={(e) => {
-                                setSelectedArrivalAirport(e.target.value);
-                                setCurrentPage(1);
-                            }}
-                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        >
-                            {arrivalAirportOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-
-                    {/* Date Filters */}
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-4 border-t border-slate-200">
-                        {/* Booking Date Filter */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                <CalendarDaysIcon className="w-4 h-4 text-blue-600" />
-                                Filter by Booking Date
-                            </label>
-                            <div className="flex gap-2">
-                                <DatePicker
-                                    selected={startBookingDate}
-                                    onChange={(date) => {
-                                        setBookingDateRange([date, endBookingDate]);
-                                        setCurrentPage(1);
-                                    }}
-                                    selectsStart
-                                    startDate={startBookingDate}
-                                    endDate={endBookingDate}
-                                    maxDate={new Date()}
-                                    placeholderText="Start Booking Date"
-                                    className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                />
-                                <DatePicker
-                                    selected={endBookingDate}
-                                    onChange={(date) => {
-                                        setBookingDateRange([startBookingDate, date]);
-                                        setCurrentPage(1);
-                                    }}
-                                    selectsEnd
-                                    startDate={startBookingDate}
-                                    endDate={endBookingDate}
-                                    minDate={startBookingDate}
-                                    maxDate={new Date()}
-                                    placeholderText="End Booking Date"
-                                    className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                                />
-                                {(startBookingDate || endBookingDate) && (
-                                    <button
-                                        onClick={() => {
-                                            setBookingDateRange([null, null]);
-                                            setCurrentPage(1);
-                                        }}
-                                        className="px-3 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                        title="Clear booking date filter"
-                                    >
-                                        <XCircleIcon className="w-5 h-5" />
-                                    </button>
-                                )}
-                            </div>
+                    {/* Search Bar and Quick Filters */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                        {/* Search Bar */}
+                        <div className="lg:col-span-6 relative">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                onChange={(e) => debouncedSearch(e.target.value)}
+                                placeholder="Search by ID, PNR, email, phone, passenger name..."
+                                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                            />
                         </div>
 
-                        {/* Flight Date Filter */}
-                        <div className="space-y-2">
-                            <label className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                <CalendarDaysIcon className="w-4 h-4 text-orange-600" />
-                                Filter by Flight Date
-                            </label>
-                            <div className="flex gap-2">
-                                <DatePicker
-                                    selected={startFlightDate}
-                                    onChange={(date) => {
-                                        setFlightDateRange([date, endFlightDate]);
-                                        setCurrentPage(1);
-                                    }}
-                                    selectsStart
-                                    startDate={startFlightDate}
-                                    endDate={endFlightDate}
-                                    placeholderText="Start Flight Date"
-                                    className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                />
-                                <DatePicker
-                                    selected={endFlightDate}
-                                    onChange={(date) => {
-                                        setFlightDateRange([startFlightDate, date]);
-                                        setCurrentPage(1);
-                                    }}
-                                    selectsEnd
-                                    startDate={startFlightDate}
-                                    endDate={endFlightDate}
-                                    minDate={startFlightDate}
-                                    placeholderText="End Flight Date"
-                                    className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                                />
-                                {(startFlightDate || endFlightDate) && (
-                                    <button
-                                        onClick={() => {
-                                            setFlightDateRange([null, null]);
-                                            setCurrentPage(1);
-                                        }}
-                                        className="px-3 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                                        title="Clear flight date filter"
-                                    >
-                                        <XCircleIcon className="w-5 h-5" />
-                                    </button>
-                                )}
-                            </div>
+                        {/* Agent Filter */}
+                        <div className="lg:col-span-3">
+                            <select
+                                value={selectedAgent}
+                                onChange={(e) => {
+                                    setSelectedAgent(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                            >
+                                {agentOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {/* User Role Filter */}
+                        <div className="lg:col-span-3">
+                            <select
+                                value={selectedRole}
+                                onChange={(e) => {
+                                    setSelectedRole(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                            >
+                                {roleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
-                    {/* Clear All Filters Button */}
+                    {/* Advanced Filters - Collapsible */}
+                    <details className="group">
+                        <summary className="flex items-center justify-between cursor-pointer py-2 px-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
+                            <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
+                                <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                                Advanced Filters
+                            </span>
+                            <span className="text-xs text-slate-500">
+                                {(selectedDepartureAirport !== "all" || selectedArrivalAirport !== "all" || startBookingDate || endBookingDate || startFlightDate || endFlightDate) 
+                                    ? "Active" 
+                                    : "Click to expand"}
+                            </span>
+                        </summary>
+
+                        <div className="mt-4 space-y-4 pt-4 border-t border-slate-200">
+                            {/* Airport Filters */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600 mb-1.5 block">Departure Airport</label>
+                                    <select
+                                        value={selectedDepartureAirport}
+                                        onChange={(e) => {
+                                            setSelectedDepartureAirport(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                    >
+                                        {departureAirportOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600 mb-1.5 block">Arrival Airport</label>
+                                    <select
+                                        value={selectedArrivalAirport}
+                                        onChange={(e) => {
+                                            setSelectedArrivalAirport(e.target.value);
+                                            setCurrentPage(1);
+                                        }}
+                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                    >
+                                        {arrivalAirportOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Date Filters */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                {/* Booking Date Filter */}
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                        <CalendarDaysIcon className="w-3.5 h-3.5 text-blue-600" />
+                                        Booking Date Range
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <DatePicker
+                                            selected={startBookingDate}
+                                            onChange={(date) => {
+                                                setBookingDateRange([date, endBookingDate]);
+                                                setCurrentPage(1);
+                                            }}
+                                            selectsStart
+                                            startDate={startBookingDate}
+                                            endDate={endBookingDate}
+                                            maxDate={new Date()}
+                                            placeholderText="Start Date"
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                        />
+                                        <DatePicker
+                                            selected={endBookingDate}
+                                            onChange={(date) => {
+                                                setBookingDateRange([startBookingDate, date]);
+                                                setCurrentPage(1);
+                                            }}
+                                            selectsEnd
+                                            startDate={startBookingDate}
+                                            endDate={endBookingDate}
+                                            minDate={startBookingDate}
+                                            maxDate={new Date()}
+                                            placeholderText="End Date"
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                        />
+                                        {(startBookingDate || endBookingDate) && (
+                                            <button
+                                                onClick={() => {
+                                                    setBookingDateRange([null, null]);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="px-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Clear booking date filter"
+                                            >
+                                                <XCircleIcon className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Flight Date Filter */}
+                                <div>
+                                    <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
+                                        <CalendarDaysIcon className="w-3.5 h-3.5 text-orange-600" />
+                                        Flight Date Range
+                                    </label>
+                                    <div className="flex gap-2">
+                                        <DatePicker
+                                            selected={startFlightDate}
+                                            onChange={(date) => {
+                                                setFlightDateRange([date, endFlightDate]);
+                                                setCurrentPage(1);
+                                            }}
+                                            selectsStart
+                                            startDate={startFlightDate}
+                                            endDate={endFlightDate}
+                                            placeholderText="Start Date"
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
+                                        />
+                                        <DatePicker
+                                            selected={endFlightDate}
+                                            onChange={(date) => {
+                                                setFlightDateRange([startFlightDate, date]);
+                                                setCurrentPage(1);
+                                            }}
+                                            selectsEnd
+                                            startDate={startFlightDate}
+                                            endDate={endFlightDate}
+                                            minDate={startFlightDate}
+                                            placeholderText="End Date"
+                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
+                                        />
+                                        {(startFlightDate || endFlightDate) && (
+                                            <button
+                                                onClick={() => {
+                                                    setFlightDateRange([null, null]);
+                                                    setCurrentPage(1);
+                                                }}
+                                                className="px-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                title="Clear flight date filter"
+                                            >
+                                                <XCircleIcon className="w-4 h-4" />
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </details>
+
+                    {/* Active Filters Display & Clear All */}
                     {(searchTerm || selectedAgent !== "all" || selectedRole !== "all" ||
                         selectedDepartureAirport !== "all" || selectedArrivalAirport !== "all" ||
                         startBookingDate || endBookingDate || startFlightDate || endFlightDate) && (
-                            <div className="flex justify-center pt-4 border-t border-slate-200">
+                            <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <span className="text-xs font-medium text-slate-600">Active:</span>
+                                    {selectedAgent !== "all" && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">Agent: {selectedAgent}</span>}
+                                    {selectedRole !== "all" && <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">Role: {roleOptions.find(r => r.value === selectedRole)?.label}</span>}
+                                    {selectedDepartureAirport !== "all" && <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">From: {departureAirportOptions.find(a => a.value === selectedDepartureAirport)?.label}</span>}
+                                    {selectedArrivalAirport !== "all" && <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium">To: {arrivalAirportOptions.find(a => a.value === selectedArrivalAirport)?.label}</span>}
+                                    {(startBookingDate || endBookingDate) && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">Booking: {startBookingDate?.toLocaleDateString()} - {endBookingDate?.toLocaleDateString()}</span>}
+                                    {(startFlightDate || endFlightDate) && <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium">Flight: {startFlightDate?.toLocaleDateString()} - {endFlightDate?.toLocaleDateString()}</span>}
+                                </div>
                                 <button
                                     onClick={() => {
                                         setSearchTerm("");
@@ -1164,14 +1185,13 @@ export default function AllBookingsPage() {
                                         setBookingDateRange([null, null]);
                                         setFlightDateRange([null, null]);
                                         setCurrentPage(1);
-                                        // Clear the search input
                                         const searchInput = document.querySelector('input[type="text"]');
                                         if (searchInput) searchInput.value = '';
                                     }}
-                                    className="flex items-center gap-2 px-6 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium"
+                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium whitespace-nowrap"
                                 >
-                                    <XCircleIcon className="w-4 h-4" />
-                                    Clear All Filters
+                                    <XCircleIcon className="w-3.5 h-3.5" />
+                                    Clear All
                                 </button>
                             </div>
                         )}
@@ -1179,7 +1199,7 @@ export default function AllBookingsPage() {
             </div>
 
             {/* Export and Summary */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
                 <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
                     <div className="flex flex-col sm:flex-row items-center gap-4">
                         <select
@@ -1212,7 +1232,7 @@ export default function AllBookingsPage() {
                     <div className="flex items-center gap-4">
                         <button
                             onClick={exportToExcel}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg font-semibold"
+                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-sm font-semibold"
                         >
                             <ArrowDownTrayIcon className="w-5 h-5" />
                             Download Excel
@@ -1234,7 +1254,7 @@ export default function AllBookingsPage() {
                 </div>
             )}      {/* B
 ookings Table */}
-            <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-50 to-orange-50 px-6 py-4 border-b border-slate-200">
                     <div className="flex items-center justify-between">
                         <h3 className="text-xl font-semibold text-slate-800 flex items-center gap-2">

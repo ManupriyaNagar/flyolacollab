@@ -16,10 +16,11 @@ const ROUTE_ACCESS = {
   '/agent-dashboard': [ROLES.AGENT],
   '/user-dashboard': [ROLES.USER],
   '/booking-agent-dashboard': [ROLES.AGENT],
-  '/booking': [ROLES.USER, ROLES.AGENT], // Users and agents can access booking page
-  '/combined-booking-page': [ROLES.USER, ROLES.AGENT],
-  '/get-ticket': [ROLES.USER, ROLES.AGENT],
-  '/ticket-page': [ROLES.USER, ROLES.AGENT]
+  // FIX: Allow admins + users + agents on booking flows (admins can test/book)
+  '/booking': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT], 
+  '/combined-booking-page': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT],
+  '/get-ticket': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT],
+  '/ticket-page': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT]
 };
 
 // Routes that require authentication but allow multiple roles
@@ -103,15 +104,7 @@ function getRedirectPath(userRole) {
   }
 }
 
-export const config = {
-  matcher: [
-    '/admin-dashboard/:path*', 
-    '/agent-dashboard/:path*',
-    '/user-dashboard/:path*', 
-    '/booking-agent-dashboard/:path*',
-    '/booking/:path*',
-    '/combined-booking-page/:path*',
-    '/get-ticket/:path*',
-    '/ticket-page/:path*'
-  ],
-};
+// Optional: Re-enable matcher for better performance (only run on protected routes)
+// export const config = {
+//   matcher: PROTECTED_ROUTES.map(route => `${route}/:path*`).join(','),
+// };

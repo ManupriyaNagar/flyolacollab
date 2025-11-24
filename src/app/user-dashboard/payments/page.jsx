@@ -61,7 +61,6 @@ export default function UserPaymentsPage() {
       const paymentsData = Array.isArray(data) ? data : (data.data || []);
       setPayments(paymentsData);
     } catch (err) {
-      console.error("Failed to load payments:", err.message);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -111,7 +110,9 @@ export default function UserPaymentsPage() {
   };
 
   const getPaymentAmount = (payment) => {
-    return payment.amount || payment.pay_amt || payment.total_amount || 0;
+    // Try different field names and parse as number
+    const amount = payment.payment_amount || payment.amount || payment.pay_amt || payment.total_amount || '0';
+    return parseFloat(amount) || 0;
   };
 
   if (authState.isLoading || loading) {

@@ -52,7 +52,6 @@ const DebugTicketContent = () => {
         if (bookingId) url += `?id=${bookingId}`;
         else if (pnr) url += `?pnr=${pnr}`;
         
-        console.log("Fetching from:", url);
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -60,7 +59,6 @@ const DebugTicketContent = () => {
         }
         
         const result = await response.json();
-        console.log("Raw API Response:", result);
         setApiData(result);
         
         if (result.success && result.data) {
@@ -112,12 +110,10 @@ const DebugTicketContent = () => {
             }
           };
           
-          console.log("Formatted Data:", formatted);
           setFormattedData(formatted);
         }
         
       } catch (err) {
-        console.error("Debug Error:", err);
         setError(err.message);
       } finally {
         setLoading(false);

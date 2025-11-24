@@ -250,7 +250,6 @@ const TicketView = ({ isOpen, onClose, booking, isDownload = false }) => {
       // Save the PDF
       doc.save(`flight_ticket_${ticketNumber}.pdf`);
     }).catch((error) => {
-      console.error("Failed to generate PDF:", error);
       alert("Failed to generate PDF. Please try again.");
     });
   };

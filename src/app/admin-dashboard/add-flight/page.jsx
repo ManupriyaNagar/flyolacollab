@@ -34,7 +34,6 @@ function normaliseStops(raw) {
     const arr = Array.isArray(raw) ? raw : JSON.parse(raw || "[]");
     return [...new Set(arr.map(Number).filter((id) => Number.isInteger(id) && id > 0))];
   } catch (e) {
-    console.warn(`Failed to parse airport_stop_ids: ${raw}`, e);
     return [];
   }
 }
@@ -88,7 +87,7 @@ const FlightsPage = () => {
       setIsLoading(true);
       try {
         const [flightsData, airportsData] = await Promise.all([
-          API.flights.getFlights(),
+          fetch(`${BASE_URL}/flights`).then(res => res.json()),
           API.airports.getAirports(),
         ]);
 
@@ -101,7 +100,6 @@ const FlightsPage = () => {
         setFlights(normalizedFlights);
         setAirports(airportsData);
       } catch (error) {
-        console.error("Error fetching data:", error);
         toast.error("Failed to load data.");
       } finally {
         setIsLoading(false);
@@ -186,7 +184,7 @@ const FlightsPage = () => {
         toast.success(isEdit ? "Flight updated!" : "Flight added!");
 
         // Refresh flights
-        const flightsData = await API.flights.getFlights();
+        const flightsData = await fetch(`${BASE_URL}/flights`).then(res => res.json());
         const normalizedFlights = flightsData.map((flight) => ({
           ...flight,
           airport_stop_ids: normaliseStops(flight.airport_stop_ids),
@@ -197,7 +195,6 @@ const FlightsPage = () => {
         throw new Error(`Error saving flight: ${errorText}`);
       }
     } catch (error) {
-      console.error("Error:", error);
       toast.error(`Failed to save flight: ${error.message}`);
     } finally {
       setIsLoading(false);
@@ -214,7 +211,6 @@ const FlightsPage = () => {
       setFlights(flights.filter((f) => f.id !== showDeleteConfirm));
       toast.success("Flight deleted successfully!");
     } catch (error) {
-      console.error("Error deleting flight:", error);
       toast.error(error.message || "Failed to delete flight.");
     } finally {
       setIsLoading(false);
@@ -241,14 +237,24 @@ const FlightsPage = () => {
   // Handle status toggle
   const handleStatusToggle = async (flight) => {
     setIsLoading(true);
-    const updatedFlight = { ...flight, status: flight.status === 1 ? 0 : 1 };
+    const newStatus = flight.status === 1 ? 0 : 1;
+    const updatedFlight = {
+      flight_number: flight.flight_number,
+      departure_day: flight.departure_day,
+      start_airport_id: flight.start_airport_id,
+      end_airport_id: flight.end_airport_id,
+      airport_stop_ids: normaliseStops(flight.airport_stop_ids),
+      seat_limit: flight.seat_limit,
+      status: newStatus,
+    };
+    
     try {
       await API.admin.updateFlight(flight.id, updatedFlight);
-      setFlights(flights.map((f) => (f.id === flight.id ? updatedFlight : f)));
-      toast.success(`Flight ${updatedFlight.status === 1 ? "activated" : "deactivated"}!`);
+      setFlights(flights.map((f) => (f.id === flight.id ? { ...f, status: newStatus } : f)));
+      toast.success(`Flight ${newStatus === 1 ? "activated" : "deactivated"}!`);
     } catch (error) {
-      console.error("Error:", error);
-      toast.error("Failed to update status.");
+      console.error('Status toggle error:', error);
+      toast.error(error.message || "Failed to update status.");
     } finally {
       setIsLoading(false);
     }

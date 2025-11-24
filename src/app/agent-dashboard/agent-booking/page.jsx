@@ -140,7 +140,6 @@ export default function BookingAgentHistoryPage() {
         setAllData(merged);
         setCurrentPage(1);
       } catch (err) {
-        console.error("Error fetching data:", err.message);
         setError("Failed to load bookings. Please try again.");
         toast.error("Failed to load bookings. Please try again.");
       } finally {

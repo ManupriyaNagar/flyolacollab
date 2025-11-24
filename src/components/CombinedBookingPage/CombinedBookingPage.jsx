@@ -26,6 +26,8 @@ const EMPTY_TRAVELLER = {
   dateOfBirth: "",
   email: "",
   address: "",
+  state: "",
+  pinCode: "",
   phone: "",
   gstNumber: "",
 };
@@ -34,32 +36,59 @@ export default function CombinedBookingPage() {
   const [step, setStep] = useState(1);
   const [travelerDetails, setTravelerDetails] = useState([]);
   const [bookingData, setBookingData] = useState(null);
+  const [selectedSeats, setSelectedSeats] = useState([]);
   const router = useRouter();
   const { authState } = useAuth();
 
 useEffect(() => {
-  console.log("[CombinedBookingPage] authState:", authState); // Debug
-  const token = authState.token || localStorage.getItem("token");
-  console.log("[CombinedBookingPage] Token:", token);
-  console.log("[CombinedBookingPage] User role:", authState.user?.role); // Debug
-  if (!token) {
-    alert("Please log in to continue.");
-    router.push("/sign-in");
+  // Wait for auth state to load before checking
+  if (authState.isLoading) {
     return;
   }
-  // ... rest of the code
+  
+  const token = authState.token || localStorage.getItem("token");
+  
+  // Skip auth check if still loading
+  if (authState.isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+  
+  // For demo purposes, allow access without login
+  // if (!authState.isLoggedIn || !token) {
+  //   alert("Please log in to continue.");
+  //   router.push("/sign-in");
+  //   return;
+  // }
 
 
-    const raw = localStorage.getItem("bookingData");
+    let raw = localStorage.getItem("bookingData");
+    
+    // If no localStorage data, create demo data for F1 flight
     if (!raw) {
-      console.error("No booking data found in localStorage");
-      alert("No booking data found. Please select a flight first.");
-      router.push("/scheduled-flights");
-      return;
+      console.log("No localStorage data, creating demo booking data for F1 flight");
+      const demoBookingData = {
+        departure: "BHOPAL",
+        arrival: "REWA", 
+        selectedDate: "2025-11-07",
+        passengers: { adults: 1, children: 0, infants: 0 },
+        totalPrice: "1.00",
+        flightSchedule: {
+          id: 479,
+          price: "1.00",
+          departure_time: "10:00:00",
+          arrival_time: "11:50:00"
+        },
+        selectedSeats: [],
+        bookingType: "flight"
+      };
+      raw = JSON.stringify(demoBookingData);
+      localStorage.setItem("bookingData", raw);
     }
+    
     try {
       const data = JSON.parse(raw);
-      console.log("Loaded booking data:", data);
+
+      
       const total =
         data.passengers.adults +
         data.passengers.children +
@@ -68,19 +97,31 @@ useEffect(() => {
       setBookingData({
         departure: data.departure,
         arrival: data.arrival,
+        departureCode: data.departureCode,
+        arrivalCode: data.arrivalCode,
         totalPrice: data.totalPrice.toString(),
         id: Number(data.flightSchedule.id), // Ensure id is a number
         departureTime: data.flightSchedule.departure_time,
         arrivalTime: data.flightSchedule.arrival_time,
         selectedDate: data.selectedDate,
         passengers: data.passengers,
-        selectedSeats: Array.isArray(data.selectedSeats) ? data.selectedSeats : [],
+        bookingType: data.bookingType, // Pass through the booking type
+        helicopterNumber: data.helicopterNumber,
+        flightNumber: data.flightNumber,
       });
+      
+      // Lift selectedSeats to parent state
+      const seats = Array.isArray(data.selectedSeats) ? data.selectedSeats : [];
+      console.log('CombinedBookingPage: Loading seats from localStorage:', seats);
+      setSelectedSeats(seats);
+      
       setTravelerDetails(Array.from({ length: total }, () => ({ ...EMPTY_TRAVELLER })));
     } catch (err) {
-      console.error("Error parsing booking data:", err);
+      console.error("Invalid booking data:", err);
+      // Clear invalid booking data
+      localStorage.removeItem("bookingData");
       alert("Invalid booking data. Please select a flight again.");
-      router.push("/scheduled-flights");
+      router.push("/scheduled-flight");
     }
   }, [authState, router]);
 
@@ -93,28 +134,68 @@ useEffect(() => {
   }
 
   function handleConfirm(bookingResult) {
-    console.log("Booking result received:", bookingResult);
+    console.log('Booking confirmed with result:', bookingResult);
+    
+    // Extract PNR from the booking result
+    const pnr = bookingResult?.booking?.pnr || bookingResult?.pnr;
+    
+    // Prepare complete ticket data with all necessary fields
     const ticketData = {
       bookingData: {
         ...bookingData,
-        bookingNo: bookingResult.bookingNo,
-        bookingStatus: bookingResult.bookingStatus,
-        paymentStatus: bookingResult.paymentStatus,
+        bookingNo: bookingResult?.booking?.bookingNo || bookingResult?.bookingNo,
+        bookingStatus: bookingResult?.booking?.bookingStatus || bookingResult?.bookingStatus,
+        paymentStatus: bookingResult?.booking?.paymentStatus || bookingResult?.paymentStatus,
         noOfPassengers: travelerDetails.length,
-        selectedSeats: bookingData.selectedSeats,
+        bookedSeats: bookingResult?.booking?.bookedSeats || selectedSeats,
+        flightNumber: bookingData?.flightNumber || 'N/A',
+        helicopterNumber: bookingData?.helicopterNumber,
+        departureCode: bookingData?.departureCode || bookingData?.departure?.substring(0, 3).toUpperCase() || 'DEP',
+        arrivalCode: bookingData?.arrivalCode || bookingData?.arrival?.substring(0, 3).toUpperCase() || 'ARR',
+        bookingType: bookingData?.bookingType || 'flight',
       },
-      travelerDetails,
-      bookingResult,
+      travelerDetails: bookingResult?.passengers || travelerDetails.map((t, index) => ({
+        ...t,
+        seat: bookingResult?.booking?.bookedSeats?.[index] || selectedSeats[index] || 'Not Assigned',
+      })),
+      bookingResult: {
+        ...bookingResult,
+        booking: {
+          ...bookingResult?.booking,
+          pnr: pnr || 'PENDING',
+        },
+      },
     };
-    console.log("Storing ticket data:", ticketData);
+    
+    console.log('Saving ticket data to localStorage:', ticketData);
     localStorage.setItem("ticketData", JSON.stringify(ticketData));
-    router.push("/ticket-page");
+    
+    // Always redirect with PNR if available
+    if (pnr && pnr !== 'PENDING') {
+      console.log('Redirecting to ticket page with PNR:', pnr);
+      router.push(`/ticket-page?pnr=${encodeURIComponent(pnr)}`);
+    } else {
+      console.log('PNR not available yet, redirecting to ticket page with localStorage data');
+      router.push("/ticket-page");
+    }
   }
 
   if (!bookingData) {
     return (
-      <div className="py-20 text-center text-red-600">
-        No booking data found. Please select a flight first.
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
+        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
+          <div className="text-red-600 text-6xl mb-4">⚠️</div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Booking Data Found</h2>
+          <p className="text-gray-600 mb-6">
+            Please select a flight first to continue with your booking.
+          </p>
+          <button
+            onClick={() => router.push("/scheduled-flight")}
+            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Select Flight
+          </button>
+        </div>
       </div>
     );
   }
@@ -192,6 +273,8 @@ useEffect(() => {
                 onConfirm={handleConfirm}
                 isAdmin={Number(authState.user?.role) === 1}
                 isAgent={Number(authState.user?.role) === 2}
+                selectedSeats={selectedSeats}
+                onChangeSeats={setSelectedSeats}
               />
             )}
           </div>

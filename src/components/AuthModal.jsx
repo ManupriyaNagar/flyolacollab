@@ -171,15 +171,22 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
         sessionStorage.setItem('userData', JSON.stringify(data.user));
       }
 
-      // Update auth context
-      login(data.token, data.user);
+      // Update auth context (skip redirect since we're in a modal context)
+      login(data.token, data.user, true); // skipRedirect = true
 
       toast.success('Welcome back! You can now proceed with booking.');
-      onSuccess && onSuccess();
+      
+      // Close modal first, then call onSuccess to trigger booking redirect
       onClose();
+      
+      // Use setTimeout to ensure modal is closed and auth state is updated
+      setTimeout(() => {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }, 150);
 
     } catch (error) {
-      console.error('Login error:', error);
       const message = API.isApiError(error) ? error.message : 'Something went wrong. Please try again.';
       toast.error(message);
     } finally {
@@ -210,7 +217,6 @@ const AuthModal = ({ isOpen, onClose, onSuccess }) => {
       setSigninData(prev => ({ ...prev, email: signupData.email }));
       
     } catch (error) {
-      console.error('Registration error:', error);
       const message = API.isApiError(error) ? error.message : 'Something went wrong. Please try again.';
       toast.error(message);
     } finally {

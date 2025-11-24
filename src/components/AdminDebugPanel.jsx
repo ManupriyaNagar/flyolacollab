@@ -13,7 +13,6 @@ const AdminDebugPanel = () => {
   const testEndpoint = async (endpoint, name) => {
     try {
       const token = localStorage.getItem("token") || authState.token || "";
-      console.log(`Testing ${name} with URL: ${BASE_URL}${endpoint}`);
       
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: "GET",
@@ -80,7 +79,6 @@ const AdminDebugPanel = () => {
     const results = {};
     
     for (const endpoint of endpoints) {
-      console.log(`Testing ${endpoint.name}...`);
       results[endpoint.name] = await testEndpoint(endpoint.path, endpoint.name);
       setTestResults({ ...results });
       // Small delay to avoid overwhelming the server

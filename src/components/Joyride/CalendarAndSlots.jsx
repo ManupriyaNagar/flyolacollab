@@ -278,7 +278,6 @@ const CalendarAndSlots = ({ onSlotSelect }) => {
         setAvailableSlots(slots);
       } catch (err) {
         setError('Error fetching available slots');
-        console.error('Slot fetch error:', err);
       } finally {
         setLoading(false);
       }

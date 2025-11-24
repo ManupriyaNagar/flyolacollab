@@ -24,7 +24,6 @@ const fmtTime = (t) => {
       timeZone: tz,
     });
   } catch {
-    console.warn(`Invalid time format: ${t}`);
     return "N/A";
   }
 };
@@ -96,7 +95,6 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       const validSeats = seats.filter((seat) => allSeats.includes(seat));
       setAvailableSeats(validSeats);
     } catch (err) {
-      console.warn(`Failed to fetch seats for schedule ${flightSchedule.id}: ${err.message}`);
       setAvailableSeats(allSeats);
     }
   }, [flightSchedule.id, selectedDate, allSeats]);
@@ -185,7 +183,8 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       passengers: passengers.toString(),
     });
     
-    router.push(`/booking?${bookingParams.toString()}`);
+    const bookingUrl = `/booking?${bookingParams.toString()}`;
+    router.push(bookingUrl);
   }, [authState.isLoggedIn, isSoldOut, availableSeats, passengers, isBookingDisabled, isDeparted, departureAirport.city, arrivalAirport.city, flightSchedule, selectedDate, router]);
 
   const handleAuthSuccess = useCallback(() => {

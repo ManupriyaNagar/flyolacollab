@@ -85,7 +85,6 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
       alert(data.message || 'Booking failed');
     }
   } catch (error) {
-    console.error('Error during booking:', error);
     alert('An error occurred. Please try again.');
   }
 };
@@ -109,7 +108,6 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
         alert(data.message || 'Booking failed');
       }
     } catch (error) {
-      console.error('Error during booking:', error);
       alert('An error occurred. Please try again.');
     }
   };

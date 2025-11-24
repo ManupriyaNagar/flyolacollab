@@ -12,7 +12,6 @@ const ApiTestComponent = () => {
   const testEndpoint = async (endpoint, name) => {
     try {
       const token = localStorage.getItem("token") || authState.token || "";
-      console.log(`Testing ${name} with token:`, token ? "present" : "missing");
       
       const response = await fetch(`${BASE_URL}${endpoint}`, {
         method: "GET",
@@ -73,7 +72,6 @@ const ApiTestComponent = () => {
     const results = {};
     
     for (const endpoint of endpoints) {
-      console.log(`Testing ${endpoint.name}...`);
       results[endpoint.name] = await testEndpoint(endpoint.path, endpoint.name);
       setTestResults({ ...results });
     }

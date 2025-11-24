@@ -25,7 +25,7 @@ const AirportServices = ({ bookingData }) => {
     const fetchAirports = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch(`${BASE_URL}/airports`, {
+        const response = await fetch(`${BASE_URL}/airport`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
@@ -37,7 +37,6 @@ const AirportServices = ({ bookingData }) => {
           setAirports(airportsData);
         }
       } catch (error) {
-        console.error("Error fetching airports:", error);
       } finally {
         setLoading(false);
       }

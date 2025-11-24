@@ -92,26 +92,17 @@ export default function AllBookingsPage() {
           airportData = fetchedAirportData;
         }
 
-        console.log("Bookings Data:", bookingsData);
-        console.log("Passenger Data:", paxData);
-        console.log("Payments Data:", paymentsData);
-        console.log("Airport Data:", airportData);
-
         // Warn for failed APIs
         if (!bookingsRes.ok) {
-          console.warn(`Bookings API failed with status ${bookingsRes.status}`);
           toast.warn("Unable to load bookings data.");
         }
         if (!paxRes.ok) {
-          console.warn(`Passenger API failed with status ${paxRes.status}`);
           toast.warn("Unable to load passenger data.");
         }
         if (!paymentsRes.ok) {
-          console.warn(`Payments API failed with status ${paymentsRes.status}`);
           toast.warn("Unable to load payment data.");
         }
         if (!airportRes.ok && !airportData) {
-          console.warn(`Airport API failed with status ${airportRes.status}`);
           toast.warn("Unable to load airport data.");
         }
 
@@ -127,7 +118,6 @@ export default function AllBookingsPage() {
         // Validate bookings data
         const validBookingsData = Array.isArray(bookingsData) ? bookingsData : [];
         if (!validBookingsData.length && bookingsRes.ok) {
-          console.warn("Bookings API returned empty data.");
           toast.warn("No bookings found for the selected status.");
         }
 
@@ -181,7 +171,6 @@ export default function AllBookingsPage() {
               new Date(b.bookDate).getTime() - new Date(a.bookDate).getTime()
           );
 
-        console.log("Merged Data:", merged);
         setAllData(merged);
         setCurrentPage(1);
 
@@ -189,7 +178,6 @@ export default function AllBookingsPage() {
           setError("No bookings found for the selected status.");
         }
       } catch (err) {
-        console.error("Error fetching data:", err);
         setError("Failed to load data. Please try again.");
         toast.error("Failed to load data. Please try again.");
       } finally {
@@ -221,7 +209,6 @@ export default function AllBookingsPage() {
         billingName.includes(term)
       );
     });
-    console.log("Filtered Data:", filtered);
     return filtered;
   }, [allData, searchTerm]);
 
@@ -230,7 +217,6 @@ export default function AllBookingsPage() {
   const currentData = useMemo(() => {
     const start = (currentPage - 1) * BOOKINGS_PER_PAGE;
     const sliced = filteredData.slice(start, start + BOOKINGS_PER_PAGE);
-    console.log("Current Data:", sliced);
     return sliced;
   }, [filteredData, currentPage]);
 

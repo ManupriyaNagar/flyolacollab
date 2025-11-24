@@ -54,7 +54,6 @@ const AdminJoyrideSlotsManager = () => {
       const data = await response.json();
       setSlots(data);
     } catch (err) {
-      console.error('Error fetching joyride slots:', err);
       toast.error('Error fetching joy ride slots');
     } finally {
       setLoading(false);
@@ -166,7 +165,6 @@ const AdminJoyrideSlotsManager = () => {
         toast.success('Joy ride slot updated successfully!');
       } else {
         const data = await response.json();
-        console.error('Update error:', data);
         if (response.status === 401) {
           toast.error('Authentication failed. Please log in again.');
         } else if (response.status === 403) {
@@ -176,7 +174,6 @@ const AdminJoyrideSlotsManager = () => {
         }
       }
     } catch (err) {
-      console.error('Error updating joy ride slot:', err);
       toast.error('An error occurred while updating the joy ride slot');
     } finally {
       setLoading(false);
@@ -203,7 +200,6 @@ const AdminJoyrideSlotsManager = () => {
         toast.success('Joy ride slot deleted successfully!');
       } else {
         const data = await response.json();
-        console.error('Delete error:', data);
         if (response.status === 401) {
           toast.error('Authentication failed. Please log in again.');
         } else if (response.status === 403) {
@@ -215,7 +211,6 @@ const AdminJoyrideSlotsManager = () => {
         }
       }
     } catch (err) {
-      console.error('Error deleting joy ride slot:', err);
       toast.error('An error occurred while deleting the joy ride slot');
     } finally {
       setLoading(false);

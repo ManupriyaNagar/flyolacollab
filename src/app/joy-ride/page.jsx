@@ -26,7 +26,6 @@ export default function JoyrideBookingPage() {
 
   const handleBookingSubmit = async (data) => {
     if (!authState.isLoggedIn || !authState.user?.id) {
-      console.log('[JoyrideBookingPage] User not logged in:', authState);
       setError('Please sign in to confirm your booking.');
       router.push('/sign-in');
       return;
@@ -34,7 +33,7 @@ export default function JoyrideBookingPage() {
 
     setError('');
     try {
-      console.log('[JoyrideBookingPage] Booking confirmed:', {
+      console.log('Booking data:', {
         bookingId: data.bookingId,
         payment: data.payment,
         passengers: data.passengers,
@@ -58,7 +57,6 @@ export default function JoyrideBookingPage() {
       setSelectedSlot(null);
       setTimeout(() => router.push('/joy-ride-ticket'), 3000);
     } catch (err) {
-      console.error('[JoyrideBookingPage] Error processing booking:', err.message);
       showPopup('An error occurred while confirming the booking', true);
     }
   };

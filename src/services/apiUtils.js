@@ -357,18 +357,11 @@ export const isProduction = () => {
 // Logging utilities
 export const logApiCall = (method, url, data = null, response = null) => {
   if (isDevelopment()) {
-    console.group(`🌐 API ${method.toUpperCase()} ${url}`);
-    if (data) console.log('📤 Request:', data);
-    if (response) console.log('📥 Response:', response);
-    console.groupEnd();
   }
 };
 
 export const logApiError = (method, url, error) => {
   if (isDevelopment()) {
-    console.group(`❌ API Error ${method.toUpperCase()} ${url}`);
-    console.error(error);
-    console.groupEnd();
   }
 };
 
