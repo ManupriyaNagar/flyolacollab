@@ -83,9 +83,9 @@ const SignInPage = () => {
       case '3': return '/';
       case '4': return '/head-admin-dashboard';
       case '5': return '/chairman-admin-dashboard';
-      case '6': return '/director-admin-dashboard';
+      case '6': return '/operations-dashboard';
       case '7': return '/accounts-admin-dashboard';
-      case '8': return '/operations-dashboard';
+      case '8': return '/mp-tourism-portal';
       default: return '/';
     }
   };

@@ -1,19 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
 import BASE_URL from "@/baseUrl/baseUrl";
 import API from "@/services/api";
-import { 
-  FaPlane, 
-  FaClock, 
-  FaUserFriends, 
-  FaCreditCard, 
-  FaShieldAlt, 
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+  FaClock,
+  FaCreditCard,
   FaExclamationTriangle,
-  FaSpinner
+  FaPlane,
+  FaShieldAlt,
+  FaSpinner,
+  FaUserFriends
 } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
-import { useRouter } from "next/navigation";
 
 // Add missing chair icon as a simple component
 const FaChair = ({ className }) => (
@@ -39,6 +39,10 @@ export default function PaymentStep({
   const [bookedSeats, setBookedSeats] = useState([]); // Track booked/occupied seats
   const [allSeats, setAllSeats] = useState([]); // All possible seats for this flight
   const [error, setError] = useState(null);
+  const [weightSettings, setWeightSettings] = useState({
+    pricePerKg: 500,
+    freeWeightLimit: 75
+  });
   const { authState } = useAuth();
   const router = useRouter();
   const token = localStorage.getItem("token");
@@ -47,6 +51,42 @@ export default function PaymentStep({
   useEffect(() => {
     console.log('PaymentStep: Received selectedSeats from parent:', selectedSeats);
   }, [selectedSeats]);
+
+  // Fetch weight settings for helicopter bookings
+  useEffect(() => {
+    const fetchWeightSettings = async () => {
+      if (bookingData?.bookingType === 'helicopter') {
+        try {
+          const response = await API.systemSettings.getBookingCutoffTime();
+          setWeightSettings({
+            pricePerKg: response.data.helicopter_weight_price_per_kg || 500,
+            freeWeightLimit: response.data.helicopter_free_weight_limit || 75
+          });
+        } catch (error) {
+          console.error('Failed to fetch weight settings:', error);
+        }
+      }
+    };
+    fetchWeightSettings();
+  }, [bookingData?.bookingType]);
+
+  // Calculate weight charges for helicopter bookings
+  const calculateWeightCharges = () => {
+    if (bookingData?.bookingType !== 'helicopter') return 0;
+    
+    let totalWeightCharge = 0;
+    travelerDetails.forEach(traveler => {
+      if (traveler.weight && parseFloat(traveler.weight) > weightSettings.freeWeightLimit) {
+        const excessWeight = parseFloat(traveler.weight) - weightSettings.freeWeightLimit;
+        totalWeightCharge += excessWeight * weightSettings.pricePerKg;
+      }
+    });
+    return totalWeightCharge;
+  };
+
+  const weightCharges = calculateWeightCharges();
+  const baseFare = parseFloat(bookingData.totalPrice) || 0;
+  const finalTotalPrice = baseFare + weightCharges;
 
   // Log auth state for debugging
 
@@ -312,7 +352,7 @@ async function handleBooking() {
     return;
   }
 
-  const totalPrice = parseFloat(bookingData.totalPrice);
+  const totalPrice = finalTotalPrice;
   if (!isFinite(totalPrice) || totalPrice <= 0) {
     setError("Invalid total price. Please try again.");
     return;
@@ -330,14 +370,44 @@ async function handleBooking() {
     return;
   }
 
-  // CRITICAL: Validate token before initiating payment
+  // CRITICAL: Validate and REFRESH token before initiating payment
   // This prevents the scenario where payment succeeds but booking fails due to expired token
   try {
-    console.log('[PaymentStep] Validating authentication token before payment...');
+    console.log('[PaymentStep] Validating and refreshing authentication token...');
+    
+    // First validate current token
     await API.users.getProfile();
     console.log('[PaymentStep] Token validation successful');
+    
+    // Then refresh to get a fresh token for the booking process
+    const refreshResponse = await fetch(`${BASE_URL}/users/refresh-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    
+    if (refreshResponse.ok) {
+      const refreshData = await refreshResponse.json();
+      const newToken = refreshData.token;
+      
+      // Update token in localStorage
+      localStorage.setItem('token', newToken);
+      
+      // Update headers with new token for all subsequent requests
+      headers.Authorization = `Bearer ${newToken}`;
+      
+      console.log('[PaymentStep] Token refreshed successfully, valid for 24 hours');
+    } else {
+      const errorText = await refreshResponse.text();
+      console.warn('[PaymentStep] Token refresh failed:', errorText);
+      // Continue with old token, but log warning
+      setError("Warning: Unable to refresh session. Proceeding with current token.");
+    }
+    
   } catch (tokenError) {
-    console.error('[PaymentStep] Token validation failed:', tokenError);
+    console.error('[PaymentStep] Token validation/refresh failed:', tokenError);
     
     // Check if it's an authentication error
     const isAuthError = tokenError?.status === 401 || 
@@ -513,19 +583,82 @@ async function handleBooking() {
             });
             if (!bookingResponse.ok) {
               const errorText = await bookingResponse.text();
-              // Initiate refund
-              const refundResponse = await fetch(`${BASE_URL}/payments/refund`, {
-                method: "POST",
-                headers,
-                body: JSON.stringify({
+              console.error('[PaymentStep] Booking failed after payment:', errorText);
+              
+              // Show user that refund is being processed
+              setError("Booking failed. Initiating automatic refund...");
+              
+              // Initiate refund with proper amount calculation
+              try {
+                const refundAmount = parseFloat(payload.payment.payment_amount);
+                const refundAmountInPaise = Math.round(refundAmount * 100);
+                
+                console.log('[PaymentStep] Initiating refund:', {
                   payment_id: response.razorpay_payment_id,
-                  amount: payload.payment.payment_amount * 100, // In paise
-                }),
-              });
-              if (!refundResponse.ok) {
-              } else {
+                  amount: refundAmount,
+                  amountInPaise: refundAmountInPaise
+                });
+                
+                const refundResponse = await fetch(`${BASE_URL}/payments/refund`, {
+                  method: "POST",
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Use fresh token from localStorage
+                  },
+                  body: JSON.stringify({
+                    payment_id: response.razorpay_payment_id,
+                    amount: refundAmountInPaise, // Correct amount in paise
+                    reason: 'Booking creation failed',
+                    notes: {
+                      booking_error: errorText,
+                      schedule_id: bookingData.id,
+                      booking_date: bookingData.selectedDate
+                    }
+                  }),
+                });
+                
+                if (refundResponse.ok) {
+                  const refundData = await refundResponse.json();
+                  console.log('[PaymentStep] Refund initiated successfully:', refundData);
+                  
+                  setError(null);
+                  alert(
+                    "⚠️ Booking Failed\n\n" +
+                    "Your payment was successful but booking creation failed.\n\n" +
+                    "✅ Refund has been initiated automatically.\n" +
+                    `Refund ID: ${refundData.refundId || 'Processing'}\n\n` +
+                    "The amount will be credited to your account within 5-7 business days.\n\n" +
+                    "Please contact support if you have any questions."
+                  );
+                } else {
+                  const refundError = await refundResponse.text();
+                  console.error('[PaymentStep] Refund failed:', refundError);
+                  
+                  setError(null);
+                  alert(
+                    "⚠️ URGENT: Payment Successful but Booking Failed\n\n" +
+                    "Your payment was processed but we couldn't complete your booking.\n\n" +
+                    "❌ Automatic refund also failed.\n\n" +
+                    `Payment ID: ${response.razorpay_payment_id}\n` +
+                    `Amount: ₹${payload.payment.payment_amount}\n\n` +
+                    "Please contact our support team immediately with this Payment ID.\n" +
+                    "We will process your refund manually within 24 hours."
+                  );
+                }
+              } catch (refundError) {
+                console.error('[PaymentStep] Refund exception:', refundError);
+                
+                setError(null);
+                alert(
+                  "⚠️ URGENT: Payment Successful but Booking Failed\n\n" +
+                  `Payment ID: ${response.razorpay_payment_id}\n` +
+                  `Amount: ₹${payload.payment.payment_amount}\n\n` +
+                  "Please save this Payment ID and contact support immediately.\n" +
+                  "We will process your refund within 24 hours."
+                );
               }
-              throw new Error(`Failed to complete booking: ${bookingResponse.status} ${errorText}`);
+              
+              throw new Error(`Booking failed: ${bookingResponse.status} ${errorText}`);
             }
             const result = await bookingResponse.json();
             setIsProcessing(false);
@@ -702,9 +835,24 @@ async function handleBooking() {
             </span>
             <span className="font-medium">{selectedSeats.join(", ") || "None selected"}</span>
           </div>
+          {bookingData?.bookingType === 'helicopter' && weightCharges > 0 && (
+            <>
+              <div className="flex items-center justify-between text-gray-700">
+                <span>Base Fare</span>
+                <span className="font-medium">₹{baseFare.toLocaleString()}</span>
+              </div>
+              <div className="flex items-center justify-between text-orange-700">
+                <span className="flex items-center">
+                  <FaExclamationTriangle className="mr-2" />
+                  Weight Charges
+                </span>
+                <span className="font-medium">₹{weightCharges.toLocaleString()}</span>
+              </div>
+            </>
+          )}
           <div className="border-t pt-3 flex items-center justify-between">
             <span className="text-lg font-semibold text-gray-800">Total Amount</span>
-            <span className="text-2xl font-bold text-blue-600">₹{bookingData.totalPrice}</span>
+            <span className="text-2xl font-bold text-blue-600">₹{finalTotalPrice.toLocaleString()}</span>
           </div>
         </div>
       </div>

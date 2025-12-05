@@ -23,6 +23,8 @@ export default function AdminRefundsPage() {
   const { authState } = useAuth();
   const router = useRouter();
   const [refunds, setRefunds] = useState([]);
+  const [helicopterRefunds, setHelicopterRefunds] = useState([]);
+  const [activeTab, setActiveTab] = useState('flight'); // 'flight' or 'helicopter'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -47,7 +49,8 @@ export default function AdminRefundsPage() {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No authentication token found. Please sign in again.");
 
-      const res = await fetch(`${BASE_URL}/cancellation/admin/refunds`, {
+      // Fetch flight refunds
+      const flightRes = await fetch(`${BASE_URL}/cancellation/admin/refunds`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -56,12 +59,36 @@ export default function AdminRefundsPage() {
         credentials: "include",
       });
 
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || `Error ${res.status}: Failed to fetch refunds`);
+      const flightData = await flightRes.json();
+      if (!flightRes.ok) {
+        throw new Error(flightData.error || `Error ${flightRes.status}: Failed to fetch flight refunds`);
       }
 
-      setRefunds(data.data || []);
+      setRefunds(flightData.data || []);
+
+      // Fetch helicopter refunds
+      try {
+        const heliRes = await fetch(`${BASE_URL}/helicopter-cancellation/admin/refunds`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`,
+          },
+          credentials: "include",
+        });
+
+        if (heliRes.ok) {
+          const heliData = await heliRes.json();
+          setHelicopterRefunds(heliData.data || []);
+        } else {
+          console.warn('Helicopter refunds endpoint not available');
+          setHelicopterRefunds([]);
+        }
+      } catch (heliErr) {
+        console.warn('Failed to fetch helicopter refunds:', heliErr);
+        setHelicopterRefunds([]);
+      }
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -154,9 +181,14 @@ export default function AdminRefundsPage() {
     }
   };
 
-  const filteredRefunds = refunds.filter(refund => {
+  const currentRefunds = activeTab === 'flight' ? refunds : helicopterRefunds;
+
+  const filteredRefunds = currentRefunds.filter(refund => {
     const matchesSearch = !searchTerm || 
-      refund.Booking?.pnr?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (activeTab === 'flight' 
+        ? refund.Booking?.pnr?.toLowerCase().includes(searchTerm.toLowerCase())
+        : refund.HelicopterBooking?.pnr?.toLowerCase().includes(searchTerm.toLowerCase())
+      ) ||
       refund.User?.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       refund.id.toString().includes(searchTerm);
     
@@ -208,6 +240,40 @@ export default function AdminRefundsPage() {
             <h1 className="text-3xl font-bold text-gray-900">Refund Management</h1>
           </div>
           <p className="text-gray-600">Manage and process customer refund requests</p>
+        </div>
+
+        {/* Tabs */}
+        <div className="mb-6">
+          <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-2 inline-flex gap-2">
+            <button
+              onClick={() => {
+                setActiveTab('flight');
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                activeTab === 'flight'
+                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              ✈️ Flight Refunds ({refunds.length})
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab('helicopter');
+                setSearchTerm('');
+                setStatusFilter('all');
+              }}
+              className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
+                activeTab === 'helicopter'
+                  ? 'bg-gradient-to-r from-green-600 to-emerald-600 text-white shadow-lg'
+                  : 'text-gray-600 hover:bg-gray-100'
+              }`}
+            >
+              🚁 Helicopter Refunds ({helicopterRefunds.length})
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -353,6 +419,38 @@ export default function AdminRefundsPage() {
                         <div>
                           <p className="text-yellow-800 font-medium">Admin Notes</p>
                           <p className="text-yellow-700 text-sm mt-1">{refund.admin_notes}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Razorpay Refund Status */}
+                  {refund.razorpay_refund_id && (
+                    <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mb-4">
+                      <div className="flex items-start gap-3">
+                        <CurrencyRupeeIcon className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                        <div className="flex-1">
+                          <p className="text-purple-800 font-medium mb-2">Razorpay Refund Details</p>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <span className="text-purple-600">Refund ID:</span>
+                              <span className="ml-2 font-mono text-purple-900">{refund.razorpay_refund_id}</span>
+                            </div>
+                            {refund.razorpay_refund_status && (
+                              <div>
+                                <span className="text-purple-600">Status:</span>
+                                <span className={`ml-2 px-2 py-1 rounded-full text-xs font-medium ${
+                                  refund.razorpay_refund_status === 'processed' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : refund.razorpay_refund_status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {refund.razorpay_refund_status.toUpperCase()}
+                                </span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

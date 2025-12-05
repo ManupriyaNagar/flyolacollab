@@ -1,15 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import API from "@/services/api";
+import React, { useEffect, useState } from "react";
 import {
-  FaUser,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaIdCard,
-  FaExclamationCircle,
-  FaCheckCircle,
-  FaInfoCircle
+    FaCheckCircle,
+    FaEnvelope,
+    FaExclamationCircle,
+    FaIdCard,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaPhone,
+    FaUser
 } from "react-icons/fa";
 
 // Reusable input field with validation icons and blur handling
@@ -70,6 +71,28 @@ const TravelerInfoStep = ({
 }) => {
   const [errors, setErrors] = useState({});
   const [validationStatus, setValidationStatus] = useState({});
+  const [weightSettings, setWeightSettings] = useState({
+    pricePerKg: 500,
+    freeWeightLimit: 75
+  });
+
+  useEffect(() => {
+    // Fetch weight pricing settings for helicopter bookings
+    const fetchWeightSettings = async () => {
+      if (bookingData?.bookingType === 'helicopter') {
+        try {
+          const response = await API.systemSettings.getBookingCutoffTime();
+          setWeightSettings({
+            pricePerKg: response.data.helicopter_weight_price_per_kg || 500,
+            freeWeightLimit: response.data.helicopter_free_weight_limit || 75
+          });
+        } catch (error) {
+          console.error('Failed to fetch weight settings:', error);
+        }
+      }
+    };
+    fetchWeightSettings();
+  }, [bookingData?.bookingType]);
 
   const validateField = (field, value, idx) => {
     const key = `${idx}-${field}`;
@@ -94,6 +117,19 @@ const TravelerInfoStep = ({
           newStat[key] = 'error';
         } else {
           newStat[key] = 'success';
+        }
+        break;
+      case 'weight':
+        if (bookingData?.bookingType === 'helicopter') {
+          if (!value || parseFloat(value) <= 0) {
+            newErr[key] = 'Weight is required';
+            newStat[key] = 'error';
+          } else if (parseFloat(value) > 200) {
+            newErr[key] = 'Weight cannot exceed 200kg';
+            newStat[key] = 'error';
+          } else {
+            newStat[key] = 'success';
+          }
         }
         break;
       case 'dateOfBirth':
@@ -147,10 +183,20 @@ const TravelerInfoStep = ({
     let stats = {};
     let hasError = false;
 
+    const isHelicopter = bookingData?.bookingType === 'helicopter';
+
     travelerDetails.forEach((t, idx) => {
       ['title','fullName','dateOfBirth'].forEach(fld => {
         if (!t[fld]) { errs[`${idx}-${fld}`] = `${fld} required`; stats[`${idx}-${fld}`] = 'error'; hasError = true; }
       });
+      
+      // Weight is required for helicopter bookings
+      if (isHelicopter && !t.weight) {
+        errs[`${idx}-weight`] = 'Weight is required for helicopter bookings';
+        stats[`${idx}-weight`] = 'error';
+        hasError = true;
+      }
+      
       if (idx === 0) ['email','phone'].forEach(fld => {
         if (!t[fld]) { errs[`${idx}-${fld}`] = `${fld} required`; stats[`${idx}-${fld}`] = 'error'; hasError = true; }
       });
@@ -185,9 +231,14 @@ const TravelerInfoStep = ({
           <div>
             <h4 className="font-medium">Guidelines</h4>
             <ul className="list-disc list-inside text-sm text-blue-700">
-              <li>Names must match your ID</li>
-              <li>Contact used for updates</li>
+              <li>Names must match your ID documents exactly</li>
+              <li>Contact information will be used for booking updates</li>
               <li>Fields with * are required</li>
+              {bookingData?.bookingType === 'helicopter' && (
+                <li className="font-medium text-orange-700">
+                  Weight over {weightSettings.freeWeightLimit}kg will be charged ₹{weightSettings.pricePerKg}/kg
+                </li>
+              )}
             </ul>
           </div>
         </div>
@@ -223,6 +274,49 @@ const TravelerInfoStep = ({
 
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <InputField label="Date of Birth" type="date" value={trav.dateOfBirth} onChange={v=>handleInputChange(i,'dateOfBirth',v)} onBlur={v=>handleBlur(i,'dateOfBirth',v)} required icon={FaIdCard} status={getStatus(i,'dateOfBirth')} error={getError(i,'dateOfBirth')} />
+              
+              {bookingData?.bookingType === 'helicopter' && (
+                <div className="space-y-1">
+                  <label className="block text-sm font-medium text-gray-700">
+                    Weight (kg) <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <FaUser className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${
+                      getStatus(i,'weight') === 'error' ? 'text-red-400' : getStatus(i,'weight') === 'success' ? 'text-green-400' : 'text-gray-400'
+                    }`} />
+                    <input
+                      type="number"
+                      min="1"
+                      max="200"
+                      value={trav.weight || ''}
+                      onChange={e => handleInputChange(i,'weight',e.target.value)}
+                      onBlur={e => handleBlur(i,'weight',e.target.value)}
+                      placeholder="Enter weight in kg"
+                      className={`w-full pl-10 pr-10 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all duration-200 ${
+                        getStatus(i,'weight') === 'error'
+                          ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
+                          : getStatus(i,'weight') === 'success'
+                          ? 'border-green-300 focus:ring-green-500 focus:border-green-500'
+                          : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'
+                      }`}
+                    />
+                  </div>
+                  {trav.weight && parseFloat(trav.weight) > weightSettings.freeWeightLimit && (
+                    <div className="mt-2 p-2 bg-orange-50 border border-orange-200 rounded-lg">
+                      <p className="text-sm text-orange-700 flex items-center gap-2">
+                        <FaInfoCircle />
+                        <span>
+                          Additional charge: ₹{((parseFloat(trav.weight) - weightSettings.freeWeightLimit) * weightSettings.pricePerKg).toLocaleString()} 
+                          <span className="text-xs ml-1">({(parseFloat(trav.weight) - weightSettings.freeWeightLimit).toFixed(1)}kg × ₹{weightSettings.pricePerKg}/kg)</span>
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                  {getError(i,'weight') && (
+                    <p className="text-sm text-red-600 mt-1">{getError(i,'weight')}</p>
+                  )}
+                </div>
+              )}
             </div>
 
             {i===0 && <>

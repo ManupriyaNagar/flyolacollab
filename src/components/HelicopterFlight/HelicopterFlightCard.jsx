@@ -50,6 +50,8 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
   const [isBookingDisabled, setIsBookingDisabled] = useState(false);
   const [isDeparted, setIsDeparted] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [cutoffTime, setCutoffTime] = useState("09:00");
+  const [advanceBookingDays, setAdvanceBookingDays] = useState(0);
 
   const helicopterData = useMemo(
     () => helicopter || {
@@ -128,6 +130,21 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
     return () => clearTimeout(timer);
   }, [fetchSeats]);
 
+  // Fetch dynamic cutoff settings from backend
+  useEffect(() => {
+    const fetchCutoffSettings = async () => {
+      try {
+        const response = await API.systemSettings.getBookingCutoffTime();
+        setCutoffTime(response.data.helicopter_cutoff_time || "09:00");
+        setAdvanceBookingDays(response.data.advance_booking_days || 0);
+      } catch (error) {
+        console.error("Error fetching cutoff settings:", error);
+        // Keep defaults if fetch fails
+      }
+    };
+    fetchCutoffSettings();
+  }, []);
+
   useEffect(() => {
     const handleSeatUpdate = (e) => {
       const { schedule_id, bookDate, availableSeats: updatedSeats } = e.detail;
@@ -151,8 +168,25 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       const currentTimeInMinutes = hours * 60 + minutes;
       const currentDate = istTime.toISOString().split("T")[0];
 
-      // Check if current date matches selected date and time is after 9 AM IST (09:00)
-      const isAfter9AM = selectedDate === currentDate && currentTimeInMinutes >= 9 * 60;
+      // Parse dynamic cutoff time
+      const [cutoffHours, cutoffMinutes] = cutoffTime.split(":").map(Number);
+      const cutoffTimeInMinutes = cutoffHours * 60 + cutoffMinutes;
+
+      // Calculate cutoff date based on advance booking days
+      const departureDate = new Date(selectedDate);
+      const cutoffDate = new Date(departureDate);
+      cutoffDate.setDate(cutoffDate.getDate() - advanceBookingDays);
+      const cutoffDateStr = cutoffDate.toISOString().split("T")[0];
+
+      // Check if we're past the cutoff date/time
+      let isAfterCutoff = false;
+      if (currentDate > cutoffDateStr) {
+        // Past the cutoff date entirely
+        isAfterCutoff = true;
+      } else if (currentDate === cutoffDateStr) {
+        // On the cutoff date, check time
+        isAfterCutoff = currentTimeInMinutes >= cutoffTimeInMinutes;
+      }
 
       // Parse helicopter departure time
       let departureTimeInMinutes;
@@ -168,14 +202,14 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       const isHelicopterDeparted =
         selectedDate === currentDate && currentTimeInMinutes >= departureTimeInMinutes;
 
-      setIsBookingDisabled(isAfter9AM || isHelicopterDeparted);
+      setIsBookingDisabled(isAfterCutoff || isHelicopterDeparted);
       setIsDeparted(isHelicopterDeparted);
     };
 
     checkBookingStatus();
     const interval = setInterval(checkBookingStatus, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [schedule.departure_time, selectedDate]);
+  }, [schedule.departure_time, selectedDate, cutoffTime, advanceBookingDays]);
 
   const handleBookNowClick = useCallback(() => {
     if (!authState?.isLoggedIn) {
@@ -191,7 +225,13 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       return;
     }
     if (isBookingDisabled) {
-      alert(isDeparted ? "This helicopter has departed." : "Booking is closed after 9 AM IST on the departure date.");
+      if (isDeparted) {
+        alert("This helicopter has departed.");
+      } else if (advanceBookingDays > 0) {
+        alert(`Booking is closed ${advanceBookingDays} day(s) before departure at ${cutoffTime} IST.`);
+      } else {
+        alert(`Booking is closed after ${cutoffTime} IST on the departure date.`);
+      }
       return;
     }
     

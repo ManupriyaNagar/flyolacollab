@@ -10,6 +10,11 @@ const ROLES = {
   ADMIN: 1,
   AGENT: 2,
   USER: 3,
+  HEAD_ADMIN: 4,
+  CHAIRMAN_ADMIN: 5,
+  OPERATIONS: 6,
+  ACCOUNTS_ADMIN: 7,
+  MP_TOURISM: 8,
 };
 
 // Route → allowed roles
@@ -18,6 +23,11 @@ const ROUTE_ACCESS = {
   "/agent-dashboard": [ROLES.AGENT],
   "/user-dashboard": [ROLES.USER],
   "/booking-agent-dashboard": [ROLES.AGENT],
+  "/head-admin-dashboard": [ROLES.HEAD_ADMIN],
+  "/chairman-admin-dashboard": [ROLES.CHAIRMAN_ADMIN],
+  "/operations-dashboard": [ROLES.OPERATIONS],
+  "/accounts-admin-dashboard": [ROLES.ACCOUNTS_ADMIN],
+  "/mp-tourism-portal": [ROLES.MP_TOURISM],
   "/scheduled-flight": [ROLES.USER, ROLES.AGENT],
   "/combined-booking-page": [ROLES.USER, ROLES.AGENT],
   "/get-ticket": [ROLES.USER, ROLES.AGENT],
@@ -40,6 +50,16 @@ const RouteGuard = ({ children }) => {
         return "/agent-dashboard";
       case ROLES.USER:
         return "/user-dashboard";
+      case ROLES.HEAD_ADMIN:
+        return "/head-admin-dashboard";
+      case ROLES.CHAIRMAN_ADMIN:
+        return "/chairman-admin-dashboard";
+      case ROLES.OPERATIONS:
+        return "/operations-dashboard";
+      case ROLES.ACCOUNTS_ADMIN:
+        return "/accounts-admin-dashboard";
+      case ROLES.MP_TOURISM:
+        return "/mp-tourism-portal";
       default:
         return "/sign-in";
     }

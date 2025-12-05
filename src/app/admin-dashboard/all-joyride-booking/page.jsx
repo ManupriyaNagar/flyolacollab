@@ -1,26 +1,26 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useRouter } from 'next/navigation';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import BASE_URL from "@/baseUrl/baseUrl";
 import {
-  MagnifyingGlassIcon,
+  ArrowsUpDownIcon,
   CalendarDaysIcon,
   ClockIcon,
-  UsersIcon,
   CurrencyDollarIcon,
+  EnvelopeIcon,
   EyeIcon,
   EyeSlashIcon,
-  UserIcon,
-  EnvelopeIcon,
-  PhoneIcon,
+  MagnifyingGlassIcon,
   MapPinIcon,
+  PhoneIcon,
   SparklesIcon,
-  ArrowsUpDownIcon,
+  UserIcon,
+  UsersIcon,
 } from "@heroicons/react/24/outline";
 import { debounce } from "lodash";
-import BASE_URL from "@/baseUrl/baseUrl";
+import { useRouter } from 'next/navigation';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function AdminJoyrideBookingsPage() {
   const [bookings, setBookings] = useState([]);
@@ -35,7 +35,7 @@ export default function AdminJoyrideBookingsPage() {
       setLoading(true);
 
       try {
-        const response = await fetch(`${BASE_URL}/api/joyride-slots/joyride-bookings`, {
+        const response = await fetch(`${BASE_URL}/api/joyride-bookings`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -89,13 +89,15 @@ export default function AdminJoyrideBookingsPage() {
       const searchLower = searchTerm.toLowerCase();
       return (
         booking.id?.toString().includes(searchLower) ||
-        booking.user?.name?.toLowerCase().includes(searchLower) ||
-        booking.user?.email?.toLowerCase().includes(searchLower) ||
+        booking.pnr?.toLowerCase().includes(searchLower) ||
+        booking.booking_number?.toLowerCase().includes(searchLower) ||
         booking.email?.toLowerCase().includes(searchLower) ||
         booking.phone?.toLowerCase().includes(searchLower) ||
-        booking.slot?.date?.toLowerCase().includes(searchLower) ||
-        booking.slot?.time?.toLowerCase().includes(searchLower) ||
-        booking.passengers?.some(p => p.name?.toLowerCase().includes(searchLower))
+        booking.booking_date?.toLowerCase().includes(searchLower) ||
+        booking.departure_time?.toLowerCase().includes(searchLower) ||
+        booking.passenger_names?.toLowerCase().includes(searchLower) ||
+        booking.start_helipad_name?.toLowerCase().includes(searchLower) ||
+        booking.stop_helipad_name?.toLowerCase().includes(searchLower)
       );
     });
 
@@ -106,14 +108,14 @@ export default function AdminJoyrideBookingsPage() {
         let bValue = b[sortConfig.key];
         
         if (sortConfig.key === 'slot') {
-          aValue = a.slot?.date || '';
-          bValue = b.slot?.date || '';
+          aValue = a.booking_date || '';
+          bValue = b.booking_date || '';
         } else if (sortConfig.key === 'user') {
-          aValue = a.user?.name || '';
-          bValue = b.user?.name || '';
+          aValue = a.email || '';
+          bValue = b.email || '';
         } else if (sortConfig.key === 'passengers') {
-          aValue = a.passengers?.length || 0;
-          bValue = b.passengers?.length || 0;
+          aValue = a.passenger_count || 0;
+          bValue = b.passenger_count || 0;
         } else if (sortConfig.key === 'total_price') {
           aValue = parseFloat(a.total_price) || 0;
           bValue = parseFloat(b.total_price) || 0;
@@ -187,20 +189,20 @@ export default function AdminJoyrideBookingsPage() {
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+          <table className="w-full min-w-[1200px] border-collapse">
+            <thead className="bg-slate-50 border-b-2 border-slate-300">
               <tr>
                 {[
-                  { key: 'id', label: 'Booking ID', sortable: true },
-                  { key: 'user', label: 'User', sortable: true },
-                  { key: 'slot', label: 'Date & Time', sortable: true },
-                  { key: 'passengers', label: 'Passengers', sortable: true },
-                  { key: 'total_price', label: 'Total Price', sortable: true },
-                  { key: 'actions', label: 'Actions', sortable: false },
+                  { key: 'id', label: 'Booking ID', sortable: true, width: 'min-w-[120px]' },
+                  { key: 'user', label: 'Contact Info', sortable: true, width: 'min-w-[250px]' },
+                  { key: 'slot', label: 'Date & Time', sortable: true, width: 'min-w-[200px]' },
+                  { key: 'passengers', label: 'Passengers', sortable: true, width: 'min-w-[120px]' },
+                  { key: 'total_price', label: 'Total Price', sortable: true, width: 'min-w-[140px]' },
+                  { key: 'actions', label: 'Actions', sortable: false, width: 'min-w-[160px]' },
                 ].map((column) => (
                   <th
                     key={column.key}
-                    className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${
+                    className={`${column.width} px-6 py-4 text-left text-xs font-semibold text-slate-700 uppercase tracking-wider border-r border-slate-200 last:border-r-0 bg-slate-50 ${
                       column.sortable ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''
                     }`}
                     onClick={column.sortable ? () => handleSort(column.key) : undefined}
@@ -213,7 +215,7 @@ export default function AdminJoyrideBookingsPage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200 bg-white">
               {loading ? (
                 <tr>
                   <td colSpan={6} className="px-6 py-12 text-center">
@@ -240,44 +242,47 @@ export default function AdminJoyrideBookingsPage() {
               ) : (
                 filteredBookings.map((booking) => (
                   <React.Fragment key={booking.id}>
-                    <tr className="hover:bg-slate-50 transition-colors">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                    <tr className="hover:bg-slate-50 transition-colors border-b border-slate-200">
+                      <td className="px-6 py-4 whitespace-nowrap border-r border-slate-200">
                         <span className="font-semibold text-slate-900">#{booking.id}</span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap border-r border-slate-200">
                         <div className="flex items-center gap-2 max-w-[200px]">
                           <UserIcon className="w-4 h-4 text-slate-400 flex-shrink-0" />
                           <div className="min-w-0">
-                            <div className="font-medium text-slate-900 truncate" title={booking.user?.name || 'N/A'}>
-                              {booking.user?.name || 'N/A'}
+                            <div className="font-medium text-slate-900 truncate" title={booking.email || 'N/A'}>
+                              {booking.email || 'N/A'}
                             </div>
-                            <div className="text-sm text-slate-500 truncate" title={booking.user?.email || 'N/A'}>
-                              {booking.user?.email || 'N/A'}
+                            <div className="text-sm text-slate-500 truncate" title={booking.phone || 'N/A'}>
+                              {booking.phone || 'N/A'}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap border-r border-slate-200">
                         <div className="flex items-center gap-2">
                           <CalendarDaysIcon className="w-4 h-4 text-slate-400" />
                           <div>
                             <div className="font-medium text-slate-900">
-                              {booking.slot?.date ? new Date(booking.slot.date).toLocaleDateString() : 'N/A'}
+                              {booking.booking_date ? new Date(booking.booking_date).toLocaleDateString() : 'N/A'}
                             </div>
                             <div className="text-sm text-slate-500 flex items-center gap-1">
                               <ClockIcon className="w-3 h-3" />
-                              {booking.slot?.time || 'N/A'}
+                              {booking.departure_time || 'N/A'}
+                            </div>
+                            <div className="text-xs text-slate-400">
+                              {booking.departure_day || ''}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap border-r border-slate-200">
                         <div className="flex items-center gap-2">
                           <UsersIcon className="w-4 h-4 text-slate-400" />
-                          <span className="text-slate-700">{booking.passengers?.length || 0}</span>
+                          <span className="text-slate-700">{booking.passenger_count || 0}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-6 py-4 whitespace-nowrap border-r border-slate-200">
                         <div className="flex items-center gap-2">
                           <CurrencyDollarIcon className="w-4 h-4 text-slate-400" />
                           <span className="font-semibold text-slate-900">
@@ -314,20 +319,47 @@ export default function AdminJoyrideBookingsPage() {
                             <div className="bg-white rounded-xl p-4 border border-slate-200">
                               <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
                                 <UsersIcon className="w-5 h-5 text-purple-600" />
-                                Passengers ({booking.passengers?.length || 0})
+                                Passengers ({booking.passenger_count || 0})
                               </h4>
-                              {booking.passengers?.length > 0 ? (
+                              {booking.passenger_names ? (
                                 <div className="space-y-2">
-                                  {booking.passengers.map((passenger, index) => (
+                                  {booking.passenger_names.split(', ').map((name, index) => (
                                     <div key={index} className="flex items-center justify-between p-2 bg-slate-50 rounded-lg">
-                                      <span className="font-medium text-slate-700">{passenger.name}</span>
-                                      <span className="text-sm text-slate-500">Weight: {passenger.weight} kg</span>
+                                      <span className="font-medium text-slate-700">{name}</span>
                                     </div>
                                   ))}
                                 </div>
                               ) : (
                                 <p className="text-slate-500 text-sm">No passenger information available</p>
                               )}
+                            </div>
+
+                            {/* Route Information */}
+                            <div className="bg-white rounded-xl p-4 border border-slate-200">
+                              <h4 className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                                <MapPinIcon className="w-5 h-5 text-purple-600" />
+                                Route Information
+                              </h4>
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-slate-500">From:</span>
+                                  <span className="font-medium text-slate-700">
+                                    {booking.start_helipad_name || 'N/A'} ({booking.start_helipad_code || ''})
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-slate-500">To:</span>
+                                  <span className="font-medium text-slate-700">
+                                    {booking.stop_helipad_name || 'N/A'} ({booking.stop_helipad_code || ''})
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm text-slate-500">Price:</span>
+                                  <span className="font-medium text-slate-700">
+                                    ₹{booking.schedule_price ? Number(booking.schedule_price).toLocaleString() : '0'}
+                                  </span>
+                                </div>
+                              </div>
                             </div>
 
                             {/* Contact Information */}

@@ -1,17 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { 
-  FaPlane, 
-  FaClock, 
-  FaCalendarAlt, 
-  FaUsers, 
-  FaMapMarkerAlt,
-  FaInfoCircle,
-  FaCheckCircle,
-  FaExclamationTriangle
-} from "react-icons/fa";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { useEffect, useState } from "react";
+import {
+    FaCalendarAlt,
+    FaCheckCircle,
+    FaClock,
+    FaInfoCircle,
+    FaMapMarkerAlt,
+    FaPlane,
+    FaUsers
+} from "react-icons/fa";
 
 const TourReviewStep = ({
   bookingData,
@@ -170,13 +169,28 @@ const TourReviewStep = ({
           </div>
           <div className="flex items-start">
             <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 mt-2"></div>
-            <span>Baggage allowance 7kg </span>
+            <span>
+              {bookingData?.bookingType === 'helicopter' 
+                ? 'Baggage policy: 2kg per passenger' 
+                : 'Baggage allowance: 7kg per passenger'}
+            </span>
           </div>
+          {bookingData?.bookingType === 'helicopter' && (
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-orange-400 rounded-full mr-2 mt-2"></div>
+              <span className="font-medium text-orange-700">Weight policy: ₹500 per kg over 75kg per passenger</span>
+            </div>
+          )}
           <div className="flex items-start">
             <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 mt-2"></div>
             <span>Seat selection is subject to availability</span>
           </div>
-         
+          {bookingData?.bookingType === 'helicopter' && (
+            <div className="flex items-start">
+              <div className="w-2 h-2 bg-gray-400 rounded-full mr-2 mt-2"></div>
+              <span className="font-medium">Match passenger details exactly with ID documents</span>
+            </div>
+          )}
         </div>
       </div>
 

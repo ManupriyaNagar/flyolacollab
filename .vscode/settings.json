@@ -1,0 +1,12 @@
+{
+  "typescript.preferences.autoImportFileExcludePatterns": [
+    "**/lib/utils",
+    "**/lib/utils.js",
+    "**/lib/utils.ts"
+  ],
+  "javascript.preferences.autoImportFileExcludePatterns": [
+    "**/lib/utils",
+    "**/lib/utils.js",
+    "**/lib/utils.ts"
+  ]
+}

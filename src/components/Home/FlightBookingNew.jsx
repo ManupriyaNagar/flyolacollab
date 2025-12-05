@@ -519,11 +519,8 @@ export default function FlightBooking() {
                               passengers: totalPassengers,
                             },
                           }}
-                          passHref
-                          legacyBehavior
                         >
                           <Button
-                            asChild
                             className={`w-full mt-7 sm:w-auto h-14 px-8 text-lg font-bold rounded-2xl flex items-center gap-3 transition-all duration-300 border shadow-3xl transform hover:-translate-y-1 ${
                               isSearchDisabled
                                 ? "bg-gradient-to-r from-blue-700 via-blue-600 to-blue-600"
@@ -531,10 +528,8 @@ export default function FlightBooking() {
                             }`}
                             disabled={isSearchDisabled}
                           >
-                            <a className="flex items-center gap-3">
-                              <FaPlaneDeparture className="text-xl" />
-                              <span>Search Flights</span>
-                            </a>
+                            <FaPlaneDeparture className="text-xl" />
+                            <span>Search Flights</span>
                           </Button>
                         </Link>
                       </motion.div>
@@ -787,11 +782,8 @@ export default function FlightBooking() {
                               passengers: totalHeliPassengers,
                             },
                           }}
-                          passHref
-                          legacyBehavior
                         >
                           <Button
-                            asChild
                             className={`w-full mt-7 sm:w-auto h-14 px-8 text-lg font-bold rounded-2xl flex items-center gap-3 transition-all duration-300 border shadow-3xl transform hover:-translate-y-1 ${
                               !heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError
                                 ? "bg-gradient-to-r from-blue-700 via-blue-600 to-blue-600"
@@ -799,10 +791,8 @@ export default function FlightBooking() {
                             }`}
                             disabled={!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError}
                           >
-                            <a className="flex items-center gap-3">
-                              <FaHelicopter className="text-xl" />
-                              <span>Search Helicopters</span>
-                            </a>
+                            <FaHelicopter className="text-xl" />
+                            <span>Search Helicopters</span>
                           </Button>
                         </Link>
                       </motion.div>

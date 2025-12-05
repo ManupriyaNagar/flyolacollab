@@ -22,24 +22,21 @@ export default function SearchButton({
       transition={{ delay }}
       className="flex justify-center -mt-5"
     >
-      <Link
-        href={{
-          pathname,
-          query: queryParams,
-        }}
-        passHref
-        legacyBehavior
+      <Button
+        asChild
+        className={`w-full max-w-md h-14 px-12 text-lg font-bold rounded-full flex items-center justify-center gap-3 transition-all duration-300 shadow-lg transform hover:scale-105 ${buttonColor}`}
+        disabled={isDisabled}
       >
-        <Button
-          asChild
-          className={`w-full max-w-md h-14 px-12 text-lg font-bold rounded-full flex items-center justify-center gap-3 transition-all duration-300 shadow-lg transform hover:scale-105 ${buttonColor}`}
-          disabled={isDisabled}
+        <Link
+          href={{
+            pathname,
+            query: queryParams,
+          }}
+          className="flex items-center gap-3"
         >
-          <a className="flex items-center gap-3">
-            <span>SEARCH</span>
-          </a>
-        </Button>
-      </Link>
+          <span>SEARCH</span>
+        </Link>
+      </Button>
     </motion.div>
   );
 }

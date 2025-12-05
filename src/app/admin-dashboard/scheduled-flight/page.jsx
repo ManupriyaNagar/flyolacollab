@@ -25,6 +25,7 @@ import { debounce } from "lodash";
 
 const ENTRIES_PER_PAGE = [10, 25, 50, 100];
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+const SCHEDULE_TYPES = ["All", "Recurring", "One-Time"];
 
 const FlightSchedulePage = () => {
   const [schedules, setSchedules] = useState([]);
@@ -32,6 +33,7 @@ const FlightSchedulePage = () => {
   const [airports, setAirports] = useState([]);
   const [filterDay, setFilterDay] = useState("All Days");
   const [filterStatus, setFilterStatus] = useState("All");
+  const [filterType, setFilterType] = useState("All"); // New: filter by schedule type
   const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -49,15 +51,25 @@ const FlightSchedulePage = () => {
     price: "",
     status: 1,
     via_stop_id: "[]",
+    is_one_time: 0,
+    specific_date: "",
+    is_one_time: 0, // New: one-time flight flag
+    specific_date: "", // New: specific date for one-time flights
   });
 
   // Fetch data with validation
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
+      // Get current month for fetching schedules
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const currentMonth = `${year}-${month}`;
+      
       const [flightsRes, schedulesRes, airportsRes] = await Promise.all([
-        fetch(`${BASE_URL}/flights?user=true`),
-        fetch(`${BASE_URL}/flight-schedules`),
+        fetch(`${BASE_URL}/flights`),
+        fetch(`${BASE_URL}/flight-schedules?month=${currentMonth}`),
         fetch(`${BASE_URL}/airport`),
       ]);
       
@@ -71,19 +83,29 @@ const FlightSchedulePage = () => {
         airportsRes.json(),
       ]);
 
-      // Validate data
-      const flightIds = new Set(flightsData.map((f) => f.id));
-      const airportIds = new Set(airportsData.map((a) => a.id));
-      
-      schedulesData.forEach((schedule) => {
-        // Validation logic without console output
-      });
-
       setFlights(flightsData);
       setAirports(airportsData);
+      
+      // Deduplicate schedules - show each unique schedule only once
+      const uniqueSchedulesMap = new Map();
+      
+      schedulesData.forEach((schedule) => {
+        // Create a unique key based on schedule configuration (not date)
+        const uniqueKey = `${schedule.flight_id}-${schedule.departure_airport_id}-${schedule.arrival_airport_id}-${schedule.departure_time}-${schedule.arrival_time}`;
+        
+        // Only keep the first occurrence of each unique schedule
+        if (!uniqueSchedulesMap.has(uniqueKey)) {
+          uniqueSchedulesMap.set(uniqueKey, schedule);
+        }
+      });
+      
+      // Convert map back to array
+      const uniqueSchedules = Array.from(uniqueSchedulesMap.values());
+      
       setSchedules(
-        schedulesData.map((schedule) => {
-          const flight = flightsData.find((f) => f.id === schedule.flight_id) || {};
+        uniqueSchedules.map((schedule) => {
+          // Use the Flight object from the API response if available, otherwise search in flightsData
+          const flight = schedule.Flight || flightsData.find((f) => f.id === schedule.flight_id) || {};
           const stops = schedule.via_stop_id
             ? JSON.parse(schedule.via_stop_id || "[]").length > 0
               ? JSON.parse(schedule.via_stop_id)
@@ -100,6 +122,10 @@ const FlightSchedulePage = () => {
             stops,
             status: schedule.status === 1 ? "Active" : "Inactive",
             date: schedule.updated_at ? new Date(schedule.updated_at).toLocaleDateString("en-GB") : "N/A",
+            recurring_type: schedule.is_one_time === 1 ? "One-Time" : "Recurring",
+            specific_date_display: schedule.is_one_time === 1 && schedule.specific_date 
+              ? new Date(schedule.specific_date).toLocaleDateString("en-GB")
+              : null,
           };
         })
       );
@@ -177,6 +203,8 @@ const FlightSchedulePage = () => {
         price: "",
         status: 1,
         via_stop_id: "[]",
+    is_one_time: 0,
+    specific_date: "",
       });
       setIsEdit(false);
       toast.success(isEdit ? "Schedule updated!" : "Schedule added!");
@@ -264,13 +292,26 @@ const FlightSchedulePage = () => {
   // Filter schedules
   const filteredSchedules = useMemo(() => {
     let filtered = schedules.filter((schedule) => {
-      const matchesDay = filterDay === "All Days" || schedule.departure_day === filterDay;
-      const matchesStatus = filterStatus === "All" || filterStatus === schedule.status;
+      // Day filter - check if departure_day exists and matches
+      const matchesDay = filterDay === "All Days" || 
+                         (schedule.departure_day && schedule.departure_day === filterDay);
+      
+      // Status filter - handle both string and number status values
+      const scheduleStatus = schedule.status === 1 || schedule.status === "Active" ? "Active" : "Inactive";
+      const matchesStatus = filterStatus === "All" || filterStatus === scheduleStatus;
+      
+      // Type filter - recurring vs one-time
+      const matchesType = filterType === "All" || 
+                         (filterType === "Recurring" && schedule.recurring_type === "Recurring") ||
+                         (filterType === "One-Time" && schedule.recurring_type === "One-Time");
+      
+      // Search filter
       const matchesSearch =
-        schedule.flight_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        schedule.startAirport.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        schedule.endAirport.toLowerCase().includes(searchTerm.toLowerCase());
-      return matchesDay && matchesStatus && matchesSearch;
+        (schedule.flight_number && schedule.flight_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (schedule.startAirport && schedule.startAirport.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        (schedule.endAirport && schedule.endAirport.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      return matchesDay && matchesStatus && matchesType && matchesSearch;
     });
 
     // Apply sorting
@@ -295,7 +336,7 @@ const FlightSchedulePage = () => {
     }
 
     return filtered;
-  }, [schedules, filterDay, filterStatus, searchTerm, sortConfig]);
+  }, [schedules, filterDay, filterStatus, filterType, searchTerm, sortConfig]);
 
   // Pagination
   const totalPages = Math.ceil(filteredSchedules.length / entriesPerPage) || 1;
@@ -342,6 +383,8 @@ const FlightSchedulePage = () => {
               price: "",
               status: 1,
               via_stop_id: "[]",
+    is_one_time: 0,
+    specific_date: "",
             });
             setShowModal(true);
           }}
@@ -350,6 +393,26 @@ const FlightSchedulePage = () => {
           <PlusIcon className="w-5 h-5" />
           Add Schedule
         </button>
+      </div>
+
+      {/* Tab Filters */}
+      <div className="flex items-center gap-2 bg-white rounded-xl shadow-sm border border-slate-200 p-1.5">
+        {SCHEDULE_TYPES.map((type) => (
+          <button
+            key={type}
+            onClick={() => {
+              setFilterType(type);
+              setCurrentPage(1);
+            }}
+            className={`flex-1 px-4 py-2.5 rounded-lg font-semibold transition-all duration-200 ${
+              filterType === type
+                ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            {type}
+          </button>
+        ))}
       </div>
 
       {/* Filters */}
@@ -432,6 +495,7 @@ const FlightSchedulePage = () => {
                   { key: 'departure_time', label: 'Time' },
                   { key: 'price', label: 'Price' },
                   { key: 'stops', label: 'Stops' },
+                  { key: 'recurring_type', label: 'Type' },
                   { key: 'status', label: 'Status' },
                 ].map((column) => (
                   <th
@@ -453,7 +517,7 @@ const FlightSchedulePage = () => {
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                       <span className="text-slate-500">Loading schedules...</span>
@@ -462,7 +526,7 @@ const FlightSchedulePage = () => {
                 </tr>
               ) : paginatedSchedules.length ? (
                 paginatedSchedules.map((schedule) => (
-                  <tr key={schedule.id} className="hover:bg-slate-50 transition-colors">
+                  <tr key={`${schedule.id}-${schedule.departure_date || schedule.updated_at}`} className="hover:bg-slate-50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <PaperAirplaneIcon className="w-4 h-4 text-slate-400" />
@@ -515,6 +579,24 @@ const FlightSchedulePage = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex flex-col gap-1">
+                        <span 
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            schedule.recurring_type === "Recurring" 
+                              ? "bg-purple-100 text-purple-800" 
+                              : "bg-orange-100 text-orange-800"
+                          }`}
+                        >
+                          {schedule.recurring_type === "Recurring" ? "🔁 Weekly" : "📅 One-Time"}
+                        </span>
+                        {schedule.specific_date_display && (
+                          <span className="text-xs text-slate-600">
+                            {schedule.specific_date_display}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <button
                         onClick={() => handleStatusToggle(schedule)}
                         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -556,7 +638,7 @@ const FlightSchedulePage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <ClockIcon className="w-12 h-12 text-slate-300" />
                       <div>
@@ -813,6 +895,50 @@ const FlightSchedulePage = () => {
                         <p className="text-sm text-slate-500">No airports available</p>
                       )}
                     </div>
+                  </div>
+
+                  {/* One-Time Flight Option */}
+                  <div className="border-t border-slate-200 pt-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <input
+                        type="checkbox"
+                        id="is_one_time"
+                        checked={formData.is_one_time === 1}
+                        onChange={(e) => {
+                          setFormData({
+                            ...formData,
+                            is_one_time: e.target.checked ? 1 : 0,
+                            specific_date: e.target.checked ? formData.specific_date : "",
+                          });
+                        }}
+                        className="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                        disabled={loading}
+                      />
+                      <label htmlFor="is_one_time" className="text-sm font-semibold text-slate-700 cursor-pointer">
+                        📅 One-Time Flight (Specific Date)
+                      </label>
+                    </div>
+                    
+                    {formData.is_one_time === 1 && (
+                      <div>
+                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          Specific Date <span className="text-red-500">*</span>
+                        </label>
+                        <input
+                          type="date"
+                          name="specific_date"
+                          value={formData.specific_date}
+                          onChange={handleInputChange}
+                          min={new Date().toISOString().split('T')[0]}
+                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          required={formData.is_one_time === 1}
+                          disabled={loading}
+                        />
+                        <p className="text-xs text-slate-500 mt-1">
+                          This schedule will only run on the selected date
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   <div>

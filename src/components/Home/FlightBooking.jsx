@@ -32,6 +32,7 @@ import TripTypeSelector from "./TripTypeSelector";
 
 import { DayPicker } from "react-day-picker";
 import BookingFormSkeleton from "./BookingFormSkeleton";
+import { cn } from "@/lib/utils";
 
 
 const getTomorrowDateIST = () => {
@@ -103,6 +104,7 @@ export default function FlightBooking() {
   
 
   const [airports, setAirports] = useState([]);
+  const [helipads, setHelipads] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(true);
   const [airportFetchError, setAirportFetchError] = useState(null);
 
@@ -111,10 +113,6 @@ export default function FlightBooking() {
 
   // Filter airports for flight booking (only locations with airport_code)
   const flightAirports = airports.filter(airport => airport.airport_code);
-  
-  // Filter helipads for helicopter booking (all locations with helipad facilities)
-  // Includes: Helipad-only + Airport with Helipad
-  const helipads = airports.filter(airport => airport.has_helipad);
   const [isPassengerDropdownOpen, setIsPassengerDropdownOpen] = useState(false);
   const [isHeliPassengerDropdownOpen, setIsHeliPassengerDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -131,13 +129,15 @@ export default function FlightBooking() {
 
 
   useEffect(() => {
-    const fetchAirports = async () => {
+    const fetchLocations = async () => {
       // Check cache first for faster loading
-      const cached = sessionStorage.getItem('airports_data');
-      const cacheTime = sessionStorage.getItem('airports_cache_time');
+      const cachedAirports = sessionStorage.getItem('airports_data');
+      const cachedHelipads = sessionStorage.getItem('helipads_data');
+      const cacheTime = sessionStorage.getItem('locations_cache_time');
       
-      if (cached && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
-        setAirports(JSON.parse(cached));
+      if (cachedAirports && cachedHelipads && cacheTime && (Date.now() - parseInt(cacheTime)) < 300000) {
+        setAirports(JSON.parse(cachedAirports));
+        setHelipads(JSON.parse(cachedHelipads));
         setIsLoadingAirports(false);
         return;
       }
@@ -145,25 +145,38 @@ export default function FlightBooking() {
       setIsLoadingAirports(true);
       setAirportFetchError(null);
       try {
-        const response = await fetch(`${BASE_URL}/airport`);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch airports: ${response.status}`);
+        // Fetch both airports and helipads in parallel
+        const [airportsResponse, helipadsResponse] = await Promise.all([
+          fetch(`${BASE_URL}/airport`),
+          fetch(`${BASE_URL}/helipads`)
+        ]);
+        
+        if (!airportsResponse.ok) {
+          throw new Error(`Failed to fetch airports: ${airportsResponse.status}`);
         }
-        const data = await response.json();
-        setAirports(data);
+        if (!helipadsResponse.ok) {
+          throw new Error(`Failed to fetch helipads: ${helipadsResponse.status}`);
+        }
+        
+        const airportsData = await airportsResponse.json();
+        const helipadsData = await helipadsResponse.json();
+        
+        setAirports(airportsData);
+        setHelipads(helipadsData);
         
         // Cache the data for 5 minutes
-        sessionStorage.setItem('airports_data', JSON.stringify(data));
-        sessionStorage.setItem('airports_cache_time', Date.now().toString());
+        sessionStorage.setItem('airports_data', JSON.stringify(airportsData));
+        sessionStorage.setItem('helipads_data', JSON.stringify(helipadsData));
+        sessionStorage.setItem('locations_cache_time', Date.now().toString());
         
-        // Airports loaded successfully
+        // Locations loaded successfully
       } catch (error) {
         setAirportFetchError(error.message);
       } finally {
         setIsLoadingAirports(false);
       }
     };
-    fetchAirports();
+    fetchLocations();
   }, []);
 
   const totalPassengers =
@@ -248,10 +261,13 @@ export default function FlightBooking() {
   }, []);
 
   const getCityFromCode = (code) => {
-    const airport = airports.find((a) => 
-      a.airport_code === code || a.helipad_code === code
-    );
+    const airport = airports.find((a) => a.airport_code === code);
     return airport ? airport.city : "";
+  };
+  
+  const getHelipadCityFromCode = (code) => {
+    const helipad = helipads.find((h) => h.helipad_code === code);
+    return helipad ? helipad.city : "";
   };
 
   const isSearchDisabled =
@@ -260,22 +276,6 @@ export default function FlightBooking() {
     !date ||
     totalPassengers === 0 ||
     airportFetchError;
-
-  // Check if either departure or arrival is a helipad-only location
-  const isHelicopterRoute = () => {
-    const departureAirport = airports.find(
-      (a) => (a.airport_code || a.helipad_code) === departure
-    );
-    const arrivalAirport = airports.find(
-      (a) => (a.airport_code || a.helipad_code) === arrival
-    );
-
-    // If either location is helipad-only (has_helipad=true and no airport_code), it's a helicopter route
-    const isDepartureHelipadOnly = departureAirport?.has_helipad && !departureAirport?.airport_code;
-    const isArrivalHelipadOnly = arrivalAirport?.has_helipad && !arrivalAirport?.airport_code;
-
-    return isDepartureHelipadOnly || isArrivalHelipadOnly;
-  };
 
 
 
@@ -288,45 +288,45 @@ export default function FlightBooking() {
   const arrivalAirport = airports.find((a) => a.id === 2 && a.airport_code) || airports.find((a) => a.id !== 1 && a.airport_code);
   
   if (departureAirport && !departure) {
-    const code = departureAirport.airport_code || "";
-    setDeparture(code);
+    setDeparture(departureAirport.airport_code);
   }
   if (arrivalAirport && !arrival) {
-    const code = arrivalAirport.airport_code || "";
-    setArrival(code);
+    setArrival(arrivalAirport.airport_code);
   }
+  }, [airports, departure, arrival]);
+  
+  useEffect(() => {
+  if (!helipads.length) return;
   
   // Set default helipads for helicopters (different from and to)
-  const departureHelipad = airports.find((a) => a.id === 1 && a.has_helipad);
-  const arrivalHelipad = airports.find((a) => a.id === 2 && a.has_helipad) || airports.find((a) => a.id !== 1 && a.has_helipad);
+  const departureHelipad = helipads.find((h) => h.id === 1);
+  const arrivalHelipad = helipads.find((h) => h.id === 2) || helipads.find((h) => h.id !== 1);
   
   if (departureHelipad && !heliDeparture) {
-    const code = departureHelipad.helipad_code || departureHelipad.airport_code || "";
-    setHeliDeparture(code);
+    setHeliDeparture(departureHelipad.helipad_code);
   }
   if (arrivalHelipad && !heliArrival) {
-    const code = arrivalHelipad.helipad_code || arrivalHelipad.airport_code || "";
-    setHeliArrival(code);
+    setHeliArrival(arrivalHelipad.helipad_code);
   }
-}, [airports, departure, arrival, heliDeparture, heliArrival]);
+  }, [helipads, heliDeparture, heliArrival]);
 
 
 
 
     return (
-      <div className="relative -mt-20 flex flex-col items-center justify-center min-h-screen p-4">
+      <div className={cn('relative', '-mt-20', 'flex', 'flex-col', 'items-center', 'justify-center', 'min-h-screen', 'p-4')}>
 
        
 
 
        <div
-  className="absolute inset-0 w-full h-full overflow-hidden bg-cover bg-center bg-no-repeat"
-  style={{ backgroundImage: "url('/background.png')" }}
+  className={cn('absolute', 'inset-0', 'w-full', 'h-full',  'bg-cover', 'bg-center', 'bg-no-repeat')}
+  style={{ backgroundImage: "url('/background.png')"  }}
 >
-  <div className="absolute inset-0 " />
+  <div className={cn('absolute', 'inset-0')} />
 
 
-          <div className="absolute inset-0 bg-black/30" />
+          <div className={cn('absolute', 'inset-0', 'bg-black/30')} />
         </div>
     
         {/* Show content directly without loading skeleton */}
@@ -337,7 +337,7 @@ export default function FlightBooking() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="relative z-10 bg-transparent w-full"
+              className={cn('relative', 'z-10', 'bg-transparent', 'w-full')}
             >
               {/* Services Navigation Section */}
               <ServiceSelector 
@@ -346,9 +346,11 @@ export default function FlightBooking() {
                 onServiceChange={setSelectedService}
               />
 
-              {/* Main Booking Card */}
-              <Card className="bg-white/50 backdrop-blur-xl shadow-2xl rounded-3xl border border-white/20 mx-4 sm:mx-6 md:mx-20 lg:mx-26  overflow-visible">
-                <CardContent className="p-6 sm:p-8 flex flex-col my-12 z-10 gap-6">
+              {/* Main Booking Card with Search Button Outside */}
+              <div className={cn('relative', )}>
+              <Card className={cn(  "relative",     
+    "z-20",       ' bg-white/50', 'backdrop-blur-xl', 'shadow-2xl', 'rounded-3xl', 'border', 'border-white/20', 'mx-4', 'sm:mx-6', 'md:mx-20', 'lg:mx-26', 'overflow-visible')}>
+                <CardContent className={cn('p-6', 'sm:p-8', 'flex', 'flex-col', 'my-12', 'z-10', 'gap-6', 'pb-16')}>
                   {/* Trip Type Selector - Flights */}
                   {selectedService === "flights" && (
                     <TripTypeSelector 
@@ -366,16 +368,16 @@ export default function FlightBooking() {
                       <BookingFormSkeleton />
                     ) : (
                       <div className="  ">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-1">
+                    <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'lg:grid-cols-5', 'gap-1')}>
                       {/* Departure Airport Autocomplete */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                       >
                         <div className="flex">
-                        <label className=" text-sm  text-gray-950">
+                        <label className={cn('text-sm', 'text-gray-950')}>
                           From
                         </label>
                                  </div>
@@ -396,9 +398,9 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                       >
-                        <label className=" text-sm  text-gray-950 ">
+                        <label className={cn('text-sm', 'text-gray-950')}>
                           To
                         </label>
                         <AirportAutocomplete
@@ -417,30 +419,30 @@ export default function FlightBooking() {
   initial={{ opacity: 0, x: -20 }}
   animate={{ opacity: 1, x: 0 }}
   transition={{ delay: 0.7 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
   onClick={() => setIsCalendarOpen(true)}
 >
   <label
     htmlFor="flight-date"
-    className="mb-2 text-sm  text-gray-950 flex items-center gap-1"
+    className={cn('mb-2', 'text-sm', 'text-gray-950', 'flex', 'items-center', 'gap-1')}
   >
     Departure Date
   </label>
 
   {/* Visible formatted date */}
-  <div className="flex flex-col">
-    <div className="flex items-baseline gap-2">
-      <span className="text-4xl font-bold leading-none">{day}</span>
+  <div className={cn('flex', 'flex-col')}>
+    <div className={cn('flex', 'items-baseline', 'gap-2')}>
+      <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{day}</span>
 
-      <span className="text-lg font-semibold leading-none">
+      <span className={cn('text-lg', 'font-semibold', 'leading-none')}>
         {month}
-        <span className="align-top text-sm font-semibold ml-0.5">
+        <span className={cn('align-top', 'text-sm', 'font-semibold', 'ml-0.5')}>
           ’{yearShort}
         </span>
       </span>
     </div>
 
-    <span className="mt-1 text-sm text-gray-500">{weekday}</span>
+    <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{weekday}</span>
   </div>
 </motion.div>
 
@@ -462,12 +464,12 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.75 }}
-                        className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+                        className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                          onClick={() => setIsCalendarOpen(true)}
                       >
                         <label
                           htmlFor="return-date"
-                          className="mb-2 text-sm  text-gray-950"
+                          className={cn('mb-2', 'text-sm', 'text-gray-950')}
                         >
                           Return Date
                         </label>
@@ -479,34 +481,34 @@ export default function FlightBooking() {
                               value={returnDate}
                               onChange={(e) => setReturnDate(e.target.value)}
                               min={date || new Date().toISOString().split("T")[0]}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              className={cn('absolute', 'inset-0', 'w-full', 'h-full', 'opacity-0', 'cursor-pointer', 'z-10')}
                             />
-                            <div className="w-full h-14 border-2 border-gray-200 rounded-xl bg-white px-4 py-2 flex flex-col justify-center  cursor-pointer">
+                            <div className={cn('w-full', 'h-14', 'border-2', 'border-gray-200', 'rounded-xl', 'bg-white', 'px-4', 'py-2', 'flex', 'flex-col', 'justify-center', 'cursor-pointer')}>
                               {returnDate ? (
                                 <>
-                                  <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-gray-900">
+                                  <div className={cn('flex', 'items-baseline', 'gap-1')}>
+                                    <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
                                       {new Date(returnDate + 'T00:00:00').getDate()}
                                     </span>
-                                    <span className="text-sm font-semibold text-gray-900">
+                                    <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
                                       {new Date(returnDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}'{new Date(returnDate + 'T00:00:00').getFullYear().toString().slice(-2)}
                                     </span>
                                   </div>
-                                  <div className="text-xs text-gray-600">
+                                  <div className={cn('text-xs', 'text-gray-600')}>
                                     {new Date(returnDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
                                   </div>
                                 </>
                               ) : (
-                                <span className="text-sm text-gray-400">Select date</span>
+                                <span className={cn('text-sm', 'text-gray-400')}>Select date</span>
                               )}
                             </div>
                           </div>
                         ) : (
                           <div 
                             onClick={() => setTripType("roundTrip")}
-                            className="w-full h-14  rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 bg-white px-3"
+                            className={cn('w-full', 'h-14', 'rounded-xl', 'flex', 'items-center', 'justify-center', 'cursor-pointer', 'hover:border-blue-300', 'hover:bg-blue-50', 'transition-all', 'duration-300', 'bg-white', 'px-3')}
                           >
-                            <span className="text-xs text-gray-900 font-semibold text-center leading-tight">
+                            <span className={cn('text-xs', 'text-gray-900', 'font-semibold', 'text-center', 'leading-tight')}>
                               Tap to add a return for bigger<br />discount
                             </span>
                           </div>
@@ -518,12 +520,12 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.8 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                         ref={dropdownRef}
                       >
                         <label
                           htmlFor="passengers"
-                          className=" text-sm text-gray-950 flex items-center gap-1"
+                          className={cn('text-sm', 'text-gray-950', 'flex', 'items-center', 'gap-1')}
                         >
                           Travellers & Class
                           
@@ -537,15 +539,15 @@ export default function FlightBooking() {
                               : "border-gray-200"
                           }`}
                         >
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-gray-900">
+                          <div className={cn('flex', 'items-baseline', 'gap-1')}>
+                            <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
                               {totalPassengers}
                             </span>
-                            <span className="text-sm font-semibold text-gray-900">
+                            <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
                               Traveller{totalPassengers !== 1 ? "s" : ""}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className={cn('text-xs', 'text-gray-600')}>
                             {travelClass === "Premium Economy" ? "Economy/ Premium Economy" : travelClass}
                           </div>
                         </div>
@@ -556,20 +558,20 @@ export default function FlightBooking() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -10, scale: 0.95 }}
                               transition={{ duration: 0.2, ease: "easeInOut" }}
-                              className="absolute top-full mt-2 left-0 w-full min-w-[330px] max-w-[90vw] bg-white border-2 border-gray-100 rounded-2xl shadow-2xl z-30 p-6 space-y-4 overflow-y-auto max-h-[60vh]"
+                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-30', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
                             >
                               {/* Adults */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Adults</p>
-                                  <p className="text-xs text-gray-500">(12+ years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Adults</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(12+ years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("adults", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={
                                       passengerData.adults ===
                                         (passengerData.children > 0 || passengerData.infants > 0
@@ -579,14 +581,14 @@ export default function FlightBooking() {
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {passengerData.adults}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("adults", "increment")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'transition-all')}
                                   >
                                     +
                                   </Button>
@@ -594,29 +596,29 @@ export default function FlightBooking() {
                               </div>
                               <Separator className="my-2" />
                               {/* Children */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Children</p>
-                                  <p className="text-xs text-gray-500">(2-12 years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Children</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(2-12 years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("children", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={passengerData.children === 0}
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {passengerData.children}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("children", "increment")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={passengerData.adults === 0}
                                   >
                                     +
@@ -625,29 +627,29 @@ export default function FlightBooking() {
                               </div>
                               <Separator className="my-2" />
                               {/* Infants */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Infants</p>
-                                  <p className="text-xs text-gray-500">(0-2 years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Infants</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(0-2 years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("infants", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={passengerData.infants === 0}
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {passengerData.infants}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handlePassengerChange("infants", "increment")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={passengerData.adults === 0}
                                   >
                                     +
@@ -656,8 +658,8 @@ export default function FlightBooking() {
                               </div>
                               {passengerData.adults === 0 &&
                                 (passengerData.children > 0 || passengerData.infants > 0) && (
-                                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-sm text-red-600 font-medium">
+                                  <div className={cn('mt-4', 'p-3', 'bg-red-50', 'border', 'border-red-200', 'rounded-lg')}>
+                                    <p className={cn('text-sm', 'text-red-600', 'font-medium')}>
                                       ⚠️ An adult must accompany children and infants.
                                     </p>
                                   </div>
@@ -667,8 +669,8 @@ export default function FlightBooking() {
                               
                               {/* Travel Class Selection */}
                               <div className="space-y-3">
-                                <p className="text-gray-800 font-semibold text-sm">Choose Travel Class</p>
-                                <div className="grid grid-cols-2 gap-2">
+                                <p className={cn('text-gray-800', 'font-semibold', 'text-sm')}>Choose Travel Class</p>
+                                <div className={cn('grid', 'grid-cols-2', 'gap-2')}>
                                   {["Economy", "Premium Economy", "Business", "First Class"].map((classType) => (
                                     <button
                                       key={classType}
@@ -716,17 +718,17 @@ export default function FlightBooking() {
                       <BookingFormSkeleton />
                     ) : (
                       <div className="  ">
-                    <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-1">
+                    <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'lg:grid-cols-5', 'gap-1')}>
                      
                       {/* Helicopter Departure */}
                       <motion.div
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.5 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                       >
                         <div className="flex">
-                        <label className=" text-sm  text-gray-950">
+                        <label className={cn('text-sm', 'text-gray-950')}>
                           From
                         </label>
                                  </div>
@@ -747,9 +749,9 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.6 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                       >
-                        <label className=" text-sm  text-gray-950 ">
+                        <label className={cn('text-sm', 'text-gray-950')}>
                           To
                         </label>
                         <AirportAutocomplete
@@ -768,30 +770,30 @@ export default function FlightBooking() {
   initial={{ opacity: 0, x: -20 }}
   animate={{ opacity: 1, x: 0 }}
   transition={{ delay: 0.7 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
   onClick={() => setIsCalendarOpen(true)}
 >
   <label
     htmlFor="heli-date"
-    className="mb-2 text-sm  text-gray-950 flex items-center gap-1"
+    className={cn('mb-2', 'text-sm', 'text-gray-950', 'flex', 'items-center', 'gap-1')}
   >
     Departure Date
   </label>
 
   {/* Visible formatted date */}
-  <div className="flex flex-col">
-    <div className="flex items-baseline gap-2">
-      <span className="text-4xl font-bold leading-none">{heliDate ? new Date(heliDate + 'T00:00:00').getDate() : day}</span>
+  <div className={cn('flex', 'flex-col')}>
+    <div className={cn('flex', 'items-baseline', 'gap-2')}>
+      <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{heliDate ? new Date(heliDate + 'T00:00:00').getDate() : day}</span>
 
-      <span className="text-lg font-semibold leading-none">
+      <span className={cn('text-lg', 'font-semibold', 'leading-none')}>
         {heliDate ? new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { month: "short" }) : month}
-        <span className="align-top text-sm font-semibold ml-0.5">
+        <span className={cn('align-top', 'text-sm', 'font-semibold', 'ml-0.5')}>
           '{heliDate ? new Date(heliDate + 'T00:00:00').getFullYear().toString().slice(-2) : yearShort}
         </span>
       </span>
     </div>
 
-    <span className="mt-1 text-sm text-gray-500">{heliDate ? new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { weekday: "long" }) : weekday}</span>
+    <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{heliDate ? new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { weekday: "long" }) : weekday}</span>
   </div>
 </motion.div>
 
@@ -800,12 +802,12 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.75 }}
-                        className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+                        className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                          onClick={() => setIsCalendarOpen(true)}
                       >
                         <label
                           htmlFor="heli-return-date"
-                          className="mb-2 text-sm  text-gray-950"
+                          className={cn('mb-2', 'text-sm', 'text-gray-950')}
                         >
                           Return Date
                         </label>
@@ -817,34 +819,34 @@ export default function FlightBooking() {
                               value={heliReturnDate}
                               onChange={(e) => setHeliReturnDate(e.target.value)}
                               min={heliDate || new Date().toISOString().split("T")[0]}
-                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                              className={cn('absolute', 'inset-0', 'w-full', 'h-full', 'opacity-0', 'cursor-pointer', 'z-10')}
                             />
-                            <div className="w-full h-14 border-2 border-gray-200 rounded-xl bg-white px-4 py-2 flex flex-col justify-center  cursor-pointer">
+                            <div className={cn('w-full', 'h-14', 'border-2', 'border-gray-200', 'rounded-xl', 'bg-white', 'px-4', 'py-2', 'flex', 'flex-col', 'justify-center', 'cursor-pointer')}>
                               {heliReturnDate ? (
                                 <>
-                                  <div className="flex items-baseline gap-1">
-                                    <span className="text-2xl font-bold text-gray-900">
+                                  <div className={cn('flex', 'items-baseline', 'gap-1')}>
+                                    <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
                                       {new Date(heliReturnDate + 'T00:00:00').getDate()}
                                     </span>
-                                    <span className="text-sm font-semibold text-gray-900">
+                                    <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
                                       {new Date(heliReturnDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'short' })}'{new Date(heliReturnDate + 'T00:00:00').getFullYear().toString().slice(-2)}
                                     </span>
                                   </div>
-                                  <div className="text-xs text-gray-600">
+                                  <div className={cn('text-xs', 'text-gray-600')}>
                                     {new Date(heliReturnDate + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'long' })}
                                   </div>
                                 </>
                               ) : (
-                                <span className="text-sm text-gray-400">Select date</span>
+                                <span className={cn('text-sm', 'text-gray-400')}>Select date</span>
                               )}
                             </div>
                           </div>
                         ) : (
                           <div 
                             onClick={() => setHeliTripType("roundTrip")}
-                            className="w-full h-14  rounded-xl flex items-center justify-center cursor-pointer hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 bg-white px-3"
+                            className={cn('w-full', 'h-14', 'rounded-xl', 'flex', 'items-center', 'justify-center', 'cursor-pointer', 'hover:border-blue-300', 'hover:bg-blue-50', 'transition-all', 'duration-300', 'bg-white', 'px-3')}
                           >
-                            <span className="text-xs text-gray-900 font-semibold text-center leading-tight">
+                            <span className={cn('text-xs', 'text-gray-900', 'font-semibold', 'text-center', 'leading-tight')}>
                               Tap to add a return for bigger<br />discount
                             </span>
                           </div>
@@ -856,12 +858,12 @@ export default function FlightBooking() {
                         initial={{ opacity: 0, x: -20 }}
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.8 }}
-  className="relative flex flex-col rounded-sm border border-gray-200 bg-white px-4 py-3 shadow-sm cursor-pointer"
+  className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
                         ref={heliDropdownRef}
                       >
                         <label
                           htmlFor="heli-passengers"
-                          className=" text-sm text-gray-950 flex items-center gap-1"
+                          className={cn('text-sm', 'text-gray-950', 'flex', 'items-center', 'gap-1')}
                         >
                           Travellers & Class
                           
@@ -875,15 +877,15 @@ export default function FlightBooking() {
                               : "border-gray-200"
                           }`}
                         >
-                          <div className="flex items-baseline gap-1">
-                            <span className="text-2xl font-bold text-gray-900">
+                          <div className={cn('flex', 'items-baseline', 'gap-1')}>
+                            <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
                               {totalHeliPassengers}
                             </span>
-                            <span className="text-sm font-semibold text-gray-900">
+                            <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
                               Traveller{totalHeliPassengers !== 1 ? "s" : ""}
                             </span>
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className={cn('text-xs', 'text-gray-600')}>
                             {heliTravelClass === "Premium Economy" ? "Economy/ Premium Economy" : heliTravelClass}
                           </div>
                         </div>
@@ -894,20 +896,20 @@ export default function FlightBooking() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -10, scale: 0.95 }}
                               transition={{ duration: 0.2, ease: "easeInOut" }}
-                              className="absolute top-full mt-2 left-0 w-full min-w-[330px] max-w-[90vw] bg-white border-2 border-gray-100 rounded-2xl shadow-2xl z-[100] p-6 space-y-4 overflow-y-auto max-h-[60vh]"
+                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-[100]', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
                             >
                               {/* Adults */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Adults</p>
-                                  <p className="text-xs text-gray-500">(12+ years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Adults</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(12+ years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("adults", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={
                                       heliPassengerData.adults ===
                                         (heliPassengerData.children > 0 || heliPassengerData.infants > 0
@@ -917,14 +919,14 @@ export default function FlightBooking() {
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {heliPassengerData.adults}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("adults", "increment")}
-                                    className="w-10 h-10 rounded-full text-orange-600 border-2 border-orange-200 hover:bg-orange-50 hover:border-orange-300 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-orange-600', 'border-2', 'border-orange-200', 'hover:bg-orange-50', 'hover:border-orange-300', 'transition-all')}
                                   >
                                     +
                                   </Button>
@@ -932,29 +934,29 @@ export default function FlightBooking() {
                               </div>
                               <Separator className="my-2" />
                               {/* Children */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Children</p>
-                                  <p className="text-xs text-gray-500">(2-12 years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Children</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(2-12 years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("children", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={heliPassengerData.children === 0}
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {heliPassengerData.children}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("children", "increment")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={heliPassengerData.adults === 0}
                                   >
                                     +
@@ -963,29 +965,29 @@ export default function FlightBooking() {
                               </div>
                               <Separator className="my-2" />
                               {/* Infants */}
-                              <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+                              <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
                                 <div>
-                                  <p className="text-gray-800 font-semibold">Infants</p>
-                                  <p className="text-xs text-gray-500">(0-2 years)</p>
+                                  <p className={cn('text-gray-800', 'font-semibold')}>Infants</p>
+                                  <p className={cn('text-xs', 'text-gray-500')}>(0-2 years)</p>
                                 </div>
-                                <div className="flex items-center gap-3">
+                                <div className={cn('flex', 'items-center', 'gap-3')}>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("infants", "decrement")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={heliPassengerData.infants === 0}
                                   >
                                     -
                                   </Button>
-                                  <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                                  <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                                     {heliPassengerData.infants}
                                   </span>
                                   <Button
                                     variant="outline"
                                     size="icon"
                                     onClick={() => handleHeliPassengerChange("infants", "increment")}
-                                    className="w-10 h-10 rounded-full text-blue-600 border-2 border-blue-200 hover:bg-blue-50 hover:border-blue-300 disabled:opacity-50 transition-all"
+                                    className={cn('w-10', 'h-10', 'rounded-full', 'text-blue-600', 'border-2', 'border-blue-200', 'hover:bg-blue-50', 'hover:border-blue-300', 'disabled:opacity-50', 'transition-all')}
                                     disabled={heliPassengerData.adults === 0}
                                   >
                                     +
@@ -994,8 +996,8 @@ export default function FlightBooking() {
                               </div>
                               {heliPassengerData.adults === 0 &&
                                 (heliPassengerData.children > 0 || heliPassengerData.infants > 0) && (
-                                  <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                                    <p className="text-sm text-red-600 font-medium">
+                                  <div className={cn('mt-4', 'p-3', 'bg-red-50', 'border', 'border-red-200', 'rounded-lg')}>
+                                    <p className={cn('text-sm', 'text-red-600', 'font-medium')}>
                                       ⚠️ An adult must accompany children and infants.
                                     </p>
                                   </div>
@@ -1005,8 +1007,8 @@ export default function FlightBooking() {
                               
                               {/* Travel Class Selection */}
                               <div className="space-y-3">
-                                <p className="text-gray-800 font-semibold text-sm">Choose Travel Class</p>
-                                <div className="grid grid-cols-2 gap-2">
+                                <p className={cn('text-gray-800', 'font-semibold', 'text-sm')}>Choose Travel Class</p>
+                                <div className={cn('grid', 'grid-cols-2', 'gap-2')}>
                                   {["Economy", "Premium Economy", "Business", "First Class"].map((classType) => (
                                     <button
                                       key={classType}
@@ -1044,13 +1046,13 @@ export default function FlightBooking() {
                     <motion.div
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
-                      className="bg-red-50 border-l-4 border-red-500 p-4 rounded-lg"
+                      className={cn('bg-red-50', 'border-l-4', 'border-red-500', 'p-4', 'rounded-lg')}
                     >
-                      <div className="flex items-center">
-                        <MdErrorOutline className="text-red-500 text-xl mr-3" />
+                      <div className={cn('flex', 'items-center')}>
+                        <MdErrorOutline className={cn('text-red-500', 'text-xl', 'mr-3')} />
                         <div>
-                          <p className="text-red-800 font-semibold">Connection Error</p>
-                          <p className="text-red-600 text-sm">
+                          <p className={cn('text-red-800', 'font-semibold')}>Connection Error</p>
+                          <p className={cn('text-red-600', 'text-sm')}>
                             Failed to load location data: {airportFetchError}. Please refresh or try again later.
                           </p>
                         </div>
@@ -1065,71 +1067,64 @@ export default function FlightBooking() {
                 </CardContent>
                 
               </Card>
-                  {/* Universal Search Button for Flights and Helicopters */}
-                  {(selectedService === "flights" || selectedService === "helicopters") && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.9 }}
-                      className="flex justify-center -mt-5"
-                    >
-                      <Link
-                        href={{
-                          pathname: selectedService === "helicopters" ? "/helicopter-flight" : "/scheduled-flight",
-                          query: selectedService === "helicopters" ? {
-                            departure: getCityFromCode(heliDeparture) || "",
-                            arrival: getCityFromCode(heliArrival) || "",
-                            departure_code: heliDeparture || "",
-                            arrival_code: heliArrival || "",
-                            date: heliDate || "",
-                            returnDate: heliReturnDate || "",
-                            tripType: heliTripType,
-                            travelClass: heliTravelClass,
-                            adults: heliPassengerData.adults,
-                            children: heliPassengerData.children,
-                            infants: heliPassengerData.infants,
-                            passengers: totalHeliPassengers,
-                          } : {
-                            departure: getCityFromCode(departure) || "",
-                            arrival: getCityFromCode(arrival) || "",
-                            departure_code: departure || "",
-                            arrival_code: arrival || "",
-                            date: date || "",
-                            returnDate: returnDate || "",
-                            tripType: tripType,
-                            travelClass: travelClass,
-                            adults: passengerData.adults,
-                            children: passengerData.children,
-                            infants: passengerData.infants,
-                            passengers: totalPassengers,
-                          },
-                        }}
-                        passHref
-                        legacyBehavior
-                      >
-                        <Button
-                          asChild
-                          className={`w-full max-w-md h-14 px-12 z-10 text-lg font-bold rounded-full flex items-center justify-center gap-3 transition-all duration-300  shadow-lg transform hover:scale-105 ${
-                            selectedService === "helicopters"
-                              ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError
-                                  ? "bg-orange-400 cursor-not-allowed"
-                                  : "bg-orange-600 hover:bg-orange-700 text-white")
-                              : (isSearchDisabled
-                                  ? "bg-gradient-to-r from-blue-500 to-blue-700 cursor-not-allowed"
-                                  : "bg-gradient-to-r from-blue-600 to-blue-800 hover:from-blue-600 hover:to-blue-800 text-white")
-                          }`}
-                          disabled={selectedService === "helicopters" 
-                            ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError)
-                            : isSearchDisabled
-                          }
-                        >
-                          <a className="flex items-center gap-3">
-                            <span>SEARCH</span>
-                          </a>
-                        </Button>
-                      </Link>
-                    </motion.div>
-                  )}
+              
+              {/* Search Button - Outside card with overlap */}
+              {(selectedService === "flights" || selectedService === "helicopters") && (
+                <Button
+                  asChild
+                  className={`absolute left-1/2 -translate-x-1/2 -bottom-7 z-20 px-16 py-3 h-14 text-lg font-bold rounded-full shadow-xl transform hover:scale-105 transition-all duration-300 ${
+                    selectedService === "helicopters"
+                      ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError
+                          ? "bg-orange-400 cursor-not-allowed"
+                          : "bg-orange-600 hover:bg-orange-700 text-white")
+                      : (isSearchDisabled
+                          ? "bg-blue-400 cursor-not-allowed"
+                          : "bg-blue-700 hover:bg-blue-900 text-white")
+                  }`}
+                  disabled={selectedService === "helicopters" 
+                    ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError)
+                    : isSearchDisabled
+                  }
+                >
+                  <Link
+                    href={{
+                      pathname: selectedService === "helicopters" ? "/helicopter-flight" : "/scheduled-flight",
+                      query: selectedService === "helicopters" ? {
+                        departure: getHelipadCityFromCode(heliDeparture) || "",
+                        arrival: getHelipadCityFromCode(heliArrival) || "",
+                        departure_code: heliDeparture || "",
+                        arrival_code: heliArrival || "",
+                        date: heliDate || "",
+                        returnDate: heliReturnDate || "",
+                        tripType: heliTripType,
+                        travelClass: heliTravelClass,
+                        adults: heliPassengerData.adults,
+                        children: heliPassengerData.children,
+                        infants: heliPassengerData.infants,
+                        passengers: totalHeliPassengers,
+                      } : {
+                        departure: getCityFromCode(departure) || "",
+                        arrival: getCityFromCode(arrival) || "",
+                        departure_code: departure || "",
+                        arrival_code: arrival || "",
+                        date: date || "",
+                        returnDate: returnDate || "",
+                        tripType: tripType,
+                        travelClass: travelClass,
+                        adults: passengerData.adults,
+                        children: passengerData.children,
+                        infants: passengerData.infants,
+                        passengers: totalPassengers,
+                      },
+                    }}
+                    className={cn('flex', 'items-center', 'gap-3')}
+                  >
+                    <span>SEARCH</span>
+                  </Link>
+                </Button>
+              )}
+              </div>
+
             </motion.div>
           )}
         </AnimatePresence>
@@ -1142,7 +1137,7 @@ export default function FlightBooking() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[200] flex items-center justify-center bg-black/40 backdrop-blur-sm"
+      className={cn('fixed', 'inset-0', 'z-[200]', 'flex', 'items-center', 'justify-center', 'bg-black/40', 'backdrop-blur-sm')}
       onClick={() => setIsCalendarOpen(false)}
     >
       <motion.div
@@ -1150,16 +1145,16 @@ export default function FlightBooking() {
         animate={{ scale: 1, y: 0, opacity: 1 }}
         exit={{ scale: 0.95, y: 20, opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="bg-white rounded-3xl shadow-2xl p-6 sm:p-8 w-full max-w-3xl relative mx-4"
+        className={cn('bg-white', 'rounded-3xl', 'shadow-2xl', 'p-6', 'sm:p-8', 'w-full', 'max-w-3xl', 'relative', 'mx-4')}
         onClick={(e) => e.stopPropagation()} // prevent close when clicking inside
       >
         {/* Close Button */}
         <button
           onClick={() => setIsCalendarOpen(false)}
-          className="absolute top-4 right-4 z-10 w-10 h-10 flex items-center justify-center rounded-full bg-gray-100 hover:bg-gray-200 transition-colors"
+          className={cn('absolute', 'top-4', 'right-4', 'z-10', 'w-10', 'h-10', 'flex', 'items-center', 'justify-center', 'rounded-full', 'bg-gray-100', 'hover:bg-gray-200', 'transition-colors')}
           aria-label="Close calendar"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className={cn('w-5', 'h-5', 'text-gray-600')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>

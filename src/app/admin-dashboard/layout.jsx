@@ -1,41 +1,26 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
 import AdminDebugPanel from "@/components/AdminDebugPanel";
 import {
   FaBars,
-  FaHome,
   FaPlane,
-  FaPlus,
-  FaClock,
-  FaBook,
-  FaUsers,
   FaTimes,
-  FaBell,
-  FaCog,
-  FaTicketAlt,
-  FaChartBar,
-  FaMapMarkerAlt,
-  FaCalendarAlt,
   FaUserShield,
   FaSignOutAlt,
-  FaDollarSign,
 } from "react-icons/fa";
 import { 
-  Home, 
-  ToyBrickIcon, 
-  BarChart3, 
-  Settings, 
   Bell,
+  Settings,
   Search,
   User,
-  LogOut
 } from "lucide-react";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SidebarMenuItem, SidebarSection } from "@/components/admin/SidebarComponents";
+import { menuConfig } from "@/components/admin/menuConfig";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
 
@@ -43,8 +28,7 @@ export default function AdminDashboardLayout({ children }) {
   const pathname = usePathname();
   const normalizedPathname = normalizePath(pathname);
   const [isSidebarVisible, setSidebarVisible] = useState(false);
-  const { authState, logout } = useAuth();
-  const router = useRouter();
+  const { logout } = useAuth();
 
   const isActive = (href) => {
     const normalizedHref = normalizePath(href);
@@ -55,7 +39,7 @@ export default function AdminDashboardLayout({ children }) {
   };
 
   const handleLogout = () => {
-    logout(); // Use the logout function from AuthContext
+    logout();
   };
 
   return (
@@ -105,352 +89,109 @@ export default function AdminDashboardLayout({ children }) {
         {/* Navigation */}
         <nav className={cn('flex-1', 'p-4', 'space-y-2', 'overflow-y-auto')}>
           {/* Dashboard Section */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              Dashboard
-            </p>
-            <Link
-              href="/admin-dashboard"
-              className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                isActive("/admin-dashboard") 
-                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                  : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-              }`}
-            >
-              <FaHome className={`text-lg ${isActive("/admin-dashboard") ? "text-white" : "text-blue-400"}`} />
-              <span className="font-medium">Overview</span>
-              {isActive("/admin-dashboard") && (
-                <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-              )}
-            </Link>
-          </div>
+          <SidebarSection title={menuConfig.dashboard.title}>
+            {menuConfig.dashboard.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
           {/* Flight Management */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              Flight Management
-            </p>
-            <div className="space-y-1">
-              <Link
-                href="/admin-dashboard/add-airport"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/add-airport") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaMapMarkerAlt className={`text-lg ${isActive("/admin-dashboard/add-airport") ? "text-white" : "text-emerald-400"}`} />
-                <span className="font-medium">Airport Management</span>
-                {isActive("/admin-dashboard/add-airport") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/add-flight"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/add-flight") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaPlane className={`text-lg ${isActive("/admin-dashboard/add-flight") ? "text-white" : "text-sky-400"}`} />
-                <span className="font-medium">Flight Management</span>
-                {isActive("/admin-dashboard/add-flight") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/scheduled-flight"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/scheduled-flight") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaCalendarAlt className={`text-lg ${isActive("/admin-dashboard/scheduled-flight") ? "text-white" : "text-purple-400"}`} />
-                <span className="font-medium">Scheduled Flights</span>
-                {isActive("/admin-dashboard/scheduled-flight") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-            </div>
-          </div>
+          <SidebarSection title={menuConfig.flightManagement.title}>
+            {menuConfig.flightManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
           {/* Booking Management */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              Booking Management
-            </p>
-            <div className="space-y-1">
-              <Link
-                href="/admin-dashboard/booking-list"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/booking-list") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaBook className={`text-lg ${isActive("/admin-dashboard/booking-list") ? "text-white" : "text-orange-400"}`} />
-                <span className="font-medium">All Bookings</span>
-                {isActive("/admin-dashboard/booking-list") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/booking-data"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/booking-data") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaChartBar className={`text-lg ${isActive("/admin-dashboard/booking-data") ? "text-white" : "text-pink-400"}`} />
-                <span className="font-medium">Booking Analytics</span>
-                {isActive("/admin-dashboard/booking-data") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/tickets"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/tickets") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaTicketAlt className={`text-lg ${isActive("/admin-dashboard/tickets") ? "text-white" : "text-yellow-400"}`} />
-                <span className="font-medium">Flight Tickets</span>
-                {isActive("/admin-dashboard/tickets") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/helicopter-tickets"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/helicopter-tickets") 
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaTicketAlt className={`text-lg ${isActive("/admin-dashboard/helicopter-tickets") ? "text-white" : "text-purple-400"}`} />
-                <span className="font-medium">Helicopter Tickets</span>
-                {isActive("/admin-dashboard/helicopter-tickets") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/create-ticket"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/create-ticket") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaTicketAlt className={`text-lg ${isActive("/admin-dashboard/create-ticket") ? "text-white" : "text-green-400"}`} />
-                <span className="font-medium">Create Ticket</span>
-                {isActive("/admin-dashboard/create-ticket") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/refunds"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/refunds") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaDollarSign className={`text-lg ${isActive("/admin-dashboard/refunds") ? "text-white" : "text-green-400"}`} />
-                <span className="font-medium">Refund Management</span>
-                {isActive("/admin-dashboard/refunds") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/coupons"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/coupons") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaTicketAlt className={`text-lg ${isActive("/admin-dashboard/coupons") ? "text-white" : "text-purple-400"}`} />
-                <span className="font-medium">Coupon Management</span>
-                {isActive("/admin-dashboard/coupons") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/helicopter-booking"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/helicopter-booking") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaPlane className={`text-lg rotate-45 ${isActive("/admin-dashboard/helicopter-booking") ? "text-white" : "text-red-400"}`} />
-                <span className="font-medium">Helicopter Bookings</span>
-                {isActive("/admin-dashboard/helicopter-booking") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-            </div>
-          </div>
+          <SidebarSection title={menuConfig.bookingManagement.title}>
+            {menuConfig.bookingManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
           {/* Helicopter Management */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              Helicopter Management
-            </p>
-            <div className="space-y-1">
-              <Link
-                href="/admin-dashboard/helipad-management"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/helipad-management") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaMapMarkerAlt className={`text-lg ${isActive("/admin-dashboard/helipad-management") ? "text-white" : "text-orange-400"}`} />
-                <span className="font-medium">Helipad Management</span>
-                {isActive("/admin-dashboard/helipad-management") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/helicopter-management"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/helicopter-management") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaPlane className={`text-lg rotate-45 ${isActive("/admin-dashboard/helicopter-management") ? "text-white" : "text-red-400"}`} />
-                <span className="font-medium">Helicopter Management</span>
-                {isActive("/admin-dashboard/helicopter-management") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/helicopter-schedule"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/helicopter-schedule") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaCalendarAlt className={`text-lg ${isActive("/admin-dashboard/helicopter-schedule") ? "text-white" : "text-green-400"}`} />
-                <span className="font-medium">Helicopter Schedule</span>
-                {isActive("/admin-dashboard/helicopter-schedule") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-            </div>
-          </div>
+          <SidebarSection title={menuConfig.helicopterManagement.title}>
+            {menuConfig.helicopterManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
-          {/* Joy Ride Management */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              Joy Ride Services
-            </p>
-            <div className="space-y-1">
-              <Link
-                href="/admin-dashboard/bookid-joyride"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/bookid-joyride") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <ToyBrickIcon className={`text-lg ${isActive("/admin-dashboard/bookid-joyride") ? "text-white" : "text-green-400"}`} />
-                <span className="font-medium">Joy Ride Booking</span>
-                {isActive("/admin-dashboard/bookid-joyride") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/all-joyride-slots"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/all-joyride-slots") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaClock className={`text-lg ${isActive("/admin-dashboard/all-joyride-slots") ? "text-white" : "text-cyan-400"}`} />
-                <span className="font-medium">Available Slots</span>
-                {isActive("/admin-dashboard/all-joyride-slots") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/all-joyride-booking"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/all-joyride-booking") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaBook className={`text-lg ${isActive("/admin-dashboard/all-joyride-booking") ? "text-white" : "text-rose-400"}`} />
-                <span className="font-medium">Joy Ride Bookings</span>
-                {isActive("/admin-dashboard/all-joyride-booking") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-            </div>
-          </div>
+          {/* Joy Ride Services */}
+          <SidebarSection title={menuConfig.joyRideServices.title}>
+            {menuConfig.joyRideServices.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
           {/* User Management */}
-          <div className="mb-6">
-            <p className={cn('text-xs', 'font-semibold', 'text-slate-400', 'uppercase', 'tracking-wider', 'mb-3', 'px-3')}>
-              User Management
-            </p>
-            <div className="space-y-1">
-              <Link
-                href="/admin-dashboard/all-users"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/all-users") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaUsers className={`text-lg ${isActive("/admin-dashboard/all-users") ? "text-white" : "text-indigo-400"}`} />
-                <span className="font-medium">Manage Users</span>
-                {isActive("/admin-dashboard/all-users") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-              
-              <Link
-                href="/admin-dashboard/agents"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${
-                  isActive("/admin-dashboard/agents") 
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg" 
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                }`}
-              >
-                <FaUserShield className={`text-lg ${isActive("/admin-dashboard/agents") ? "text-white" : "text-emerald-400"}`} />
-                <span className="font-medium">Agent Management</span>
-                {isActive("/admin-dashboard/agents") && (
-                  <div className={cn('ml-auto', 'w-2', 'h-2', 'bg-white', 'rounded-full')}></div>
-                )}
-              </Link>
-            </div>
-          </div>
+          <SidebarSection title={menuConfig.userManagement.title}>
+            {menuConfig.userManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
 
-          {/* Operations Dashboard Link */}
+          {/* System Settings */}
+          <SidebarSection title={menuConfig.systemSettings.title}>
+            {menuConfig.systemSettings.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
         
         </nav>
 

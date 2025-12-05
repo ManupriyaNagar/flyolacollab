@@ -27,6 +27,7 @@ import {
 } from "@heroicons/react/24/outline";
 import AdminCancellationModal from "@/components/AdminCancellationModal";
 import BookingDetailsModal from "@/components/BookingDetailsModal";
+import { cn } from "@/lib/utils";
 
 const BOOKINGS_PER_PAGE = 50;
 
@@ -59,9 +60,9 @@ export default function AllBookingsPage() {
     const [startBookingDate, endBookingDate] = bookingDateRange;
     const [startFlightDate, endFlightDate] = flightDateRange;
 
-    // Redirect if not admin
+    // Redirect if not admin or operations
     useEffect(() => {
-        if (!authState.isLoading && (!authState.isLoggedIn || authState.userRole !== "1")) {
+        if (!authState.isLoading && (!authState.isLoggedIn || (authState.userRole !== "1" && authState.userRole !== "6"))) {
             router.push("/sign-in");
         }
     }, [authState.isLoading, authState.isLoggedIn, authState.userRole]);
@@ -77,11 +78,11 @@ export default function AllBookingsPage() {
 
 
     useEffect(() => {
-        // only run when fully authenticated & admin
+        // only run when fully authenticated & admin or operations
         if (
             authState.isLoading ||
             !authState.isLoggedIn ||
-            authState.userRole !== "1"
+            (authState.userRole !== "1" && authState.userRole !== "6")
         ) {
             return;
         }
@@ -731,13 +732,13 @@ export default function AllBookingsPage() {
         if (sortConfig.key !== columnKey) {
             // Show default sort indicator for flight date when no custom sort is applied
             if (columnKey === 'bookDate' && !sortConfig.key) {
-                return <ArrowsUpDownIcon className="w-4 h-4 text-blue-500" />;
+                return <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-blue-500')} />;
             }
-            return <ArrowsUpDownIcon className="w-4 h-4 text-slate-400" />;
+            return <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-slate-400')} />;
         }
         return sortConfig.direction === 'asc' ?
-            <ArrowsUpDownIcon className="w-4 h-4 text-blue-500 rotate-180" /> :
-            <ArrowsUpDownIcon className="w-4 h-4 text-blue-500" />;
+            <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-blue-500', 'rotate-180')} /> :
+            <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-blue-500')} />;
     };
 
     const getStatusBadge = (status) => {
@@ -752,7 +753,7 @@ export default function AllBookingsPage() {
 
         return (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-                <IconComponent className="w-3 h-3" />
+                <IconComponent className={cn('w-3', 'h-3')} />
                 {status || "N/A"}
             </span>
         );
@@ -769,7 +770,7 @@ export default function AllBookingsPage() {
 
         return (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-                <CreditCardIcon className="w-3 h-3" />
+                <CreditCardIcon className={cn('w-3', 'h-3')} />
                 {mode || "N/A"}
             </span>
         );
@@ -786,7 +787,7 @@ export default function AllBookingsPage() {
 
         return (
             <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-                <UserGroupIcon className="w-3 h-3" />
+                <UserGroupIcon className={cn('w-3', 'h-3')} />
                 {config.label}
             </span>
         );
@@ -831,100 +832,100 @@ export default function AllBookingsPage() {
             <ToastContainer position="top-right" autoClose={3000} />
 
             {/* Header */}
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
                 <div>
-                    <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-                        <div className="p-2 bg-gradient-to-r from-orange-500 to-red-500 rounded-xl">
-                            <CalendarDaysIcon className="w-8 h-8 text-white" />
+                    <h1 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'flex', 'items-center', 'gap-3')}>
+                        <div className={cn('p-2', 'bg-gradient-to-r', 'from-orange-500', 'to-red-500', 'rounded-xl')}>
+                            <CalendarDaysIcon className={cn('w-8', 'h-8', 'text-white')} />
                         </div>
                         Booking Management
                     </h1>
-                    <p className="text-slate-600 mt-2">Monitor and manage all flight bookings with analytics</p>
+                    <p className={cn('text-slate-600', 'mt-2')}>Monitor and manage all flight bookings with analytics</p>
                 </div>
             </div>
 
             {/* Analytics Dashboard */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-                    <div className="flex items-center justify-between">
+            <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-4', 'gap-6')}>
+                <div className={cn('bg-gradient-to-r', 'from-blue-500', 'to-blue-600', 'rounded-2xl', 'p-6', 'text-white')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
                         <div>
-                            <p className="text-blue-100 text-sm font-medium">Total Bookings</p>
-                            <p className="text-3xl font-bold">{analytics.totalBookings.toLocaleString()}</p>
+                            <p className={cn('text-blue-100', 'text-sm', 'font-medium')}>Total Bookings</p>
+                            <p className={cn('text-3xl', 'font-bold')}>{analytics.totalBookings.toLocaleString()}</p>
                         </div>
-                        <ChartBarIcon className="w-12 h-12 text-blue-200" />
+                        <ChartBarIcon className={cn('w-12', 'h-12', 'text-blue-200')} />
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-2xl p-6 text-white">
-                    <div className="flex items-center justify-between">
+                <div className={cn('bg-gradient-to-r', 'from-emerald-500', 'to-emerald-600', 'rounded-2xl', 'p-6', 'text-white')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
                         <div>
-                            <p className="text-emerald-100 text-sm font-medium">Total Revenue</p>
-                            <p className="text-3xl font-bold">₹{analytics.totalRevenue.toLocaleString()}</p>
+                            <p className={cn('text-emerald-100', 'text-sm', 'font-medium')}>Total Revenue</p>
+                            <p className={cn('text-3xl', 'font-bold')}>₹{analytics.totalRevenue.toLocaleString()}</p>
                         </div>
-                        <BanknotesIcon className="w-12 h-12 text-emerald-200" />
+                        <BanknotesIcon className={cn('w-12', 'h-12', 'text-emerald-200')} />
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-500 to-purple-600 rounded-2xl p-6 text-white">
-                    <div className="flex items-center justify-between">
+                <div className={cn('bg-gradient-to-r', 'from-purple-500', 'to-purple-600', 'rounded-2xl', 'p-6', 'text-white')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
                         <div>
-                            <p className="text-purple-100 text-sm font-medium">Total Passengers</p>
-                            <p className="text-3xl font-bold">{analytics.totalPassengers.toLocaleString()}</p>
+                            <p className={cn('text-purple-100', 'text-sm', 'font-medium')}>Total Passengers</p>
+                            <p className={cn('text-3xl', 'font-bold')}>{analytics.totalPassengers.toLocaleString()}</p>
                         </div>
-                        <UserGroupIcon className="w-12 h-12 text-purple-200" />
+                        <UserGroupIcon className={cn('w-12', 'h-12', 'text-purple-200')} />
                     </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-orange-500 to-orange-600 rounded-2xl p-6 text-white">
-                    <div className="flex items-center justify-between">
+                <div className={cn('bg-gradient-to-r', 'from-orange-500', 'to-orange-600', 'rounded-2xl', 'p-6', 'text-white')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
                         <div>
-                            <p className="text-orange-100 text-sm font-medium">Confirmation Rate</p>
-                            <p className="text-3xl font-bold">{analytics.confirmationRate.toFixed(1)}%</p>
+                            <p className={cn('text-orange-100', 'text-sm', 'font-medium')}>Confirmation Rate</p>
+                            <p className={cn('text-3xl', 'font-bold')}>{analytics.confirmationRate.toFixed(1)}%</p>
                         </div>
-                        <CheckCircleIcon className="w-12 h-12 text-orange-200" />
+                        <CheckCircleIcon className={cn('w-12', 'h-12', 'text-orange-200')} />
                     </div>
                 </div>
             </div>
 
             {/* Status Analytics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                        <CheckCircleIcon className="w-6 h-6 text-emerald-600" />
-                        <h3 className="text-lg font-semibold text-slate-800">Confirmed</h3>
+            <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-6')}>
+                <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
+                    <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+                        <CheckCircleIcon className={cn('w-6', 'h-6', 'text-emerald-600')} />
+                        <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Confirmed</h3>
                     </div>
-                    <p className="text-3xl font-bold text-emerald-600">{analytics.confirmedBookings}</p>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className={cn('text-3xl', 'font-bold', 'text-emerald-600')}>{analytics.confirmedBookings}</p>
+                    <p className={cn('text-sm', 'text-slate-600', 'mt-1')}>
                         {analytics.totalBookings > 0 ? ((analytics.confirmedBookings / analytics.totalBookings) * 100).toFixed(1) : 0}% of total
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                        <ClockIcon className="w-6 h-6 text-yellow-600" />
-                        <h3 className="text-lg font-semibold text-slate-800">Pending</h3>
+                <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
+                    <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+                        <ClockIcon className={cn('w-6', 'h-6', 'text-yellow-600')} />
+                        <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Pending</h3>
                     </div>
-                    <p className="text-3xl font-bold text-yellow-600">{analytics.pendingBookings}</p>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className={cn('text-3xl', 'font-bold', 'text-yellow-600')}>{analytics.pendingBookings}</p>
+                    <p className={cn('text-sm', 'text-slate-600', 'mt-1')}>
                         {analytics.totalBookings > 0 ? ((analytics.pendingBookings / analytics.totalBookings) * 100).toFixed(1) : 0}% of total
                     </p>
                 </div>
 
-                <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                        <XCircleIcon className="w-6 h-6 text-red-600" />
-                        <h3 className="text-lg font-semibold text-slate-800">Cancelled</h3>
+                <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
+                    <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+                        <XCircleIcon className={cn('w-6', 'h-6', 'text-red-600')} />
+                        <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Cancelled</h3>
                     </div>
-                    <p className="text-3xl font-bold text-red-600">{analytics.cancelledBookings}</p>
-                    <p className="text-sm text-slate-600 mt-1">
+                    <p className={cn('text-3xl', 'font-bold', 'text-red-600')}>{analytics.cancelledBookings}</p>
+                    <p className={cn('text-sm', 'text-slate-600', 'mt-1')}>
                         {analytics.totalBookings > 0 ? ((analytics.cancelledBookings / analytics.totalBookings) * 100).toFixed(1) : 0}% of total
                     </p>
                 </div>
             </div>
 
             {/* Status Filters */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="flex flex-wrap gap-3">
+            <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
+                <div className={cn('flex', 'flex-wrap', 'gap-3')}>
                     {["Confirmed", "Pending", "Cancelled", "All Booking"].map((filter) => (
                         <button
                             key={filter}
@@ -952,18 +953,18 @@ export default function AllBookingsPage() {
             </div>
 
             {/* Search and Filters */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+            <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
                 <div className="space-y-4">
                     {/* Search Bar and Quick Filters */}
-                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+                    <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-12', 'gap-4')}>
                         {/* Search Bar */}
-                        <div className="lg:col-span-6 relative">
-                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                        <div className={cn('lg:col-span-6', 'relative')}>
+                            <MagnifyingGlassIcon className={cn('absolute', 'left-3', 'top-1/2', '-translate-y-1/2', 'w-5', 'h-5', 'text-slate-400')} />
                             <input
                                 type="text"
                                 onChange={(e) => debouncedSearch(e.target.value)}
                                 placeholder="Search by ID, PNR, email, phone, passenger name..."
-                                className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                className={cn('w-full', 'pl-10', 'pr-4', 'py-2.5', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                             />
                         </div>
 
@@ -975,7 +976,7 @@ export default function AllBookingsPage() {
                                     setSelectedAgent(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                className={cn('w-full', 'px-3', 'py-2.5', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                             >
                                 {agentOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -993,7 +994,7 @@ export default function AllBookingsPage() {
                                     setSelectedRole(e.target.value);
                                     setCurrentPage(1);
                                 }}
-                                className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                className={cn('w-full', 'px-3', 'py-2.5', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                             >
                                 {roleOptions.map((option) => (
                                     <option key={option.value} value={option.value}>
@@ -1006,32 +1007,32 @@ export default function AllBookingsPage() {
 
                     {/* Advanced Filters - Collapsible */}
                     <details className="group">
-                        <summary className="flex items-center justify-between cursor-pointer py-2 px-3 bg-slate-50 hover:bg-slate-100 rounded-lg transition-colors">
-                            <span className="text-sm font-medium text-slate-700 flex items-center gap-2">
-                                <svg className="w-4 h-4 transition-transform group-open:rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <summary className={cn('flex', 'items-center', 'justify-between', 'cursor-pointer', 'py-2', 'px-3', 'bg-slate-50', 'hover:bg-slate-100', 'rounded-lg', 'transition-colors')}>
+                            <span className={cn('text-sm', 'font-medium', 'text-slate-700', 'flex', 'items-center', 'gap-2')}>
+                                <svg className={cn('w-4', 'h-4', 'transition-transform', 'group-open:rotate-90')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                                 Advanced Filters
                             </span>
-                            <span className="text-xs text-slate-500">
+                            <span className={cn('text-xs', 'text-slate-500')}>
                                 {(selectedDepartureAirport !== "all" || selectedArrivalAirport !== "all" || startBookingDate || endBookingDate || startFlightDate || endFlightDate) 
                                     ? "Active" 
                                     : "Click to expand"}
                             </span>
                         </summary>
 
-                        <div className="mt-4 space-y-4 pt-4 border-t border-slate-200">
+                        <div className={cn('mt-4', 'space-y-4', 'pt-4', 'border-t', 'border-slate-200')}>
                             {/* Airport Filters */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4')}>
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600 mb-1.5 block">Departure Airport</label>
+                                    <label className={cn('text-xs', 'font-medium', 'text-slate-600', 'mb-1.5', 'block')}>Departure Airport</label>
                                     <select
                                         value={selectedDepartureAirport}
                                         onChange={(e) => {
                                             setSelectedDepartureAirport(e.target.value);
                                             setCurrentPage(1);
                                         }}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                        className={cn('w-full', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                     >
                                         {departureAirportOptions.map((option) => (
                                             <option key={option.value} value={option.value}>
@@ -1042,14 +1043,14 @@ export default function AllBookingsPage() {
                                 </div>
 
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600 mb-1.5 block">Arrival Airport</label>
+                                    <label className={cn('text-xs', 'font-medium', 'text-slate-600', 'mb-1.5', 'block')}>Arrival Airport</label>
                                     <select
                                         value={selectedArrivalAirport}
                                         onChange={(e) => {
                                             setSelectedArrivalAirport(e.target.value);
                                             setCurrentPage(1);
                                         }}
-                                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                        className={cn('w-full', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                     >
                                         {arrivalAirportOptions.map((option) => (
                                             <option key={option.value} value={option.value}>
@@ -1061,14 +1062,14 @@ export default function AllBookingsPage() {
                             </div>
 
                             {/* Date Filters */}
-                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-4')}>
                                 {/* Booking Date Filter */}
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
-                                        <CalendarDaysIcon className="w-3.5 h-3.5 text-blue-600" />
+                                    <label className={cn('text-xs', 'font-medium', 'text-slate-600', 'mb-1.5', 'flex', 'items-center', 'gap-1.5')}>
+                                        <CalendarDaysIcon className={cn('w-3.5', 'h-3.5', 'text-blue-600')} />
                                         Booking Date Range
                                     </label>
-                                    <div className="flex gap-2">
+                                    <div className={cn('flex', 'gap-2')}>
                                         <DatePicker
                                             selected={startBookingDate}
                                             onChange={(date) => {
@@ -1080,7 +1081,7 @@ export default function AllBookingsPage() {
                                             endDate={endBookingDate}
                                             maxDate={new Date()}
                                             placeholderText="Start Date"
-                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                            className={cn('flex-1', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                         />
                                         <DatePicker
                                             selected={endBookingDate}
@@ -1094,7 +1095,7 @@ export default function AllBookingsPage() {
                                             minDate={startBookingDate}
                                             maxDate={new Date()}
                                             placeholderText="End Date"
-                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm"
+                                            className={cn('flex-1', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                         />
                                         {(startBookingDate || endBookingDate) && (
                                             <button
@@ -1102,10 +1103,10 @@ export default function AllBookingsPage() {
                                                     setBookingDateRange([null, null]);
                                                     setCurrentPage(1);
                                                 }}
-                                                className="px-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                className={cn('px-2', 'text-red-600', 'hover:bg-red-50', 'rounded-lg', 'transition-colors')}
                                                 title="Clear booking date filter"
                                             >
-                                                <XCircleIcon className="w-4 h-4" />
+                                                <XCircleIcon className={cn('w-4', 'h-4')} />
                                             </button>
                                         )}
                                     </div>
@@ -1113,11 +1114,11 @@ export default function AllBookingsPage() {
 
                                 {/* Flight Date Filter */}
                                 <div>
-                                    <label className="text-xs font-medium text-slate-600 mb-1.5 flex items-center gap-1.5">
-                                        <CalendarDaysIcon className="w-3.5 h-3.5 text-orange-600" />
+                                    <label className={cn('text-xs', 'font-medium', 'text-slate-600', 'mb-1.5', 'flex', 'items-center', 'gap-1.5')}>
+                                        <CalendarDaysIcon className={cn('w-3.5', 'h-3.5', 'text-orange-600')} />
                                         Flight Date Range
                                     </label>
-                                    <div className="flex gap-2">
+                                    <div className={cn('flex', 'gap-2')}>
                                         <DatePicker
                                             selected={startFlightDate}
                                             onChange={(date) => {
@@ -1128,7 +1129,7 @@ export default function AllBookingsPage() {
                                             startDate={startFlightDate}
                                             endDate={endFlightDate}
                                             placeholderText="Start Date"
-                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
+                                            className={cn('flex-1', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-orange-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                         />
                                         <DatePicker
                                             selected={endFlightDate}
@@ -1141,7 +1142,7 @@ export default function AllBookingsPage() {
                                             endDate={endFlightDate}
                                             minDate={startFlightDate}
                                             placeholderText="End Date"
-                                            className="flex-1 px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all text-sm"
+                                            className={cn('flex-1', 'px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-orange-500', 'focus:border-transparent', 'transition-all', 'text-sm')}
                                         />
                                         {(startFlightDate || endFlightDate) && (
                                             <button
@@ -1149,10 +1150,10 @@ export default function AllBookingsPage() {
                                                     setFlightDateRange([null, null]);
                                                     setCurrentPage(1);
                                                 }}
-                                                className="px-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                                                className={cn('px-2', 'text-red-600', 'hover:bg-red-50', 'rounded-lg', 'transition-colors')}
                                                 title="Clear flight date filter"
                                             >
-                                                <XCircleIcon className="w-4 h-4" />
+                                                <XCircleIcon className={cn('w-4', 'h-4')} />
                                             </button>
                                         )}
                                     </div>
@@ -1165,15 +1166,15 @@ export default function AllBookingsPage() {
                     {(searchTerm || selectedAgent !== "all" || selectedRole !== "all" ||
                         selectedDepartureAirport !== "all" || selectedArrivalAirport !== "all" ||
                         startBookingDate || endBookingDate || startFlightDate || endFlightDate) && (
-                            <div className="flex items-center justify-between pt-3 border-t border-slate-200">
-                                <div className="flex flex-wrap items-center gap-2">
-                                    <span className="text-xs font-medium text-slate-600">Active:</span>
-                                    {selectedAgent !== "all" && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">Agent: {selectedAgent}</span>}
-                                    {selectedRole !== "all" && <span className="bg-purple-100 text-purple-700 px-2 py-1 rounded text-xs font-medium">Role: {roleOptions.find(r => r.value === selectedRole)?.label}</span>}
-                                    {selectedDepartureAirport !== "all" && <span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-medium">From: {departureAirportOptions.find(a => a.value === selectedDepartureAirport)?.label}</span>}
-                                    {selectedArrivalAirport !== "all" && <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium">To: {arrivalAirportOptions.find(a => a.value === selectedArrivalAirport)?.label}</span>}
-                                    {(startBookingDate || endBookingDate) && <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-medium">Booking: {startBookingDate?.toLocaleDateString()} - {endBookingDate?.toLocaleDateString()}</span>}
-                                    {(startFlightDate || endFlightDate) && <span className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-medium">Flight: {startFlightDate?.toLocaleDateString()} - {endFlightDate?.toLocaleDateString()}</span>}
+                            <div className={cn('flex', 'items-center', 'justify-between', 'pt-3', 'border-t', 'border-slate-200')}>
+                                <div className={cn('flex', 'flex-wrap', 'items-center', 'gap-2')}>
+                                    <span className={cn('text-xs', 'font-medium', 'text-slate-600')}>Active:</span>
+                                    {selectedAgent !== "all" && <span className={cn('bg-blue-100', 'text-blue-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>Agent: {selectedAgent}</span>}
+                                    {selectedRole !== "all" && <span className={cn('bg-purple-100', 'text-purple-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>Role: {roleOptions.find(r => r.value === selectedRole)?.label}</span>}
+                                    {selectedDepartureAirport !== "all" && <span className={cn('bg-green-100', 'text-green-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>From: {departureAirportOptions.find(a => a.value === selectedDepartureAirport)?.label}</span>}
+                                    {selectedArrivalAirport !== "all" && <span className={cn('bg-orange-100', 'text-orange-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>To: {arrivalAirportOptions.find(a => a.value === selectedArrivalAirport)?.label}</span>}
+                                    {(startBookingDate || endBookingDate) && <span className={cn('bg-blue-100', 'text-blue-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>Booking: {startBookingDate?.toLocaleDateString()} - {endBookingDate?.toLocaleDateString()}</span>}
+                                    {(startFlightDate || endFlightDate) && <span className={cn('bg-orange-100', 'text-orange-700', 'px-2', 'py-1', 'rounded', 'text-xs', 'font-medium')}>Flight: {startFlightDate?.toLocaleDateString()} - {endFlightDate?.toLocaleDateString()}</span>}
                                 </div>
                                 <button
                                     onClick={() => {
@@ -1188,9 +1189,9 @@ export default function AllBookingsPage() {
                                         const searchInput = document.querySelector('input[type="text"]');
                                         if (searchInput) searchInput.value = '';
                                     }}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-xs font-medium whitespace-nowrap"
+                                    className={cn('flex', 'items-center', 'gap-1.5', 'px-3', 'py-1.5', 'bg-red-50', 'text-red-600', 'rounded-lg', 'hover:bg-red-100', 'transition-colors', 'text-xs', 'font-medium', 'whitespace-nowrap')}
                                 >
-                                    <XCircleIcon className="w-3.5 h-3.5" />
+                                    <XCircleIcon className={cn('w-3.5', 'h-3.5')} />
                                     Clear All
                                 </button>
                             </div>
@@ -1199,16 +1200,16 @@ export default function AllBookingsPage() {
             </div>
 
             {/* Export and Summary */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
-                <div className="flex flex-col lg:flex-row items-center justify-between gap-4">
-                    <div className="flex flex-col sm:flex-row items-center gap-4">
+            <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'p-6')}>
+                <div className={cn('flex', 'flex-col', 'lg:flex-row', 'items-center', 'justify-between', 'gap-4')}>
+                    <div className={cn('flex', 'flex-col', 'sm:flex-row', 'items-center', 'gap-4')}>
                         <select
                             value={downloadRange}
                             onChange={(e) => {
                                 setDownloadRange(e.target.value);
                                 setCurrentPage(1);
                             }}
-                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                            className={cn('px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         >
                             {downloadOptions.filter(option => option.value !== "custom").map((option) => (
                                 <option key={option.value} value={option.value}>
@@ -1217,28 +1218,28 @@ export default function AllBookingsPage() {
                             ))}
                         </select>
 
-                        <div className="text-sm text-slate-600 bg-slate-50 px-4 py-3 rounded-xl">
+                        <div className={cn('text-sm', 'text-slate-600', 'bg-slate-50', 'px-4', 'py-3', 'rounded-xl')}>
                             <span className="font-medium">Active Filters:</span>
-                            {selectedAgent !== "all" && <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">Agent: {selectedAgent}</span>}
-                            {selectedRole !== "all" && <span className="ml-2 bg-purple-100 text-purple-800 px-2 py-1 rounded-md text-xs">Role: {roleOptions.find(r => r.value === selectedRole)?.label}</span>}
-                            {selectedDepartureAirport !== "all" && <span className="ml-2 bg-green-100 text-green-800 px-2 py-1 rounded-md text-xs">From: {departureAirportOptions.find(a => a.value === selectedDepartureAirport)?.label}</span>}
-                            {selectedArrivalAirport !== "all" && <span className="ml-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-xs">To: {arrivalAirportOptions.find(a => a.value === selectedArrivalAirport)?.label}</span>}
-                            {(startBookingDate || endBookingDate) && <span className="ml-2 bg-blue-100 text-blue-800 px-2 py-1 rounded-md text-xs">Booking Date: {startBookingDate ? startBookingDate.toLocaleDateString() : 'Any'} - {endBookingDate ? endBookingDate.toLocaleDateString() : 'Any'}</span>}
-                            {(startFlightDate || endFlightDate) && <span className="ml-2 bg-orange-100 text-orange-800 px-2 py-1 rounded-md text-xs">Flight Date: {startFlightDate ? startFlightDate.toLocaleDateString() : 'Any'} - {endFlightDate ? endFlightDate.toLocaleDateString() : 'Any'}</span>}
-                            {selectedAgent === "all" && selectedRole === "all" && selectedDepartureAirport === "all" && selectedArrivalAirport === "all" && !startBookingDate && !endBookingDate && !startFlightDate && !endFlightDate && !searchTerm && <span className="ml-2 text-slate-500">None</span>}
+                            {selectedAgent !== "all" && <span className={cn('ml-2', 'bg-blue-100', 'text-blue-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>Agent: {selectedAgent}</span>}
+                            {selectedRole !== "all" && <span className={cn('ml-2', 'bg-purple-100', 'text-purple-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>Role: {roleOptions.find(r => r.value === selectedRole)?.label}</span>}
+                            {selectedDepartureAirport !== "all" && <span className={cn('ml-2', 'bg-green-100', 'text-green-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>From: {departureAirportOptions.find(a => a.value === selectedDepartureAirport)?.label}</span>}
+                            {selectedArrivalAirport !== "all" && <span className={cn('ml-2', 'bg-orange-100', 'text-orange-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>To: {arrivalAirportOptions.find(a => a.value === selectedArrivalAirport)?.label}</span>}
+                            {(startBookingDate || endBookingDate) && <span className={cn('ml-2', 'bg-blue-100', 'text-blue-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>Booking Date: {startBookingDate ? startBookingDate.toLocaleDateString() : 'Any'} - {endBookingDate ? endBookingDate.toLocaleDateString() : 'Any'}</span>}
+                            {(startFlightDate || endFlightDate) && <span className={cn('ml-2', 'bg-orange-100', 'text-orange-800', 'px-2', 'py-1', 'rounded-md', 'text-xs')}>Flight Date: {startFlightDate ? startFlightDate.toLocaleDateString() : 'Any'} - {endFlightDate ? endFlightDate.toLocaleDateString() : 'Any'}</span>}
+                            {selectedAgent === "all" && selectedRole === "all" && selectedDepartureAirport === "all" && selectedArrivalAirport === "all" && !startBookingDate && !endBookingDate && !startFlightDate && !endFlightDate && !searchTerm && <span className={cn('ml-2', 'text-slate-500')}>None</span>}
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-4">
+                    <div className={cn('flex', 'items-center', 'gap-4')}>
                         <button
                             onClick={exportToExcel}
-                            className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-sm font-semibold"
+                            className={cn('flex', 'items-center', 'gap-2', 'px-6', 'py-3', 'bg-gradient-to-r', 'from-emerald-500', 'to-teal-500', 'text-white', 'rounded-xl', 'hover:from-emerald-600', 'hover:to-teal-600', 'transition-all', 'duration-200', 'shadow-sm', 'font-semibold')}
                         >
-                            <ArrowDownTrayIcon className="w-5 h-5" />
+                            <ArrowDownTrayIcon className={cn('w-5', 'h-5')} />
                             Download Excel
                         </button>
 
-                        <span className="text-sm text-slate-600">
+                        <span className={cn('text-sm', 'text-slate-600')}>
                             Showing {(currentPage - 1) * BOOKINGS_PER_PAGE + 1}–
                             {Math.min(currentPage * BOOKINGS_PER_PAGE, filteredData.length)} of {filteredData.length} records
                         </span>
@@ -1248,20 +1249,20 @@ export default function AllBookingsPage() {
 
             {/* Error Message */}
             {error && (
-                <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-                    <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
+                <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-red-50', 'border', 'border-red-200', 'rounded-xl', 'text-red-700')}>
+                    <ExclamationTriangleIcon className={cn('w-5', 'h-5', 'flex-shrink-0')} />
                     {error}
                 </div>
             )}      {/* B
 ookings Table */}
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="bg-gradient-to-r from-slate-50 to-orange-50 px-6 py-4 border-b border-slate-200">
-                    <div className="flex items-center justify-between">
-                        <h3 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-                            <CalendarDaysIcon className="w-6 h-6 text-orange-600" />
+            <div className={cn('bg-white', 'rounded-2xl', 'shadow-sm', 'border', 'border-slate-200', 'overflow-hidden')}>
+                <div className={cn('bg-gradient-to-r', 'from-slate-50', 'to-orange-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
+                        <h3 className={cn('text-xl', 'font-semibold', 'text-slate-800', 'flex', 'items-center', 'gap-2')}>
+                            <CalendarDaysIcon className={cn('w-6', 'h-6', 'text-orange-600')} />
                             Booking Records ({filteredData.length})
                         </h3>
-                        <p className="text-sm text-slate-500">
+                        <p className={cn('text-sm', 'text-slate-500')}>
                             Sorted by latest flight date, then latest booking date
                         </p>
                     </div>
@@ -1269,24 +1270,24 @@ ookings Table */}
 
                 <div className="overflow-x-auto">
                     <table className="w-full">
-                        <thead className="bg-slate-50 border-b border-slate-200">
+                        <thead className={cn('bg-slate-50', 'border-b', 'border-slate-200')}>
                             <tr>
                                 {[
                                     { key: 'bookingNo', label: 'Booking ID', sortable: true, width: 'min-w-[120px]' },
                                     { key: 'pnr', label: 'PNR', sortable: true, width: 'min-w-[100px]' },
                                     { key: 'bookDate', label: 'Fly Date', sortable: true, width: 'min-w-[120px]' },
                                     { key: 'created_at', label: 'Booking Date', sortable: true, width: 'min-w-[160px]' },
-                                    { key: 'email_id', label: 'Email', sortable: false, width: 'min-w-[200px]' },
+                                    { key: 'email_id', label: 'Email', sortable: false, width: 'min-w-[200px]', hideForOperations: true },
                                     { key: 'contact_no', label: 'Phone', sortable: false, width: 'min-w-[120px]' },
                                     { key: 'noOfPassengers', label: 'Passengers', sortable: true, width: 'min-w-[100px]' },
                                     { key: 'passengers', label: 'Names', sortable: false, width: 'min-w-[320px]' },
-                                    { key: 'billingName', label: 'Billing Name', sortable: false, width: 'min-w-[200px]' },
+                                    { key: 'billingName', label: 'Billing Name', sortable: false, width: 'min-w-[200px]', hideForOperations: true },
                                     { key: 'booked_seat', label: 'Seats', sortable: false, width: 'min-w-[120px]' },
                                     { key: 'totalFare', label: 'Price', sortable: true, width: 'min-w-[100px]' },
                                     { key: 'bookingStatus', label: 'Status', sortable: true, width: 'min-w-[120px]' },
                                     { key: 'paymentMode', label: 'Payment', sortable: true, width: 'min-w-[120px]' },
-                                    { key: 'transactionId', label: 'Transaction ID', sortable: false, width: 'min-w-[140px]' },
-                                    { key: 'paymentId', label: 'Payment ID', sortable: false, width: 'min-w-[140px]' },
+                                    { key: 'transactionId', label: 'Transaction ID', sortable: false, width: 'min-w-[140px]', hideForOperations: true },
+                                    { key: 'paymentId', label: 'Payment ID', sortable: false, width: 'min-w-[140px]', hideForOperations: true },
                                     { key: 'agentId', label: 'Agent ID', sortable: true, width: 'min-w-[120px]' },
                                     { key: 'bookingSource', label: 'Source', sortable: true, width: 'min-w-[100px]' },
                                     { key: 'userRole', label: 'User Role', sortable: true, width: 'min-w-[120px]' },
@@ -1295,14 +1296,20 @@ ookings Table */}
                                     { key: 'departureAirportName', label: 'From', sortable: false, width: 'min-w-[160px]' },
                                     { key: 'arrivalAirportName', label: 'To', sortable: false, width: 'min-w-[160px]' },
                                     { key: 'actions', label: 'Actions', sortable: false, width: 'min-w-[160px]' },
-                                ].map((column) => (
+                                ].filter(column => {
+                                    // Hide certain columns for Operations users (role 6)
+                                    if (authState.userRole === "6" && column.hideForOperations) {
+                                        return false;
+                                    }
+                                    return true;
+                                }).map((column) => (
                                     <th
                                         key={column.key}
                                         className={`px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider ${column.width} ${column.sortable ? 'cursor-pointer hover:bg-slate-100 transition-colors' : ''
                                             }`}
                                         onClick={column.sortable ? () => handleSort(column.key) : undefined}
                                     >
-                                        <div className="flex items-center gap-2">
+                                        <div className={cn('flex', 'items-center', 'gap-2')}>
                                             {column.label}
                                             {column.sortable && getSortIcon(column.key)}
                                         </div>
@@ -1310,70 +1317,78 @@ ookings Table */}
                                 ))}
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-200">
+                        <tbody className={cn('divide-y', 'divide-slate-200')}>
                             {isLoading ? (
                                 <tr>
-                                    <td colSpan={23} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                    <td colSpan={23} className={cn('px-6', 'py-12', 'text-center')}>
+                                        <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                                            <div className={cn('w-8', 'h-8', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                                             <span className="text-slate-500">Loading bookings...</span>
                                         </div>
                                     </td>
                                 </tr>
                             ) : currentData.length ? (
                                 currentData.map((booking) => (
-                                    <tr key={booking.id} className="hover:bg-slate-50 transition-colors">
-                                        <td className="px-4 py-2 whitespace-nowrap font-semibold text-slate-900">
+                                    <tr key={booking.id} className={cn('hover:bg-slate-50', 'transition-colors')}>
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'font-semibold', 'text-slate-900')}>
                                             {booking.bookingNo || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.pnr || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.bookDate ? new Date(booking.bookDate).toLocaleDateString() : "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.created_at ? new Date(booking.created_at).toLocaleString() : "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
-                                            {booking.email_id || "N/A"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        {authState.userRole !== "6" && (
+                                            <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
+                                                {booking.email_id || "N/A"}
+                                            </td>
+                                        )}
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.contact_no || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.noOfPassengers || "0"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap w-80">
-                                            <div className="max-w-[320px] truncate text-slate-700" title={booking.passengers?.map((p) => p.name).join(", ") || "N/A"}>
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'w-80')}>
+                                            <div className={cn('max-w-[320px]', 'truncate', 'text-slate-700')} title={booking.passengers?.map((p) => p.name).join(", ") || "N/A"}>
                                                 {booking.passengers?.map((p) => p.name).join(", ") || "N/A"}
                                             </div>
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
-                                            {booking.billingName || "N/A"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        {authState.userRole !== "6" && (
+                                            <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
+                                                {booking.billingName || "N/A"}
+                                            </td>
+                                        )}
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.booked_seat || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap font-semibold text-slate-900">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'font-semibold', 'text-slate-900')}>
                                             {booking.totalFare ? `₹${parseFloat(booking.totalFare).toFixed(2)}` : "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap')}>
                                             {getStatusBadge(booking.bookingStatus)}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap')}>
                                             {getPaymentBadge(booking.paymentMode)}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
-                                            {booking.transactionId || "N/A"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
-                                            {booking.paymentId || "N/A"}
-                                        </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        {authState.userRole !== "6" && (
+                                            <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
+                                                {booking.transactionId || "N/A"}
+                                            </td>
+                                        )}
+                                        {authState.userRole !== "6" && (
+                                            <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
+                                                {booking.paymentId || "N/A"}
+                                            </td>
+                                        )}
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.agentId}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap')}>
                                             <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${booking.bookingSource === 'IRCTC'
                                                     ? 'bg-orange-100 text-orange-800'
                                                     : 'bg-blue-100 text-blue-800'
@@ -1381,37 +1396,37 @@ ookings Table */}
                                                 {booking.bookingSource || 'FLYOLA'}
                                             </span>
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap')}>
                                             {getRoleBadge(booking.userRole)}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.FlightSchedule?.departure_time || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.FlightSchedule?.arrival_time || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.departureAirportName || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap text-slate-700">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
                                             {booking.arrivalAirportName || "N/A"}
                                         </td>
-                                        <td className="px-4 py-2 whitespace-nowrap">
-                                            <div className="flex items-center gap-2">
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap')}>
+                                            <div className={cn('flex', 'items-center', 'gap-2')}>
                                                 <button
                                                     onClick={() => handleViewBooking(booking)}
-                                                    className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium"
+                                                    className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-2', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition-colors', 'text-sm', 'font-medium')}
                                                 >
-                                                    <EyeIcon className="w-4 h-4" />
+                                                    <EyeIcon className={cn('w-4', 'h-4')} />
                                                     View
                                                 </button>
                                                 {canAdminCancelBooking(booking) && (
                                                     <button
                                                         onClick={() => handleAdminCancelBooking(booking)}
-                                                        className="flex items-center gap-1 px-3 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
+                                                        className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-2', 'bg-red-600', 'text-white', 'rounded-lg', 'hover:bg-red-700', 'transition-colors', 'text-sm', 'font-medium')}
                                                         title="Cancel booking as admin"
                                                     >
-                                                        <XCircleIcon className="w-4 h-4" />
+                                                        <XCircleIcon className={cn('w-4', 'h-4')} />
                                                         Cancel
                                                     </button>
                                                 )}
@@ -1421,12 +1436,12 @@ ookings Table */}
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={23} className="px-6 py-12 text-center">
-                                        <div className="flex flex-col items-center gap-3">
-                                            <CalendarDaysIcon className="w-12 h-12 text-slate-300" />
+                                    <td colSpan={23} className={cn('px-6', 'py-12', 'text-center')}>
+                                        <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                                            <CalendarDaysIcon className={cn('w-12', 'h-12', 'text-slate-300')} />
                                             <div>
-                                                <p className="text-slate-500 font-medium">No bookings found</p>
-                                                <p className="text-slate-400 text-sm">
+                                                <p className={cn('text-slate-500', 'font-medium')}>No bookings found</p>
+                                                <p className={cn('text-slate-400', 'text-sm')}>
                                                     {searchTerm ? "Try adjusting your search terms" : "No bookings match your current filters"}
                                                 </p>
                                             </div>
@@ -1440,16 +1455,16 @@ ookings Table */}
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div className="flex justify-center items-center gap-2 p-6 border-t border-slate-200">
+                    <div className={cn('flex', 'justify-center', 'items-center', 'gap-2', 'p-6', 'border-t', 'border-slate-200')}>
                         <button
                             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                             disabled={currentPage === 1 || isLoading}
-                            className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                            className={cn('px-4', 'py-2', 'rounded-lg', 'bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'disabled:opacity-50', 'transition-colors')}
                         >
                             Previous
                         </button>
 
-                        <div className="flex items-center gap-1">
+                        <div className={cn('flex', 'items-center', 'gap-1')}>
                             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                                 const page = i + 1;
                                 return (
@@ -1471,7 +1486,7 @@ ookings Table */}
                         <button
                             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                             disabled={currentPage === totalPages || isLoading}
-                            className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                            className={cn('px-4', 'py-2', 'rounded-lg', 'bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'disabled:opacity-50', 'transition-colors')}
                         >
                             Next
                         </button>

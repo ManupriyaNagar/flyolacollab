@@ -154,7 +154,7 @@ const FilterSidebar = ({
               <option value="">All Departure Cities</option>
               {helipads && helipads.map((helipad) => (
                 <option key={helipad.id} value={helipad.city}>
-                  {helipad.city} ({helipad.name})
+                  {helipad.city} ({helipad.helipad_name || helipad.helipad_code})
                 </option>
               ))}
             </select>
@@ -175,7 +175,7 @@ const FilterSidebar = ({
               <option value="">All Arrival Cities</option>
               {helipads && helipads.map((helipad) => (
                 <option key={helipad.id} value={helipad.city}>
-                  {helipad.city} ({helipad.name})
+                  {helipad.city} ({helipad.helipad_name || helipad.helipad_code})
                 </option>
               ))}
             </select>

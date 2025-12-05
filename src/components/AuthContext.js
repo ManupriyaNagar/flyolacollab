@@ -3,6 +3,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import API from "@/services/api";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const AuthContext = createContext();
 
@@ -16,6 +17,8 @@ const INITIAL = {
 export function AuthProvider({ children }) {
   const router = useRouter();
   const [authState, setAuthState] = useState(INITIAL);
+  const [showSessionExpiredModal, setShowSessionExpiredModal] = useState(false);
+  const [pendingBookingData, setPendingBookingData] = useState(null);
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -53,7 +56,16 @@ export function AuthProvider({ children }) {
             (err?.response?.status === 404 && err?.message?.includes("User not found"));
 
           if (isAuthError) {
-            console.log('[AuthContext] Authentication error, logging out');
+            console.log('[AuthContext] Authentication error, session expired');
+            
+            // Check if user is on booking/payment page
+            const currentPath = window.location.pathname;
+            const isOnBookingPage = currentPath.includes('/booking') || 
+                                   currentPath.includes('/payment') ||
+                                   currentPath.includes('/scheduled-flight') ||
+                                   currentPath.includes('/helicopter-flight');
+            
+            // Clear auth data
             setAuthState({ ...INITIAL, isLoading: false });
             localStorage.removeItem("authState");
             localStorage.removeItem("token");
@@ -64,13 +76,21 @@ export function AuthProvider({ children }) {
             // Clear the cookie
             document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax";
 
-            // Only redirect to sign-in if user is on a protected route
-            const currentPath = window.location.pathname;
-            const protectedRoutes = ['/admin-dashboard', '/agent-dashboard', '/user-dashboard', '/booking-agent-dashboard'];
-            const isOnProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
+            // If on booking page, show modal instead of redirecting
+            if (isOnBookingPage) {
+              setShowSessionExpiredModal(true);
+              toast.warning("Your session has expired. Please log in to continue.", {
+                position: "top-center",
+                autoClose: 5000,
+              });
+            } else {
+              // Only redirect to sign-in if user is on a protected route
+              const protectedRoutes = ['/admin-dashboard', '/agent-dashboard', '/user-dashboard', '/booking-agent-dashboard'];
+              const isOnProtectedRoute = protectedRoutes.some(route => currentPath.startsWith(route));
 
-            if (isOnProtectedRoute) {
-              router.push("/sign-in");
+              if (isOnProtectedRoute) {
+                router.push("/sign-in");
+              }
             }
           } else {
             // For network/server errors, retry once after a delay, then keep user logged in
@@ -111,6 +131,15 @@ export function AuthProvider({ children }) {
     setAuthState(newState);
     localStorage.setItem("authState", JSON.stringify(newState));
 
+    // Close session expired modal if open
+    if (showSessionExpiredModal) {
+      setShowSessionExpiredModal(false);
+      toast.success("Welcome back! You can continue your booking.", {
+        position: "top-center",
+        autoClose: 3000,
+      });
+    }
+
     // Only redirect if not skipping redirect (for modal-based logins)
     if (!skipRedirect) {
       const redirectPath =
@@ -140,7 +169,16 @@ export function AuthProvider({ children }) {
 
 
   return (
-    <AuthContext.Provider value={{ authState, setAuthState, login, logout }}>
+    <AuthContext.Provider value={{ 
+      authState, 
+      setAuthState, 
+      login, 
+      logout,
+      showSessionExpiredModal,
+      setShowSessionExpiredModal,
+      pendingBookingData,
+      setPendingBookingData
+    }}>
       {children}
     </AuthContext.Provider>
   );

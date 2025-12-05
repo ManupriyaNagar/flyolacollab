@@ -20,7 +20,8 @@ export default function CouponsPage() {
     usage_limit: "",
     valid_from: new Date().toISOString().split('T')[0],
     valid_until: "",
-    description: ""
+    description: "",
+    auto_apply: false
   });
 
   useEffect(() => {
@@ -102,7 +103,8 @@ export default function CouponsPage() {
       usage_limit: "",
       valid_from: new Date().toISOString().split('T')[0],
       valid_until: "",
-      description: ""
+      description: "",
+      auto_apply: false
     });
     setEditingCoupon(null);
   };
@@ -118,7 +120,8 @@ export default function CouponsPage() {
       usage_limit: coupon.usage_limit || "",
       valid_from: coupon.valid_from?.split('T')[0] || "",
       valid_until: coupon.valid_until?.split('T')[0] || "",
-      description: coupon.description || ""
+      description: coupon.description || "",
+      auto_apply: coupon.auto_apply || false
     });
     setShowModal(true);
   };
@@ -201,6 +204,13 @@ export default function CouponsPage() {
                   {new Date(coupon.valid_until).toLocaleDateString()}
                 </span>
               </div>
+              {coupon.auto_apply && (
+                <div className="flex items-center gap-2 text-sm">
+                  <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-medium">
+                    Auto-Apply
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className="flex gap-2">
@@ -366,6 +376,22 @@ export default function CouponsPage() {
                   rows="3"
                   placeholder="10% off on all bookings"
                 />
+              </div>
+
+              <div className="flex items-center gap-3 p-4 bg-green-50 border-2 border-green-200 rounded-lg">
+                <input
+                  type="checkbox"
+                  id="auto_apply"
+                  checked={formData.auto_apply}
+                  onChange={(e) => setFormData({...formData, auto_apply: e.target.checked})}
+                  className="w-5 h-5 text-purple-600 border-gray-300 rounded focus:ring-2 focus:ring-purple-500"
+                />
+                <label htmlFor="auto_apply" className="flex-1 cursor-pointer">
+                  <div className="text-sm font-semibold text-gray-900">Auto-Apply at Checkout</div>
+                  <div className="text-xs text-gray-600">
+                    Automatically apply this coupon if it provides the best discount for the customer
+                  </div>
+                </label>
               </div>
 
               <div className="flex gap-3 pt-4">

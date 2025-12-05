@@ -1,25 +1,24 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import BASE_URL from "@/baseUrl/baseUrl";
 import { useAuth } from "@/components/AuthContext";
+import { transformTicketData } from "@/utils/ticketDataTransformer";
+import {
+    ArrowsUpDownIcon,
+    CalendarDaysIcon,
+    ExclamationTriangleIcon,
+    EyeIcon,
+    MagnifyingGlassIcon,
+    TicketIcon,
+    UserGroupIcon,
+} from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import ProfessionalTicket from "./../../../components/SingleTicket/ProfessionalTicket";
-import BASE_URL from "@/baseUrl/baseUrl";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-import {
-  TicketIcon,
-  CalendarDaysIcon,
-  UserGroupIcon,
-  EyeIcon, 
-  ExclamationTriangleIcon,
-  MagnifyingGlassIcon,
-  ArrowsUpDownIcon,
-} from "@heroicons/react/24/outline";
-import { transformTicketData, buildAirportMap } from "@/utils/ticketDataTransformer";
-import { AirportService } from "@/services/api";
 
 const HelicopterTicketsPage = () => {
   const { authState } = useAuth();
@@ -30,6 +29,7 @@ const HelicopterTicketsPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showTicketModal, setShowTicketModal] = useState(false);
   const [helipadMap, setHelipadMap] = useState({});
+  const [helipadCodeMap, setHelipadCodeMap] = useState({});
   const [currentPage, setCurrentPage] = useState(1);
   const [dateFilter, setDateFilter] = useState("all");
   const [dateRange, setDateRange] = useState([null, null]);
@@ -38,9 +38,9 @@ const HelicopterTicketsPage = () => {
   const [startDate, endDate] = dateRange;
   const itemsPerPage = 10;
 
-  // Redirect if not admin
+  // Redirect if not admin or operations
   useEffect(() => {
-    if (!authState.isLoading && (!authState.isLoggedIn || String(authState.userRole) !== "1")) {
+    if (!authState.isLoading && (!authState.isLoggedIn || (String(authState.userRole) !== "1" && String(authState.userRole) !== "6"))) {
       router.push("/sign-in");
     }
   }, [authState, router]);
@@ -50,7 +50,7 @@ const HelicopterTicketsPage = () => {
     if (
       authState.isLoading ||
       !authState.isLoggedIn ||
-      String(authState.userRole) !== "1"
+      (String(authState.userRole) !== "1" && String(authState.userRole) !== "6")
     ) {
       return;
     }
@@ -83,16 +83,19 @@ const HelicopterTicketsPage = () => {
         const bookingsData = bookingsRes.ok ? await bookingsRes.json() : [];
         const helipadsData = helipadsRes.ok ? await helipadsRes.json() : [];
 
-        // Build helipad map
+        // Build helipad map with both name and code
         const helipadMapping = {};
+        const helipadCodeMapping = {};
         if (Array.isArray(helipadsData)) {
           helipadsData.forEach(helipad => {
             if (helipad.id) {
               helipadMapping[helipad.id] = helipad.helipad_name || helipad.city || 'Unknown';
+              helipadCodeMapping[helipad.id] = helipad.helipad_code || 'HPD';
             }
           });
         }
         setHelipadMap(helipadMapping);
+        setHelipadCodeMap(helipadCodeMapping);
 
         // Process helicopter bookings - they already come with all data from backend
         const merged = (Array.isArray(bookingsData) ? bookingsData : [])
@@ -115,6 +118,12 @@ const HelicopterTicketsPage = () => {
                                   booking.Passengers?.map(p => p.name).join(', ') || 
                                   'N/A';
             
+            // Get helipad codes from the schedule
+            const departureHelipadId = booking.HelicopterSchedule?.departure_helipad_id;
+            const arrivalHelipadId = booking.HelicopterSchedule?.arrival_helipad_id;
+            const departureCode = helipadCodeMapping[departureHelipadId] || 'HPD';
+            const arrivalCode = helipadCodeMapping[arrivalHelipadId] || 'HPD';
+            
             return {
               ...booking,
               bookingType: 'helicopter',
@@ -133,8 +142,8 @@ const HelicopterTicketsPage = () => {
                 flightNumber: booking.helicopterNumber || 'N/A',
                 helicopterNumber: booking.helicopterNumber || 'N/A',
                 bookingType: 'helicopter', // IMPORTANT: Add bookingType here for ticket component
-                departureCode: 'HPD', // Helipad code
-                arrivalCode: 'HPD',
+                departureCode: departureCode, // Actual helipad code
+                arrivalCode: arrivalCode, // Actual helipad code
                 departureTime: booking.departureTime || booking.HelicopterSchedule?.departure_time || 'N/A',
                 arrivalTime: booking.arrivalTime || booking.HelicopterSchedule?.arrival_time || 'N/A',
                 totalPrice: booking.totalFare
@@ -145,7 +154,12 @@ const HelicopterTicketsPage = () => {
                 fullName: p.name,
                 age: p.age,
                 type: p.type || 'Adult',
-                seat: booking.BookedSeats?.[index]?.seat_label || 'N/A'
+                seat: booking.BookedSeats?.[index]?.seat_label || 'N/A',
+                // Add contact info to first passenger for ticket display
+                ...(index === 0 && {
+                  email: booking.email_id || booking.billing?.billing_email || 'N/A',
+                  phone: booking.contact_no || booking.billing?.billing_number || 'N/A'
+                })
               })) || [],
               // Add bookingResult for ticket display
               bookingResult: {
@@ -441,6 +455,7 @@ const HelicopterTicketsPage = () => {
                   { key: 'bookingNo', label: 'Booking ID', sortable: true },
                   { key: 'pnr', label: 'PNR', sortable: true },
                   { key: 'passengers', label: 'Passenger Names', sortable: false },
+                  { key: 'passengerWeights', label: 'Weights (kg)', sortable: false },
                   { key: 'bookDate', label: 'Flight Date', sortable: true },
                   { key: 'departureAirportName', label: 'Route', sortable: false },
                   { key: 'actions', label: 'Actions', sortable: false },
@@ -463,7 +478,7 @@ const HelicopterTicketsPage = () => {
             <tbody className="divide-y divide-slate-200">
               {isLoading ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
                       <span className="text-slate-500">Loading tickets...</span>
@@ -472,7 +487,7 @@ const HelicopterTicketsPage = () => {
                 </tr>
               ) : currentBookings.length === 0 && !error ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <TicketIcon className="w-12 h-12 text-slate-300" />
                       <div>
@@ -512,6 +527,11 @@ const HelicopterTicketsPage = () => {
                           >
                             {passengerNames}
                           </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-slate-700">
+                        <div className="max-w-[150px] truncate" title={booking.Passengers?.map((p) => p.weight ? `${p.weight}kg` : '-').join(", ") || "N/A"}>
+                          {booking.Passengers?.map((p) => p.weight ? `${p.weight}` : '-').join(", ") || "N/A"}
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

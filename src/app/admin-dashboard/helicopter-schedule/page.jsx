@@ -20,6 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 import { Dialog, Transition } from "@headlessui/react";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { cn } from "@/lib/utils";
 
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
@@ -32,6 +33,8 @@ export default function HelicopterSchedulePage() {
   const [filterDay, setFilterDay] = useState('All Days');
   const [filterStatus, setFilterStatus] = useState('All');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [currentPage, setCurrentPage] = useState(1);
+  const [entriesPerPage, setEntriesPerPage] = useState(10);
   const [showModal, setShowModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [editingSchedule, setEditingSchedule] = useState(null);
@@ -53,11 +56,11 @@ export default function HelicopterSchedulePage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Fetch schedules, helicopters, and airports (with helipad data) in parallel
-      const [schedulesRes, helicoptersRes, airportsRes] = await Promise.all([
+      // Fetch schedules, helicopters, and helipads in parallel
+      const [schedulesRes, helicoptersRes, helipadsRes] = await Promise.all([
         fetch(`${BASE_URL}/helicopter-schedules`),
         fetch(`${BASE_URL}/helicopters`),
-        fetch(`${BASE_URL}/airport`)
+        fetch(`${BASE_URL}/helipads`)
       ]);
 
       if (schedulesRes.ok) {
@@ -70,19 +73,9 @@ export default function HelicopterSchedulePage() {
         setHelicopters(Array.isArray(helicoptersData) ? helicoptersData : []);
       }
 
-      if (airportsRes.ok) {
-        const airportsData = await airportsRes.json();
-        // Filter to get only locations with helipad facilities
-        const helipadLocations = airportsData.filter(airport => airport.has_helipad);
-        // Transform to match expected helipad structure
-        const transformedHelipads = helipadLocations.map(airport => ({
-          id: airport.id,
-          helipad_code: airport.helipad_code || airport.airport_code,
-          helipad_name: airport.helipad_name || airport.airport_name,
-          city: airport.city,
-          status: airport.status
-        }));
-        setHelipads(transformedHelipads);
+      if (helipadsRes.ok) {
+        const helipadsData = await helipadsRes.json();
+        setHelipads(Array.isArray(helipadsData) ? helipadsData : []);
       }
     } catch (err) {
       toast.error('Failed to fetch data');
@@ -256,13 +249,20 @@ export default function HelicopterSchedulePage() {
     return filtered;
   }, [schedules, searchTerm, filterDay, filterStatus, sortConfig, helicopters, helipads]);
 
+  // Pagination
+  const totalPages = Math.ceil(filteredSchedules.length / entriesPerPage) || 1;
+  const paginatedSchedules = useMemo(() => {
+    const start = (currentPage - 1) * entriesPerPage;
+    return filteredSchedules.slice(start, start + entriesPerPage);
+  }, [filteredSchedules, currentPage, entriesPerPage]);
+
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
-      return <ArrowsUpDownIcon className="w-4 h-4 text-slate-400" />;
+      return <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-slate-400')} />;
     }
     return sortConfig.direction === 'asc' ? 
-      <ArrowsUpDownIcon className="w-4 h-4 text-green-500 rotate-180" /> :
-      <ArrowsUpDownIcon className="w-4 h-4 text-green-500" />;
+      <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-green-500', 'rotate-180')} /> :
+      <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-green-500')} />;
   };
 
   const getStatusColor = (status) => {
@@ -278,80 +278,109 @@ export default function HelicopterSchedulePage() {
       <ToastContainer position="top-right" autoClose={3000} />
       
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-500 rounded-xl">
-              <CalendarDaysIcon className="w-8 h-8 text-white" />
+          <h1 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'flex', 'items-center', 'gap-3')}>
+            <div className={cn('p-2', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-500', 'rounded-xl')}>
+              <CalendarDaysIcon className={cn('w-8', 'h-8', 'text-white')} />
             </div>
             Helicopter Schedule
           </h1>
-          <p className="text-slate-600 mt-2">Manage helicopter flight schedules and routes</p>
+          <p className={cn('text-slate-600', 'mt-2')}>Manage helicopter flight schedules and routes</p>
         </div>
         
         <button
           onClick={() => setShowModal(true)}
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg font-medium"
+          className={cn('flex', 'items-center', 'gap-2', 'px-6', 'py-3', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-500', 'text-white', 'rounded-xl', 'hover:from-green-600', 'hover:to-emerald-600', 'transition-all', 'duration-200', 'shadow-lg', 'font-medium')}
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className={cn('w-5', 'h-5')} />
           Add New Schedule
         </button>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-          <div className="relative flex-1 max-w-md">
-            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all"
-              placeholder="Search by helicopter, helipad, or time..."
-            />
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex items-center gap-2">
-              <FunnelIcon className="w-5 h-5 text-slate-400" />
-              <select
-                value={filterDay}
-                onChange={(e) => setFilterDay(e.target.value)}
-                className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
-              >
-                <option>All Days</option>
-                {WEEK_DAYS.map((day) => (
-                  <option key={day}>{day}</option>
-                ))}
-              </select>
+      <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6')}>
+        <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
+          <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4', 'flex-1')}>
+            <div className={cn('relative', 'flex-1', 'max-w-md')}>
+              <MagnifyingGlassIcon className={cn('absolute', 'left-3', 'top-1/2', '-translate-y-1/2', 'w-5', 'h-5', 'text-slate-400')} />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={cn('w-full', 'pl-10', 'pr-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent', 'transition-all')}
+                placeholder="Search by helicopter, helipad, or time..."
+              />
             </div>
             
+            <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4')}>
+              <div className={cn('flex', 'items-center', 'gap-2')}>
+                <FunnelIcon className={cn('w-5', 'h-5', 'text-slate-400')} />
+                <select
+                  value={filterDay}
+                  onChange={(e) => {
+                    setFilterDay(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className={cn('px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent', 'transition-all', 'bg-white')}
+                >
+                  <option>All Days</option>
+                  {WEEK_DAYS.map((day) => (
+                    <option key={day}>{day}</option>
+                  ))}
+                </select>
+              </div>
+              
+              <select
+                value={filterStatus}
+                onChange={(e) => {
+                  setFilterStatus(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className={cn('px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent', 'transition-all', 'bg-white')}
+              >
+                <option>All</option>
+                <option>Active</option>
+                <option>Inactive</option>
+              </select>
+            </div>
+          </div>
+          
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <span className={cn('text-sm', 'text-slate-600')}>Show</span>
             <select
-              value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all bg-white"
+              value={entriesPerPage}
+              onChange={(e) => {
+                setEntriesPerPage(Number(e.target.value));
+                setCurrentPage(1);
+              }}
+              className={cn('px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
             >
-              <option>All</option>
-              <option>Active</option>
-              <option>Inactive</option>
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
             </select>
+            <span className={cn('text-sm', 'text-slate-600')}>entries</span>
           </div>
         </div>
       </div>
 
       {/* Schedules Table */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-6 py-4 border-b border-slate-200">
-          <h3 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <CalendarDaysIcon className="w-6 h-6 text-green-600" />
+      <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+        <div className={cn('bg-gradient-to-r', 'from-green-50', 'to-emerald-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+          <h3 className={cn('text-xl', 'font-semibold', 'text-slate-800', 'flex', 'items-center', 'gap-2')}>
+            <CalendarDaysIcon className={cn('w-6', 'h-6', 'text-green-600')} />
             Helicopter Schedules ({filteredSchedules.length})
           </h3>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-max">
-            <thead className="bg-slate-50 border-b border-slate-200">
+          <table className={cn('w-full', 'min-w-max')}>
+            <thead className={cn('bg-slate-50', 'border-b', 'border-slate-200')}>
               <tr>
                 {[
                   { key: 'helicopter_id', label: 'HELICOPTER', sortable: false },
@@ -370,7 +399,7 @@ export default function HelicopterSchedulePage() {
                     }`}
                     onClick={column.sortable ? () => handleSort(column.key) : undefined}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className={cn('flex', 'items-center', 'gap-2')}>
                       {column.label}
                       {column.sortable && getSortIcon(column.key)}
                     </div>
@@ -378,24 +407,24 @@ export default function HelicopterSchedulePage() {
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 bg-white">
+            <tbody className={cn('divide-y', 'divide-slate-100', 'bg-white')}>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
+                  <td colSpan={8} className={cn('px-6', 'py-12', 'text-center')}>
+                    <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                      <div className={cn('w-8', 'h-8', 'border-4', 'border-green-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                       <span className="text-slate-500">Loading schedules...</span>
                     </div>
                   </td>
                 </tr>
               ) : filteredSchedules.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <CalendarDaysIcon className="w-12 h-12 text-slate-300" />
+                  <td colSpan={8} className={cn('px-6', 'py-12', 'text-center')}>
+                    <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                      <CalendarDaysIcon className={cn('w-12', 'h-12', 'text-slate-300')} />
                       <div>
-                        <p className="text-slate-500 font-medium">No schedules found</p>
-                        <p className="text-slate-400 text-sm">
+                        <p className={cn('text-slate-500', 'font-medium')}>No schedules found</p>
+                        <p className={cn('text-slate-400', 'text-sm')}>
                           {searchTerm || filterDay !== 'All Days' || filterStatus !== 'All' 
                             ? "Try adjusting your filters or search terms" 
                             : "Add your first helicopter schedule to get started"}
@@ -405,71 +434,71 @@ export default function HelicopterSchedulePage() {
                   </td>
                 </tr>
               ) : (
-                filteredSchedules.map((schedule) => (
-                  <tr key={schedule.id} className="hover:bg-slate-50/50 transition-colors">
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="font-medium text-slate-900 text-sm">
+                paginatedSchedules.map((schedule) => (
+                  <tr key={schedule.id} className={cn('hover:bg-slate-50/50', 'transition-colors')}>
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={cn('font-medium', 'text-slate-900', 'text-sm')}>
                         {getHelicopterName(schedule.helicopter_id)}
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <span className={cn('inline-flex', 'items-center', 'px-2.5', 'py-1', 'rounded-full', 'text-xs', 'font-medium', 'bg-blue-100', 'text-blue-800')}>
                         {getHelicopterDepartureDay(schedule.helicopter_id)}
                       </span>
                     </td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-1.5 text-xs min-w-[250px]">
-                        <MapPinIcon className="w-3 h-3 text-green-500 flex-shrink-0" />
-                        <span className="text-slate-700 truncate" title={getHelipadName(schedule.departure_helipad_id)}>
+                    <td className={cn('px-4', 'py-3')}>
+                      <div className={cn('flex', 'items-center', 'gap-1.5', 'text-xs', 'min-w-[250px]')}>
+                        <MapPinIcon className={cn('w-3', 'h-3', 'text-green-500', 'flex-shrink-0')} />
+                        <span className={cn('text-slate-700', 'truncate')} title={getHelipadName(schedule.departure_helipad_id)}>
                           {getHelipadName(schedule.departure_helipad_id)}
                         </span>
-                        <span className="text-slate-400 mx-1">→</span>
-                        <MapPinIcon className="w-3 h-3 text-red-500 flex-shrink-0" />
-                        <span className="text-slate-700 truncate" title={getHelipadName(schedule.arrival_helipad_id)}>
+                        <span className={cn('text-slate-400', 'mx-1')}>→</span>
+                        <MapPinIcon className={cn('w-3', 'h-3', 'text-red-500', 'flex-shrink-0')} />
+                        <span className={cn('text-slate-700', 'truncate')} title={getHelipadName(schedule.arrival_helipad_id)}>
                           {getHelipadName(schedule.arrival_helipad_id)}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <ClockIcon className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-slate-700 text-sm">{schedule.departure_time}</span>
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-1.5')}>
+                        <ClockIcon className={cn('w-3.5', 'h-3.5', 'text-slate-400')} />
+                        <span className={cn('text-slate-700', 'text-sm')}>{schedule.departure_time}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
-                        <ClockIcon className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="text-slate-700 text-sm">{schedule.arrival_time || 'Not set'}</span>
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-1.5')}>
+                        <ClockIcon className={cn('w-3.5', 'h-3.5', 'text-slate-400')} />
+                        <span className={cn('text-slate-700', 'text-sm')}>{schedule.arrival_time || 'Not set'}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1">
-                        <CurrencyDollarIcon className="w-3.5 h-3.5 text-slate-400" />
-                        <span className="font-semibold text-slate-900 text-sm">
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-1')}>
+                        <CurrencyDollarIcon className={cn('w-3.5', 'h-3.5', 'text-slate-400')} />
+                        <span className={cn('font-semibold', 'text-slate-900', 'text-sm')}>
                           ₹{schedule.price ? Number(schedule.price).toLocaleString() : '0'}
                         </span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
                       <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(schedule.status)}`}>
                         {getStatusText(schedule.status)}
                       </span>
                     </td>
-                    <td className="px-4 py-3 whitespace-nowrap">
-                      <div className="flex items-center gap-1.5">
+                    <td className={cn('px-4', 'py-3', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-1.5')}>
                         <button
                           onClick={() => handleEdit(schedule)}
-                          className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className={cn('p-1.5', 'text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition-colors')}
                           title="Edit schedule"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className={cn('w-4', 'h-4')} />
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(schedule)}
-                          className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className={cn('p-1.5', 'text-red-600', 'hover:bg-red-50', 'rounded-lg', 'transition-colors')}
                           title="Delete schedule"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className={cn('w-4', 'h-4')} />
                         </button>
                       </div>
                     </td>
@@ -479,11 +508,67 @@ export default function HelicopterSchedulePage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        {!loading && filteredSchedules.length > 0 && (
+          <div className={cn('px-6', 'py-4', 'border-t', 'border-slate-200', 'bg-slate-50')}>
+            <div className={cn('flex', 'flex-col', 'sm:flex-row', 'items-center', 'justify-between', 'gap-4')}>
+              <div className={cn('text-sm', 'text-slate-600')}>
+                Showing {((currentPage - 1) * entriesPerPage) + 1} to {Math.min(currentPage * entriesPerPage, filteredSchedules.length)} of {filteredSchedules.length} entries
+              </div>
+              
+              <div className={cn('flex', 'items-center', 'gap-2')}>
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                  disabled={currentPage === 1}
+                  className={cn('px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'text-sm', 'font-medium', 'text-slate-700', 'hover:bg-white', 'disabled:opacity-50', 'disabled:cursor-not-allowed', 'transition-colors')}
+                >
+                  Previous
+                </button>
+                
+                <div className={cn('flex', 'items-center', 'gap-1')}>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                    if (
+                      page === 1 ||
+                      page === totalPages ||
+                      (page >= currentPage - 1 && page <= currentPage + 1)
+                    ) {
+                      return (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page)}
+                          className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                            currentPage === page
+                              ? 'bg-green-500 text-white'
+                              : 'border border-slate-300 text-slate-700 hover:bg-white'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    } else if (page === currentPage - 2 || page === currentPage + 2) {
+                      return <span key={page} className={cn('px-2', 'text-slate-400')}>...</span>;
+                    }
+                    return null;
+                  })}
+                </div>
+                
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                  disabled={currentPage === totalPages}
+                  className={cn('px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'text-sm', 'font-medium', 'text-slate-700', 'hover:bg-white', 'disabled:opacity-50', 'disabled:cursor-not-allowed', 'transition-colors')}
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Add/Edit Modal */}
       <Transition show={showModal} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={handleCloseModal}>
+        <Dialog as="div" className={cn('relative', 'z-50')} onClose={handleCloseModal}>
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -493,10 +578,10 @@ export default function HelicopterSchedulePage() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+            <div className={cn('fixed', 'inset-0', 'bg-black/25', 'backdrop-blur-sm')} />
           </Transition.Child>
 
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <div className={cn('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'p-4')}>
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
@@ -506,30 +591,30 @@ export default function HelicopterSchedulePage() {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-4xl bg-white rounded-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between p-6 border-b border-slate-200">
-                  <Dialog.Title className="text-xl font-semibold text-slate-800">
+              <Dialog.Panel className={cn('w-full', 'max-w-4xl', 'bg-white', 'rounded-2xl', 'shadow-2xl', 'max-h-[90vh]', 'overflow-y-auto')}>
+                <div className={cn('flex', 'items-center', 'justify-between', 'p-6', 'border-b', 'border-slate-200')}>
+                  <Dialog.Title className={cn('text-xl', 'font-semibold', 'text-slate-800')}>
                     {editingSchedule ? 'Edit Schedule' : 'Add New Schedule'}
                   </Dialog.Title>
                   <button
                     onClick={handleCloseModal}
-                    className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                    className={cn('p-2', 'hover:bg-slate-100', 'rounded-lg', 'transition-colors')}
                   >
-                    <XMarkIcon className="w-5 h-5 text-slate-500" />
+                    <XMarkIcon className={cn('w-5', 'h-5', 'text-slate-500')} />
                   </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <form onSubmit={handleSubmit} className={cn('p-6', 'space-y-6')}>
+                  <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6')}>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Helicopter *
                       </label>
                       <select
                         required
                         value={formData.helicopter_id}
                         onChange={(e) => setFormData({ ...formData, helicopter_id: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       >
                         <option value="">Select a helicopter</option>
                         {helicopters.map((helicopter) => (
@@ -541,7 +626,7 @@ export default function HelicopterSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Price (INR) *
                       </label>
                       <input
@@ -550,20 +635,20 @@ export default function HelicopterSchedulePage() {
                         min="0"
                         value={formData.price}
                         onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                         placeholder="Enter price"
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Departure Helipad *
                       </label>
                       <select
                         required
                         value={formData.departure_helipad_id}
                         onChange={(e) => setFormData({ ...formData, departure_helipad_id: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       >
                         <option value="">Select Helipad</option>
                         {helipads.map((helipad) => (
@@ -575,14 +660,14 @@ export default function HelicopterSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Arrival Helipad *
                       </label>
                       <select
                         required
                         value={formData.arrival_helipad_id}
                         onChange={(e) => setFormData({ ...formData, arrival_helipad_id: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       >
                         <option value="">Select Helipad</option>
                         {helipads.map((helipad) => (
@@ -594,7 +679,7 @@ export default function HelicopterSchedulePage() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Departure Time *
                       </label>
                       <input
@@ -602,28 +687,28 @@ export default function HelicopterSchedulePage() {
                         required
                         value={formData.departure_time}
                         onChange={(e) => setFormData({ ...formData, departure_time: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Arrival Time
                       </label>
                       <input
                         type="time"
                         value={formData.arrival_time}
                         onChange={(e) => setFormData({ ...formData, arrival_time: e.target.value })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                       Stop Helipads (Optional)
                     </label>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-40 overflow-y-auto border border-slate-300 rounded-xl p-4">
+                    <div className={cn('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-2', 'max-h-40', 'overflow-y-auto', 'border', 'border-slate-300', 'rounded-xl', 'p-4')}>
                       {helipads.map((helipad) => {
                         let currentStops = [];
                         try {
@@ -635,7 +720,7 @@ export default function HelicopterSchedulePage() {
                         const isSelected = currentStops.includes(helipad.id);
                         
                         return (
-                          <label key={helipad.id} className="flex items-center space-x-2 cursor-pointer">
+                          <label key={helipad.id} className={cn('flex', 'items-center', 'space-x-2', 'cursor-pointer')}>
                             <input
                               type="checkbox"
                               checked={isSelected}
@@ -652,9 +737,9 @@ export default function HelicopterSchedulePage() {
                                   setFormData({ ...formData, via_stop_id: '[]' });
                                 }
                               }}
-                              className="rounded border-slate-300 text-green-600 focus:ring-green-500"
+                              className={cn('rounded', 'border-slate-300', 'text-green-600', 'focus:ring-green-500')}
                             />
-                            <span className="text-sm text-slate-700">
+                            <span className={cn('text-sm', 'text-slate-700')}>
                               {helipad.helipad_name} ({helipad.helipad_code})
                             </span>
                           </label>
@@ -663,15 +748,15 @@ export default function HelicopterSchedulePage() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')}>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
                         Status
                       </label>
                       <select
                         value={String(formData.status)}
                         onChange={(e) => setFormData({ ...formData, status: parseInt(e.target.value) })}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-green-500', 'focus:border-transparent')}
                       >
                         <option value="1">Active</option>
                         <option value="0">Inactive</option>
@@ -679,17 +764,17 @@ export default function HelicopterSchedulePage() {
                     </div>
                   </div>
 
-                  <div className="flex justify-end gap-3 pt-4">
+                  <div className={cn('flex', 'justify-end', 'gap-3', 'pt-4')}>
                     <button
                       type="button"
                       onClick={handleCloseModal}
-                      className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors"
+                      className={cn('px-6', 'py-3', 'border', 'border-slate-300', 'text-slate-700', 'rounded-xl', 'hover:bg-slate-50', 'transition-colors')}
                     >
                       Cancel
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl hover:from-green-600 hover:to-emerald-600 transition-all duration-200 shadow-lg"
+                      className={cn('px-6', 'py-3', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-500', 'text-white', 'rounded-xl', 'hover:from-green-600', 'hover:to-emerald-600', 'transition-all', 'duration-200', 'shadow-lg')}
                     >
                       {editingSchedule ? 'Update Schedule' : 'Create Schedule'}
                     </button>
@@ -703,7 +788,7 @@ export default function HelicopterSchedulePage() {
 
       {/* Delete Confirmation Modal */}
       <Transition show={!!showDeleteConfirm} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowDeleteConfirm(null)}>
+        <Dialog as="div" className={cn('relative', 'z-50')} onClose={() => setShowDeleteConfirm(null)}>
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -713,10 +798,10 @@ export default function HelicopterSchedulePage() {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/25 backdrop-blur-sm" />
+            <div className={cn('fixed', 'inset-0', 'bg-black/25', 'backdrop-blur-sm')} />
           </Transition.Child>
 
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <div className={cn('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'p-4')}>
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
@@ -726,37 +811,37 @@ export default function HelicopterSchedulePage() {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md bg-white rounded-2xl shadow-2xl">
+              <Dialog.Panel className={cn('w-full', 'max-w-md', 'bg-white', 'rounded-2xl', 'shadow-2xl')}>
                 <div className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                      <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+                  <div className={cn('flex', 'items-center', 'gap-4', 'mb-4')}>
+                    <div className={cn('w-12', 'h-12', 'bg-red-100', 'rounded-full', 'flex', 'items-center', 'justify-center')}>
+                      <ExclamationTriangleIcon className={cn('w-6', 'h-6', 'text-red-600')} />
                     </div>
                     <div>
-                      <Dialog.Title className="text-lg font-semibold text-slate-800">
+                      <Dialog.Title className={cn('text-lg', 'font-semibold', 'text-slate-800')}>
                         Delete Schedule
                       </Dialog.Title>
-                      <p className="text-sm text-slate-600">
+                      <p className={cn('text-sm', 'text-slate-600')}>
                         This action cannot be undone.
                       </p>
                     </div>
                   </div>
                   
-                  <p className="text-slate-700 mb-6">
+                  <p className={cn('text-slate-700', 'mb-6')}>
                     Are you sure you want to delete this helicopter schedule? 
                     This will permanently remove the schedule and all associated data.
                   </p>
                   
-                  <div className="flex justify-end gap-3">
+                  <div className={cn('flex', 'justify-end', 'gap-3')}>
                     <button
                       onClick={() => setShowDeleteConfirm(null)}
-                      className="px-4 py-2 border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+                      className={cn('px-4', 'py-2', 'border', 'border-slate-300', 'text-slate-700', 'rounded-lg', 'hover:bg-slate-50', 'transition-colors')}
                     >
                       Cancel
                     </button>
                     <button
                       onClick={() => handleDelete(showDeleteConfirm.id)}
-                      className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                      className={cn('px-4', 'py-2', 'bg-red-600', 'text-white', 'rounded-lg', 'hover:bg-red-700', 'transition-colors')}
                     >
                       Delete Schedule
                     </button>

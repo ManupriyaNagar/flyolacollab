@@ -857,24 +857,21 @@
 
 "use client";
 
-import React, { useRef } from "react";
-import {
-  FaPlane,
-  FaHelicopter,
-  FaClock,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-  FaDownload,
-  FaLuggageCart,
-  FaExclamationTriangle,
-  FaQrcode,
-  FaBarcode,
-  FaUser,
-  FaInfoCircle,
-} from "react-icons/fa";
-import jsPDF from "jspdf";
 import domToImage from "dom-to-image";
+import jsPDF from "jspdf";
+import { useRef } from "react";
+import {
+  FaBarcode,
+  FaDownload,
+  FaEnvelope,
+  FaHelicopter,
+  FaInfoCircle,
+  FaMapMarkerAlt,
+  FaPhone,
+  FaPlane,
+  FaQrcode,
+  FaUser
+} from "react-icons/fa";
 
 const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => {
   // Ensure we have valid data
@@ -1555,9 +1552,25 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                       Baggage Policy
                     </p>
                     <p style={{ margin: 0 }}>
-                      Cabin baggage only: Max 7kg, 115cm total dimensions. Extra baggage: ₹1000/kg.
+                      {bookingData?.bookingType === 'helicopter' 
+                        ? 'Cabin baggage only: Max 2kg per passenger. Extra baggage: ₹500/kg.'
+                        : 'Cabin baggage only: Max 7kg, 115cm total dimensions. Extra baggage: ₹500/kg.'}
                     </p>
                   </div>
+                  {bookingData?.bookingType === 'helicopter' && (
+                    <div style={{ marginBottom: "12px" }}>
+                      <p style={{
+                        fontWeight: "600",
+                        color: "#f97316",
+                        margin: "0 0 4px 0"
+                      }}>
+                        Weight Policy
+                      </p>
+                      <p style={{ margin: 0, color: "#f97316" }}>
+                        Passenger weight over 75kg: ₹500 per kg extra charge applies.
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p style={{
                       fontWeight: "600",

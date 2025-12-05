@@ -30,31 +30,53 @@ const AdminJoyrideSlotsManager = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [editFormData, setEditFormData] = useState({
-    date: '',
-    time: '',
-    seats: '',
+    departureDay: 'Monday',
+    departureTime: '',
+    arrivalTime: '',
+    seatLimit: '',
     price: '',
+    status: 1,
   });
   const [errors, setErrors] = useState({});
 
-  // Fetch all joyride slots
+  // Fetch all joyride schedules
   const fetchSlots = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
-      const response = await fetch(`${BASE_URL}/api/joyride-slots`, {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        throw new Error('Failed to fetch slots');
+      const [schedulesRes, helipadsRes] = await Promise.all([
+        fetch(`${BASE_URL}/api/joyride-schedules`, {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }),
+        fetch(`${BASE_URL}/helipads`)
+      ]);
+      
+      if (!schedulesRes.ok) {
+        throw new Error('Failed to fetch schedules');
       }
-      const data = await response.json();
-      setSlots(data);
+      
+      const schedulesData = await schedulesRes.json();
+      const helipadsData = helipadsRes.ok ? await helipadsRes.json() : [];
+      
+      // Create helipad map
+      const helipadMap = {};
+      helipadsData.forEach(h => {
+        helipadMap[h.id] = `${h.helipad_name} (${h.helipad_code})`;
+      });
+      
+      // Add helipad names to schedules
+      const enrichedSchedules = schedulesData.map(schedule => ({
+        ...schedule,
+        startHelipadName: helipadMap[schedule.start_helipad_id] || 'Unknown',
+        stopHelipadName: helipadMap[schedule.stop_helipad_id] || 'Unknown'
+      }));
+      
+      setSlots(enrichedSchedules);
     } catch (err) {
-      toast.error('Error fetching joy ride slots');
+      toast.error('Error fetching joy ride schedules');
     } finally {
       setLoading(false);
     }
@@ -86,10 +108,12 @@ const AdminJoyrideSlotsManager = () => {
   const handleEditClick = (slot) => {
     setEditingSlot(slot);
     setEditFormData({
-      date: slot.date,
-      time: slot.time,
-      seats: slot.seats,
-      price: slot.price,
+      departureDay: slot.departure_day || 'Monday',
+      departureTime: slot.departure_time ? slot.departure_time.substring(0, 5) : '',
+      arrivalTime: slot.arrival_time ? slot.arrival_time.substring(0, 5) : '',
+      seatLimit: slot.seat_limit || '',
+      price: slot.price || '',
+      status: slot.status !== undefined ? slot.status : 1,
     });
     setErrors({});
   };
@@ -109,16 +133,16 @@ const AdminJoyrideSlotsManager = () => {
   const validateEditForm = () => {
     const newErrors = {};
 
-    if (!editFormData.date) {
-      newErrors.date = 'Date is required';
+    if (!editFormData.departureDay) {
+      newErrors.departureDay = 'Departure day is required';
     }
     
-    if (!editFormData.time) {
-      newErrors.time = 'Time is required';
+    if (!editFormData.departureTime) {
+      newErrors.departureTime = 'Departure time is required';
     }
     
-    if (!editFormData.seats || editFormData.seats < 1) {
-      newErrors.seats = 'At least 1 seat is required';
+    if (!editFormData.seatLimit || editFormData.seatLimit < 1) {
+      newErrors.seatLimit = 'At least 1 seat is required';
     }
     
     if (!editFormData.price || editFormData.price <= 0) {
@@ -142,27 +166,35 @@ const AdminJoyrideSlotsManager = () => {
 
     try {
       const token = localStorage.getItem("token") || "";
-      const response = await fetch(`${BASE_URL}/api/joyride-slots/${editingSlot.id}`, {
+      const response = await fetch(`${BASE_URL}/api/joyride-schedules/${editingSlot.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
-          date: editFormData.date,
-          time: editFormData.time,
-          seats: parseInt(editFormData.seats),
+          departureDay: editFormData.departureDay,
+          departureTime: editFormData.departureTime,
+          arrivalTime: editFormData.arrivalTime || null,
+          seatLimit: parseInt(editFormData.seatLimit),
           price: parseFloat(editFormData.price),
+          status: parseInt(editFormData.status),
         }),
       });
 
       if (response.ok) {
-        const updatedSlot = await response.json();
-        setSlots(slots.map((slot) => (slot.id === editingSlot.id ? updatedSlot.slot : slot)));
+        await fetchSlots(); // Refresh the list
         setEditingSlot(null);
-        setEditFormData({ date: '', time: '', seats: '', price: '' });
+        setEditFormData({ 
+          departureDay: 'Monday',
+          departureTime: '',
+          arrivalTime: '',
+          seatLimit: '',
+          price: '',
+          status: 1,
+        });
         setErrors({});
-        toast.success('Joy ride slot updated successfully!');
+        toast.success('Joy ride schedule updated successfully!');
       } else {
         const data = await response.json();
         if (response.status === 401) {
@@ -187,7 +219,7 @@ const AdminJoyrideSlotsManager = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem("token") || "";
-      const response = await fetch(`${BASE_URL}/api/joyride-slots/${showDeleteConfirm}`, {
+      const response = await fetch(`${BASE_URL}/api/joyride-schedules/${showDeleteConfirm}`, {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -197,7 +229,7 @@ const AdminJoyrideSlotsManager = () => {
       
       if (response.ok) {
         setSlots(slots.filter((slot) => slot.id !== showDeleteConfirm));
-        toast.success('Joy ride slot deleted successfully!');
+        toast.success('Joy ride schedule deleted successfully!');
       } else {
         const data = await response.json();
         if (response.status === 401) {
@@ -221,7 +253,14 @@ const AdminJoyrideSlotsManager = () => {
   // Close edit modal
   const handleCloseEdit = () => {
     setEditingSlot(null);
-    setEditFormData({ date: '', time: '', seats: '', price: '' });
+    setEditFormData({ 
+      departureDay: 'Monday',
+      departureTime: '',
+      arrivalTime: '',
+      seatLimit: '',
+      price: '',
+      status: 1,
+    });
     setErrors({});
   };
 
@@ -230,10 +269,13 @@ const AdminJoyrideSlotsManager = () => {
     let filtered = slots.filter((slot) => {
       const searchLower = searchTerm.toLowerCase();
       return (
-        slot.date?.toLowerCase().includes(searchLower) ||
-        slot.time?.toLowerCase().includes(searchLower) ||
-        slot.seats?.toString().includes(searchLower) ||
-        slot.price?.toString().includes(searchLower)
+        slot.departure_day?.toLowerCase().includes(searchLower) ||
+        slot.departure_time?.toLowerCase().includes(searchLower) ||
+        slot.arrival_time?.toLowerCase().includes(searchLower) ||
+        slot.seat_limit?.toString().includes(searchLower) ||
+        slot.price?.toString().includes(searchLower) ||
+        slot.startHelipadName?.toLowerCase().includes(searchLower) ||
+        slot.stopHelipadName?.toLowerCase().includes(searchLower)
       );
     });
 
@@ -243,12 +285,9 @@ const AdminJoyrideSlotsManager = () => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
         
-        if (sortConfig.key === 'date') {
-          aValue = new Date(aValue).getTime();
-          bValue = new Date(bValue).getTime();
-        } else if (typeof aValue === 'string') {
+        if (typeof aValue === 'string') {
           aValue = aValue.toLowerCase();
-          bValue = bValue.toLowerCase();
+          bValue = bValue ? bValue.toLowerCase() : '';
         }
         
         if (aValue < bValue) {
@@ -284,9 +323,9 @@ const AdminJoyrideSlotsManager = () => {
             <div className="p-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-xl">
               <ClockIcon className="w-8 h-8 text-white" />
             </div>
-            Joy Ride Slots Management
+            Joy Ride Schedules Management
           </h1>
-          <p className="text-slate-600 mt-2">View and manage all available joy ride time slots</p>
+          <p className="text-slate-600 mt-2">View and manage all weekly recurring joy ride schedules</p>
         </div>
       </div>
 
@@ -298,7 +337,7 @@ const AdminJoyrideSlotsManager = () => {
             type="text"
             onChange={(e) => debouncedSearch(e.target.value)}
             className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
-            placeholder="Search slots by date, time, seats, or price..."
+            placeholder="Search schedules by day, time, helipad, seats, or price..."
             disabled={loading}
           />
         </div>
@@ -309,7 +348,7 @@ const AdminJoyrideSlotsManager = () => {
         <div className="bg-gradient-to-r from-cyan-50 to-blue-50 px-6 py-4 border-b border-slate-200">
           <h3 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
             <SparklesIcon className="w-6 h-6 text-cyan-600" />
-            Joy Ride Slots ({filteredSlots.length})
+            Joy Ride Schedules ({filteredSlots.length})
           </h3>
         </div>
 
@@ -318,10 +357,13 @@ const AdminJoyrideSlotsManager = () => {
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
                 {[
-                  { key: 'date', label: 'Date', sortable: true },
-                  { key: 'time', label: 'Time', sortable: true },
-                  { key: 'seats', label: 'Seats', sortable: true },
+                  { key: 'departure_day', label: 'Day', sortable: true },
+                  { key: 'route', label: 'Route', sortable: false },
+                  { key: 'departure_time', label: 'Departure', sortable: true },
+                  { key: 'arrival_time', label: 'Arrival', sortable: true },
+                  { key: 'seat_limit', label: 'Seats', sortable: true },
                   { key: 'price', label: 'Price (INR)', sortable: true },
+                  { key: 'status', label: 'Status', sortable: true },
                   { key: 'actions', label: 'Actions', sortable: false },
                 ].map((column) => (
                   <th
@@ -342,10 +384,10 @@ const AdminJoyrideSlotsManager = () => {
             <tbody className="divide-y divide-slate-200">
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <div className="w-8 h-8 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
-                      <span className="text-slate-500">Loading slots...</span>
+                      <span className="text-slate-500">Loading schedules...</span>
                     </div>
                   </td>
                 </tr>
@@ -356,27 +398,46 @@ const AdminJoyrideSlotsManager = () => {
                       <div className="flex items-center gap-2">
                         <CalendarDaysIcon className="w-4 h-4 text-slate-400" />
                         <span className="text-slate-900 font-medium">
-                          {new Date(slot.date).toLocaleDateString()}
+                          {slot.departure_day}
                         </span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm">
+                        <div className="text-slate-900 font-medium">{slot.startHelipadName}</div>
+                        <div className="text-slate-500">→ {slot.stopHelipadName}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <ClockIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-700">{slot.time}</span>
+                        <span className="text-slate-700">{slot.departure_time ? slot.departure_time.substring(0, 5) : 'N/A'}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="flex items-center gap-2">
+                        <ClockIcon className="w-4 h-4 text-slate-400" />
+                        <span className="text-slate-700">{slot.arrival_time ? slot.arrival_time.substring(0, 5) : 'N/A'}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <UsersIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-700">{slot.seats}</span>
+                        <span className="text-slate-700">{slot.seat_limit}</span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
                         <CurrencyDollarIcon className="w-4 h-4 text-slate-400" />
-                        <span className="text-slate-900 font-semibold">₹{slot.price}</span>
+                        <span className="text-slate-900 font-semibold">₹{parseFloat(slot.price).toLocaleString()}</span>
                       </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                        slot.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                      }`}>
+                        {slot.status === 1 ? 'Active' : 'Inactive'}
+                      </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
@@ -384,7 +445,7 @@ const AdminJoyrideSlotsManager = () => {
                           onClick={() => handleEditClick(slot)}
                           className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           disabled={loading}
-                          title="Edit slot"
+                          title="Edit schedule"
                         >
                           <PencilIcon className="w-4 h-4" />
                         </button>
@@ -392,7 +453,7 @@ const AdminJoyrideSlotsManager = () => {
                           onClick={() => setShowDeleteConfirm(slot.id)}
                           className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                           disabled={loading}
-                          title="Delete slot"
+                          title="Delete schedule"
                         >
                           <TrashIcon className="w-4 h-4" />
                         </button>
@@ -402,13 +463,13 @@ const AdminJoyrideSlotsManager = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="px-6 py-12 text-center">
+                  <td colSpan={8} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center gap-3">
                       <SparklesIcon className="w-12 h-12 text-slate-300" />
                       <div>
-                        <p className="text-slate-500 font-medium">No joy ride slots found</p>
+                        <p className="text-slate-500 font-medium">No joy ride schedules found</p>
                         <p className="text-slate-400 text-sm">
-                          {searchTerm ? "Try adjusting your search terms" : "Create your first joy ride slot to get started"}
+                          {searchTerm ? "Try adjusting your search terms" : "Create your first joy ride schedule to get started"}
                         </p>
                       </div>
                     </div>
@@ -452,7 +513,7 @@ const AdminJoyrideSlotsManager = () => {
                       <PencilIcon className="w-6 h-6 text-cyan-600" />
                     </div>
                     <Dialog.Title className="text-xl font-semibold text-slate-900">
-                      Edit Joy Ride Slot
+                      Edit Joy Ride Schedule
                     </Dialog.Title>
                   </div>
                   <button
@@ -467,67 +528,88 @@ const AdminJoyrideSlotsManager = () => {
                 <form onSubmit={handleEditSubmit} className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Date
+                      Departure Day
                     </label>
-                    <input
-                      type="date"
-                      name="date"
-                      value={editFormData.date}
+                    <select
+                      name="departureDay"
+                      value={editFormData.departureDay}
                       onChange={handleEditInputChange}
                       className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all ${
-                        errors.date ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                        errors.departureDay ? 'border-red-300 bg-red-50' : 'border-slate-300'
                       }`}
                       disabled={loading}
-                    />
-                    {errors.date && (
+                    >
+                      <option value="Monday">Monday</option>
+                      <option value="Tuesday">Tuesday</option>
+                      <option value="Wednesday">Wednesday</option>
+                      <option value="Thursday">Thursday</option>
+                      <option value="Friday">Friday</option>
+                      <option value="Saturday">Saturday</option>
+                      <option value="Sunday">Sunday</option>
+                    </select>
+                    {errors.departureDay && (
                       <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                         <ExclamationTriangleIcon className="w-4 h-4" />
-                        {errors.date}
+                        {errors.departureDay}
                       </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Time
+                      Departure Time
                     </label>
                     <input
                       type="time"
-                      name="time"
-                      value={editFormData.time}
+                      name="departureTime"
+                      value={editFormData.departureTime}
                       onChange={handleEditInputChange}
                       className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all ${
-                        errors.time ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                        errors.departureTime ? 'border-red-300 bg-red-50' : 'border-slate-300'
                       }`}
                       disabled={loading}
                     />
-                    {errors.time && (
+                    {errors.departureTime && (
                       <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                         <ExclamationTriangleIcon className="w-4 h-4" />
-                        {errors.time}
+                        {errors.departureTime}
                       </p>
                     )}
                   </div>
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-2">
-                      Number of Seats
+                      Arrival Time (Optional)
+                    </label>
+                    <input
+                      type="time"
+                      name="arrivalTime"
+                      value={editFormData.arrivalTime}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                      disabled={loading}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Seat Limit
                     </label>
                     <input
                       type="number"
-                      name="seats"
-                      value={editFormData.seats}
+                      name="seatLimit"
+                      value={editFormData.seatLimit}
                       onChange={handleEditInputChange}
                       className={`w-full px-4 py-3 border rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all ${
-                        errors.seats ? 'border-red-300 bg-red-50' : 'border-slate-300'
+                        errors.seatLimit ? 'border-red-300 bg-red-50' : 'border-slate-300'
                       }`}
                       min="1"
                       disabled={loading}
                     />
-                    {errors.seats && (
+                    {errors.seatLimit && (
                       <p className="mt-1 text-sm text-red-600 flex items-center gap-1">
                         <ExclamationTriangleIcon className="w-4 h-4" />
-                        {errors.seats}
+                        {errors.seatLimit}
                       </p>
                     )}
                   </div>
@@ -554,6 +636,22 @@ const AdminJoyrideSlotsManager = () => {
                         {errors.price}
                       </p>
                     )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      Status
+                    </label>
+                    <select
+                      name="status"
+                      value={editFormData.status}
+                      onChange={handleEditInputChange}
+                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent transition-all"
+                      disabled={loading}
+                    >
+                      <option value={1}>Active</option>
+                      <option value={0}>Inactive</option>
+                    </select>
                   </div>
 
                   <div className="flex gap-3 pt-4">

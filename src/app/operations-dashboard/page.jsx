@@ -1,422 +1,285 @@
 "use client";
 
-import BASE_URL from "@/baseUrl/baseUrl";
-import React, { useState, useEffect, useMemo } from "react";
-import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
+import React, { useState, useEffect } from "react";
+import { FaPlane, FaHelicopter, FaTicketAlt, FaChartLine, FaCalendarDay, FaCalendarAlt } from "react-icons/fa";
 import Link from "next/link";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import {
-  TicketIcon,
-  ChartBarIcon,
-  ArrowTrendingUpIcon,
-  ArrowRightIcon,
-} from "@heroicons/react/24/outline";
-import { Bar, Doughnut } from "react-chartjs-2";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement,
-} from "chart.js";
+import { useAuth } from "@/components/AuthContext";
+import BASE_URL from "@/baseUrl/baseUrl";
+import { cn } from "@/lib/utils";
 
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-  ArcElement
-);
-
-export default function OperationsDashboard() {
-  const [flightBookings, setFlightBookings] = useState([]);
-  const [helicopterBookings, setHelicopterBookings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+export default function OperationsDashboardPage() {
   const { authState } = useAuth();
-  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    todayFlights: 0,
+    tomorrowFlights: 0,
+    todayHelicopters: 0,
+    tomorrowHelicopters: 0,
+  });
 
   useEffect(() => {
-    if (!authState.isLoading && (!authState.isLoggedIn || authState.userRole !== "8")) {
-      router.push("/sign-in");
-    }
-  }, [authState.isLoading, authState.isLoggedIn, authState.userRole, router]);
+    if (authState.isLoading || !authState.isLoggedIn) return;
 
-  useEffect(() => {
-    if (authState.isLoading || !authState.isLoggedIn || authState.userRole !== "8") {
-      return;
-    }
-
-    const fetchData = async () => {
+    const fetchBookingStats = async () => {
       setLoading(true);
-      setError(null);
-
       try {
-        const token = localStorage.getItem("token") || "";
-        if (!token) {
-          localStorage.clear();
-          router.push("/sign-in");
-          return;
-        }
-
-        const commonOpts = {
+        const token = localStorage.getItem("token");
+        
+        // Use optimized stats endpoint - single API call instead of 4!
+        // This endpoint uses SQL COUNT which is much faster than fetching all records
+        const response = await fetch(`${BASE_URL}/bookings/stats/dashboard`, {
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          credentials: 'include',
-        };
+        });
 
-        const [flightRes, helicopterRes] = await Promise.all([
-          fetch(`${BASE_URL}/bookings`, commonOpts),
-          fetch(`${BASE_URL}/bookings/helicopter-bookings`, commonOpts),
-        ]);
-
-        if (!flightRes.ok || !helicopterRes.ok) {
-          if (flightRes.status === 401 || helicopterRes.status === 401) {
-            localStorage.removeItem("token");
-            router.push("/sign-in");
-            return;
-          }
-          throw new Error("Failed to fetch bookings data");
+        if (response.ok) {
+          const data = await response.json();
+          
+          setStats({
+            todayFlights: data.today.flights,
+            tomorrowFlights: data.tomorrow.flights,
+            todayHelicopters: data.today.helicopters,
+            tomorrowHelicopters: data.tomorrow.helicopters,
+          });
+        } else {
+          console.error("Failed to fetch booking stats");
         }
-
-        const flightData = await flightRes.json();
-        const helicopterData = await helicopterRes.json();
-
-        setFlightBookings(Array.isArray(flightData) ? flightData : []);
-        setHelicopterBookings(Array.isArray(helicopterData) ? helicopterData : []);
-      } catch (err) {
-        console.error('Dashboard data fetch error:', err);
-        setError(err.message);
-        toast.error(err.message);
+      } catch (error) {
+        console.error("Error fetching booking stats:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchData();
-  }, [authState.isLoading, authState.isLoggedIn, authState.userRole, router]);
+    fetchBookingStats();
+  }, [authState]);
 
-  const stats = useMemo(() => {
-    const totalFlightBookings = flightBookings.length;
-    const totalHelicopterBookings = helicopterBookings.length;
-    const totalBookings = totalFlightBookings + totalHelicopterBookings;
-
-    const confirmedFlights = flightBookings.filter(b => b.bookingStatus === 'CONFIRMED').length;
-    const confirmedHelicopters = helicopterBookings.filter(b => b.bookingStatus === 'CONFIRMED').length;
-    const totalConfirmed = confirmedFlights + confirmedHelicopters;
-
-    const pendingFlights = flightBookings.filter(b => b.bookingStatus === 'PENDING').length;
-    const pendingHelicopters = helicopterBookings.filter(b => b.bookingStatus === 'PENDING').length;
-    const totalPending = pendingFlights + pendingHelicopters;
-
-    const cancelledFlights = flightBookings.filter(b => b.bookingStatus === 'CANCELLED').length;
-    const cancelledHelicopters = helicopterBookings.filter(b => b.bookingStatus === 'CANCELLED').length;
-    const totalCancelled = cancelledFlights + cancelledHelicopters;
-
-    return {
-      totalFlightBookings,
-      totalHelicopterBookings,
-      totalBookings,
-      confirmedFlights,
-      confirmedHelicopters,
-      totalConfirmed,
-      pendingFlights,
-      pendingHelicopters,
-      totalPending,
-      cancelledFlights,
-      cancelledHelicopters,
-      totalCancelled,
-    };
-  }, [flightBookings, helicopterBookings]);
-
-  const bookingsByType = useMemo(() => {
-    return {
-      labels: ['Flight Bookings', 'Helicopter Bookings'],
-      datasets: [
-        {
-          label: "Bookings by Type",
-          data: [stats.totalFlightBookings, stats.totalHelicopterBookings],
-          backgroundColor: ["rgba(59, 130, 246, 0.8)", "rgba(168, 85, 247, 0.8)"],
-          borderColor: ["rgba(59, 130, 246, 1)", "rgba(168, 85, 247, 1)"],
-          borderWidth: 2,
-          borderRadius: 4,
-        },
-      ],
-    };
-  }, [stats]);
-
-  const bookingStatusData = useMemo(() => {
-    return {
-      labels: ['Confirmed', 'Pending', 'Cancelled'],
-      datasets: [
-        {
-          data: [stats.totalConfirmed, stats.totalPending, stats.totalCancelled],
-          backgroundColor: [
-            'rgba(34, 197, 94, 0.8)',
-            'rgba(251, 191, 36, 0.8)',
-            'rgba(239, 68, 68, 0.8)',
-          ],
-          borderColor: [
-            'rgba(34, 197, 94, 1)',
-            'rgba(251, 191, 36, 1)',
-            'rgba(239, 68, 68, 1)',
-          ],
-          borderWidth: 2,
-        },
-      ],
-    };
-  }, [stats]);
-
-  const chartOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "top",
-        labels: { font: { size: 12, weight: "600" } },
-      },
+  const quickLinks = [
+    {
+      title: "Flight Bookings",
+      icon: FaPlane,
+      color: "from-blue-500 to-indigo-600",
+      link: "/operations-dashboard/flight-bookings",
     },
-    scales: {
-      y: {
-        beginAtZero: true,
-        grid: { color: "rgba(0, 0, 0, 0.1)" },
-      },
-      x: {
-        grid: { display: false },
-      },
+    {
+      title: "Flight Tickets",
+      icon: FaTicketAlt,
+      color: "from-yellow-500 to-orange-600",
+      link: "/operations-dashboard/flight-tickets",
     },
-  };
-
-  const doughnutOptions = {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: "right",
-        labels: { font: { size: 12, weight: "600" } },
-      },
+    {
+      title: "Helicopter Bookings",
+      icon: FaHelicopter,
+      color: "from-purple-500 to-pink-600",
+      link: "/operations-dashboard/helicopter-bookings",
     },
-  };
-
-  if (authState.isLoading || !authState.isLoggedIn || authState.userRole !== "8") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+    {
+      title: "Helicopter Tickets",
+      icon: FaTicketAlt,
+      color: "from-red-500 to-pink-600",
+      link: "/operations-dashboard/helicopter-tickets",
+    },
+  ];
 
   return (
     <div className="space-y-8">
-      <ToastContainer position="top-right" autoClose={3000} />
-
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
-              <ChartBarIcon className="w-8 h-8 text-white" />
-            </div>
-            MP Tourism Portal
-          </h1>
-          <p className="text-slate-600 mt-2">Madhya Pradesh Tourism - Flight and Helicopter Operations Overview</p>
-        </div>
-
-        <div className="text-sm text-slate-500">
-          Last updated: {new Date().toLocaleString()}
-        </div>
+      <div>
+        <h1 className={cn('text-3xl', 'font-bold', 'text-gray-900', 'mb-2')}>
+          Welcome to Operations Dashboard
+        </h1>
+        <p className="text-gray-600">
+          Real-time overview of today's and tomorrow's flight operations
+        </p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
+      {/* Today's and Tomorrow's Bookings Summary */}
+      <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')}>
+        {/* Today's Bookings */}
+        <div className={cn('bg-gradient-to-br', 'from-blue-500', 'to-indigo-600', 'rounded-2xl', 'p-6', 'text-white', 'shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+            <div className={cn('w-12', 'h-12', 'bg-white/20', 'rounded-xl', 'flex', 'items-center', 'justify-center')}>
+              <FaCalendarDay className="text-2xl" />
+            </div>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Bookings</p>
-              <h3 className="text-3xl font-bold text-slate-800 mt-1">
-                {loading ? "--" : stats.totalBookings}
-              </h3>
-            </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <TicketIcon className="w-6 h-6 text-blue-600" />
-            </div>
-          </div>
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-              <span className="text-slate-600">{stats.totalFlightBookings} Flights</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-              <span className="text-slate-600">{stats.totalHelicopterBookings} Helicopters</span>
+              <h2 className={cn('text-2xl', 'font-bold')}>Today's Bookings</h2>
+              <p className={cn('text-blue-100', 'text-sm')}>
+                {new Date().toLocaleDateString('en-IN', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
             </div>
           </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Confirmed</p>
-              <h3 className="text-3xl font-bold text-emerald-600 mt-1">
-                {loading ? "--" : stats.totalConfirmed}
-              </h3>
-            </div>
-            <div className="p-3 bg-emerald-100 rounded-xl">
-              <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-600" />
-            </div>
-          </div>
-          <div className="mt-4 text-sm text-slate-600">
-            <div>Flights: {stats.confirmedFlights}</div>
-            <div>Helicopters: {stats.confirmedHelicopters}</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Pending</p>
-              <h3 className="text-3xl font-bold text-yellow-600 mt-1">
-                {loading ? "--" : stats.totalPending}
-              </h3>
-            </div>
-            <div className="p-3 bg-yellow-100 rounded-xl">
-              <TicketIcon className="w-6 h-6 text-yellow-600" />
-            </div>
-          </div>
-          <div className="mt-4 text-sm text-slate-600">
-            <div>Flights: {stats.pendingFlights}</div>
-            <div>Helicopters: {stats.pendingHelicopters}</div>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm font-medium text-slate-500">Cancelled</p>
-              <h3 className="text-3xl font-bold text-red-600 mt-1">
-                {loading ? "--" : stats.totalCancelled}
-              </h3>
-            </div>
-            <div className="p-3 bg-red-100 rounded-xl">
-              <TicketIcon className="w-6 h-6 text-red-600" />
-            </div>
-          </div>
-          <div className="mt-4 text-sm text-slate-600">
-            <div>Flights: {stats.cancelledFlights}</div>
-            <div>Helicopters: {stats.cancelledHelicopters}</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Bookings by Type</h3>
-          </div>
-          <div className="p-6">
-            <div className="h-80">
+          
+          <div className={cn('grid', 'grid-cols-2', 'gap-4')}>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+              <div className={cn('flex', 'items-center', 'gap-2', 'mb-2')}>
+                <FaPlane className="text-lg" />
+                <p className={cn('text-blue-100', 'text-sm')}>Flights</p>
+              </div>
               {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                </div>
+                <div className={cn('h-8', 'w-16', 'bg-white/20', 'rounded', 'animate-pulse')}></div>
               ) : (
-                <Bar data={bookingsByType} options={chartOptions} />
+                <p className={cn('text-4xl', 'font-bold')}>{stats.todayFlights}</p>
+              )}
+            </div>
+            
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+              <div className={cn('flex', 'items-center', 'gap-2', 'mb-2')}>
+                <FaHelicopter className="text-lg" />
+                <p className={cn('text-blue-100', 'text-sm')}>Helicopters</p>
+              </div>
+              {loading ? (
+                <div className={cn('h-8', 'w-16', 'bg-white/20', 'rounded', 'animate-pulse')}></div>
+              ) : (
+                <p className={cn('text-4xl', 'font-bold')}>{stats.todayHelicopters}</p>
               )}
             </div>
           </div>
+
+          <div className={cn('mt-4', 'pt-4', 'border-t', 'border-white/20')}>
+            <p className={cn('text-blue-100', 'text-sm')}>Total Today</p>
+            <p className={cn('text-3xl', 'font-bold')}>
+              {loading ? "..." : stats.todayFlights + stats.todayHelicopters}
+            </p>
+          </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Booking Status</h3>
+        {/* Tomorrow's Bookings */}
+        <div className={cn('bg-gradient-to-br', 'from-orange-500', 'to-orange-600', 'rounded-2xl', 'p-6', 'text-white', 'shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+            <div className={cn('w-12', 'h-12', 'bg-white/20', 'rounded-xl', 'flex', 'items-center', 'justify-center')}>
+              <FaCalendarAlt className="text-2xl" />
+            </div>
+            <div>
+              <h2 className={cn('text-2xl', 'font-bold')}>Tomorrow's Bookings</h2>
+              <p className={cn('text-purple-100', 'text-sm')}>
+                {new Date(Date.now() + 86400000).toLocaleDateString('en-IN', { 
+                  weekday: 'long', 
+                  year: 'numeric', 
+                  month: 'long', 
+                  day: 'numeric' 
+                })}
+              </p>
+            </div>
           </div>
-          <div className="p-6">
-            <div className="h-80">
+          
+          <div className={cn('grid', 'grid-cols-2', 'gap-4')}>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+              <div className={cn('flex', 'items-center', 'gap-2', 'mb-2')}>
+                <FaPlane className="text-lg" />
+                <p className={cn('text-purple-100', 'text-sm')}>Flights</p>
+              </div>
               {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                </div>
+                <div className={cn('h-8', 'w-16', 'bg-white/20', 'rounded', 'animate-pulse')}></div>
               ) : (
-                <Doughnut data={bookingStatusData} options={doughnutOptions} />
+                <p className={cn('text-4xl', 'font-bold')}>{stats.tomorrowFlights}</p>
               )}
             </div>
+            
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+              <div className={cn('flex', 'items-center', 'gap-2', 'mb-2')}>
+                <FaHelicopter className="text-lg" />
+                <p className={cn('text-purple-100', 'text-sm')}>Helicopters</p>
+              </div>
+              {loading ? (
+                <div className={cn('h-8', 'w-16', 'bg-white/20', 'rounded', 'animate-pulse')}></div>
+              ) : (
+                <p className={cn('text-4xl', 'font-bold')}>{stats.tomorrowHelicopters}</p>
+              )}
+            </div>
+          </div>
+
+          <div className={cn('mt-4', 'pt-4', 'border-t', 'border-white/20')}>
+            <p className={cn('text-purple-100', 'text-sm')}>Total Tomorrow</p>
+            <p className={cn('text-3xl', 'font-bold')}>
+              {loading ? "..." : stats.tomorrowFlights + stats.tomorrowHelicopters}
+            </p>
           </div>
         </div>
       </div>
 
       {/* Quick Links */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-          <h3 className="text-lg font-semibold text-slate-800">Quick Access</h3>
+      <div>
+        <h2 className={cn('text-xl', 'font-bold', 'text-gray-900', 'mb-4')}>Quick Access</h2>
+        <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-4', 'gap-6')}>
+          {quickLinks.map((link, index) => {
+            const IconComponent = link.icon;
+            return (
+              <Link
+                key={index}
+                href={link.link}
+                className={cn('group', 'relative', 'overflow-hidden', 'rounded-2xl', 'bg-white', 'p-6', 'shadow-lg', 'hover:shadow-xl', 'transition-all', 'duration-300', 'border', 'border-gray-100', 'hover:scale-105')}
+              >
+                <div className={`absolute inset-0 bg-gradient-to-br ${link.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}></div>
+                
+                <div className="relative">
+                  <div className={`w-12 h-12 bg-gradient-to-br ${link.color} rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                    <IconComponent className={cn('text-white', 'text-xl')} />
+                  </div>
+                  
+                  <h3 className={cn('text-lg', 'font-semibold', 'text-gray-900', 'mb-2')}>
+                    {link.title}
+                  </h3>
+                  
+                  <div className={cn('flex', 'items-center', 'text-sm', 'text-gray-600', 'group-hover:text-blue-600', 'transition-colors')}>
+                    <span>View Details</span>
+                    <svg
+                      className={cn('w-4', 'h-4', 'ml-1', 'group-hover:translate-x-1', 'transition-transform')}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+              </Link>
+            );
+          })}
         </div>
-        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link
-            href="/operations-dashboard/flight-bookings"
-            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
-          >
-            <div className="p-3 bg-blue-100 rounded-lg">
-              <TicketIcon className="w-6 h-6 text-blue-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-slate-800">Flight Bookings</h4>
-              <p className="text-sm text-slate-500">View all flight bookings</p>
-            </div>
-            <ArrowRightIcon className="w-5 h-5 text-slate-400" />
-          </Link>
+      </div>
 
-          <Link
-            href="/operations-dashboard/helicopter-bookings"
-            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50 transition-all duration-200"
-          >
-            <div className="p-3 bg-purple-100 rounded-lg">
-              <TicketIcon className="w-6 h-6 text-purple-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-slate-800">Helicopter Bookings</h4>
-              <p className="text-sm text-slate-500">View all helicopter bookings</p>
-            </div>
-            <ArrowRightIcon className="w-5 h-5 text-slate-400" />
-          </Link>
-
-          <Link
-            href="/operations-dashboard/flight-tickets"
-            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:border-yellow-300 hover:bg-yellow-50 transition-all duration-200"
-          >
-            <div className="p-3 bg-yellow-100 rounded-lg">
-              <TicketIcon className="w-6 h-6 text-yellow-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-slate-800">Flight Tickets</h4>
-              <p className="text-sm text-slate-500">Download flight tickets</p>
-            </div>
-            <ArrowRightIcon className="w-5 h-5 text-slate-400" />
-          </Link>
-
-          <Link
-            href="/operations-dashboard/helicopter-tickets"
-            className="flex items-center gap-3 p-4 rounded-xl border border-slate-200 hover:border-pink-300 hover:bg-pink-50 transition-all duration-200"
-          >
-            <div className="p-3 bg-pink-100 rounded-lg">
-              <TicketIcon className="w-6 h-6 text-pink-600" />
-            </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-slate-800">Helicopter Tickets</h4>
-              <p className="text-sm text-slate-500">Download helicopter tickets</p>
-            </div>
-            <ArrowRightIcon className="w-5 h-5 text-slate-400" />
-          </Link>
+      {/* Operations Status */}
+      <div className={cn('bg-gradient-to-r', 'from-emerald-500', 'to-teal-600', 'rounded-2xl', 'p-8', 'text-white')}>
+        <div className={cn('flex', 'items-center', 'gap-4', 'mb-4')}>
+          <div className={cn('w-12', 'h-12', 'bg-white/20', 'rounded-xl', 'flex', 'items-center', 'justify-center')}>
+            <FaChartLine className="text-2xl" />
+          </div>
+          <div>
+            <h2 className={cn('text-2xl', 'font-bold')}>Operations Status</h2>
+            <p className="text-emerald-100">All systems operational</p>
+          </div>
+        </div>
+        
+        <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-6', 'mt-6')}>
+          <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+            <p className={cn('text-emerald-100', 'text-sm', 'mb-1')}>Total Bookings (2 Days)</p>
+            <p className={cn('text-3xl', 'font-bold')}>
+              {loading ? "..." : stats.todayFlights + stats.tomorrowFlights + stats.todayHelicopters + stats.tomorrowHelicopters}
+            </p>
+          </div>
+          <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+            <p className={cn('text-emerald-100', 'text-sm', 'mb-1')}>Flight Operations</p>
+            <p className={cn('text-3xl', 'font-bold')}>
+              {loading ? "..." : stats.todayFlights + stats.tomorrowFlights}
+            </p>
+          </div>
+          <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-xl', 'p-4')}>
+            <p className={cn('text-emerald-100', 'text-sm', 'mb-1')}>Helicopter Operations</p>
+            <p className={cn('text-3xl', 'font-bold')}>
+              {loading ? "..." : stats.todayHelicopters + stats.tomorrowHelicopters}
+            </p>
+          </div>
         </div>
       </div>
     </div>

@@ -228,6 +228,8 @@ const AllUsersPage = () => {
       state: user.state || ''
     });
     setShowEditModal(true);
+    // Scroll to top when modal opens
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleCreate = () => {
@@ -243,6 +245,8 @@ const AllUsersPage = () => {
       state: ''
     });
     setShowCreateModal(true);
+    // Scroll to top when modal opens
+    setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
   };
 
   const handleFormSubmit = async (e) => {
@@ -351,6 +355,13 @@ const AllUsersPage = () => {
           Booking Agent
         </span>
       );
+    } else if (role === 6) {
+      return (
+        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+          <ShieldCheckIcon className="w-3 h-3" />
+          Operations
+        </span>
+      );
     } else if (role === 8) {
       return (
         <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
@@ -427,6 +438,7 @@ const AllUsersPage = () => {
               <option value="1">Admins (Role 1)</option>
               <option value="2">Booking Agents (Role 2)</option>
               <option value="3">Regular Users (Role 3)</option>
+              <option value="6">Operations (Role 6)</option>
               <option value="8">MP Tourism Portal (Role 8)</option>
             </select>
           </div>
@@ -721,8 +733,8 @@ const AllUsersPage = () => {
 
       {/* Create/Edit User Modal */}
       {(showCreateModal || showEditModal) && (
-        <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-gray-900/70 backdrop-blur-sm z-50 flex items-start justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-slate-200 my-8">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <UserPlusIcon className="w-6 h-6 text-blue-600" />
@@ -798,6 +810,7 @@ const AllUsersPage = () => {
                     <option value="1">Admin (Role 1)</option>
                     <option value="2">Booking Agent (Role 2)</option>
                     <option value="3">Regular User (Role 3)</option>
+                    <option value="6">Operations (Role 6)</option>
                     <option value="8">MP Tourism Portal (Role 8)</option>
                   </select>
                 </div>
@@ -924,6 +937,11 @@ const AllUsersPage = () => {
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                       <UserCircleIcon className="w-3 h-3" />
                       Booking Agent
+                    </span>
+                  ) : selectedUser.role === 6 ? (
+                    <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                      <ShieldCheckIcon className="w-3 h-3" />
+                      Operations
                     </span>
                   ) : selectedUser.role === 8 ? (
                     <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">

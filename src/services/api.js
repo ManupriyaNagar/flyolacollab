@@ -545,6 +545,24 @@ const API = {
     admin: AdminService,
     joyRides: JoyRideService,
     charter: CharterService,
+    systemSettings: {
+        getBookingCutoffTime: () => httpClient.get('/system-settings/booking-cutoff-time'),
+        updateBookingCutoffTime: (settings) => httpClient.put('/system-settings/booking-cutoff-time', settings),
+        getAllSettings: () => httpClient.get('/system-settings/all'),
+    },
+
+    rescheduling: {
+        getReschedulingDetails: (bookingId, bookingType, date = null) => {
+            const url = `/rescheduling/details/${bookingId}?bookingType=${bookingType}${date ? `&date=${date}` : ''}`;
+            return httpClient.get(url);
+        },
+        rescheduleFlightBooking: (bookingId, data) => httpClient.post(`/rescheduling/flight/${bookingId}`, data),
+        rescheduleHelicopterBooking: (bookingId, data) => httpClient.post(`/rescheduling/helicopter/${bookingId}`, data),
+        getReschedulingHistory: () => httpClient.get('/rescheduling/history'),
+        createReschedulingOrder: (bookingId, data) => httpClient.post(`/rescheduling/create-order/${bookingId}`, data),
+        verifyReschedulingPayment: (bookingId, data) => httpClient.post(`/rescheduling/verify-payment/${bookingId}`, data),
+        adminReschedule: (bookingId, data) => httpClient.post(`/rescheduling/admin/${bookingId}`, data),
+    },
 
     // Utilities
     token: TokenManager,
@@ -568,16 +586,6 @@ const API = {
 // Export everything
 export default API;
 export {
-    AuthService,
-    FlightService,
-    AirportService,
-    BookingService,
-    PaymentService,
-    UserService,
-    AdminService,
-    JoyRideService,
-    CharterService,
-    TokenManager,
-    ApiError,
-    httpClient,
+    AdminService, AirportService, ApiError, AuthService, BookingService, CharterService, FlightService, JoyRideService, PaymentService, TokenManager, UserService, httpClient
 };
+

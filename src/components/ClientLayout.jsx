@@ -5,6 +5,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { AuthProvider } from "@/components/AuthContext";
 import RouteProtection from "@/components/RouteProtection";
+import SessionExpiredModal from "@/components/SessionExpiredModal";
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -21,7 +22,8 @@ export default function ClientLayout({ children }) {
     pathname.startsWith("/chairman-admin-dashboard") ||
     pathname.startsWith("/director-admin-dashboard") ||
     pathname.startsWith("/accounts-admin-dashboard") ||
-    pathname.startsWith("/operations-dashboard");
+    pathname.startsWith("/operations-dashboard") ||
+    pathname.startsWith("/mp-tourism-portal");
 
   return (
     <AuthProvider>
@@ -51,6 +53,9 @@ export default function ClientLayout({ children }) {
         pauseOnHover
         theme="light"
       />
+
+      {/* Session Expired Modal */}
+      <SessionExpiredModal />
     </AuthProvider>
   );
 }

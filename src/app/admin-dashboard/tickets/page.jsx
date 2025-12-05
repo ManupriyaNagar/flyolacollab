@@ -38,9 +38,9 @@ const Page = () => {
   const [startDate, endDate] = dateRange;
   const itemsPerPage = 10;
 
-  // Redirect if not admin
+  // Redirect if not admin or operations
   useEffect(() => {
-    if (!authState.isLoading && (!authState.isLoggedIn || String(authState.userRole) !== "1")) {
+    if (!authState.isLoading && (!authState.isLoggedIn || (String(authState.userRole) !== "1" && String(authState.userRole) !== "6"))) {
       router.push("/sign-in");
     }
   }, [authState, router]);
@@ -50,7 +50,7 @@ const Page = () => {
     if (
       authState.isLoading ||
       !authState.isLoggedIn ||
-      String(authState.userRole) !== "1"
+      (String(authState.userRole) !== "1" && String(authState.userRole) !== "6")
     ) {
       return;
     }

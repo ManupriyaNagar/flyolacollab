@@ -64,8 +64,15 @@ const Header = () => {
     { name: 'Joy Ride Management', href: '/admin-dashboard/all-joyride-slots', icon: SparklesIcon },
   ];
 
+  const mpTourismMenuItems = [
+    { name: 'MP Tourism Portal', href: '/mp-tourism-portal', icon: ChartBarIcon },
+    { name: 'Flight Bookings', href: '/mp-tourism-portal/flight-bookings', icon: PaperAirplaneIcon },
+    { name: 'Helicopter Bookings', href: '/mp-tourism-portal/helicopter-bookings', icon: SparklesIcon },
+    { name: 'Flight Tickets', href: '/mp-tourism-portal/flight-tickets', icon: TicketIcon },
+  ];
+
   const operationsMenuItems = [
-    { name: 'MP Tourism Portal', href: '/operations-dashboard', icon: ChartBarIcon },
+    { name: 'Operations Dashboard', href: '/operations-dashboard', icon: ChartBarIcon },
     { name: 'Flight Bookings', href: '/operations-dashboard/flight-bookings', icon: PaperAirplaneIcon },
     { name: 'Helicopter Bookings', href: '/operations-dashboard/helicopter-bookings', icon: SparklesIcon },
     { name: 'Flight Tickets', href: '/operations-dashboard/flight-tickets', icon: TicketIcon },
@@ -77,12 +84,12 @@ const Header = () => {
 
 
 <header
-  className={`fixed left-1/2 -translate-x-1/2 bg-white/50 w-5/6   rounded-b-xl py-2 top-0 z-50 transition duration-300 ${
+  className={`fixed left-1/2 -translate-x-1/2 bg-white/50 w-full  py-2 top-0 z-50 transition duration-300 ${
     scrolled ? 'backdrop-blur-md' : 'backdrop-blur-sm'
   }`}
 >
 
-      <nav className={cn('mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+      <nav className={cn('mx-auto', 'px-4', 'sm:px-6', 'lg:px-16')}>
         <div className={cn('flex', 'h-16', 'items-center', 'justify-between')}>
           {/* Logo */}
           <Link href="/" className={cn('flex', 'items-center', 'flex-shrink-0')}>
@@ -91,7 +98,7 @@ const Header = () => {
 
 <div className={cn('hidden', 'md:block')}>
           {/* Desktop Navigation */}
-        <div className={cn('lg:flex', 'items-center', 'space-x-1', 'flex-1', 'justify-center', 'text-black')}>
+        <div className={cn('lg:flex', 'items-center', 'space-x-6', 'flex-1', 'justify-center', 'text-black')}>
             <Link
               href="/scheduled-flight"
               className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
@@ -231,6 +238,8 @@ const Header = () => {
                             ? 'Administrator' 
                             : authState.userRole === '2' 
                             ? 'Agent'
+                            : authState.userRole === '6'
+                            ? 'Operations'
                             : authState.userRole === '8'
                             ? 'MP Tourism Portal'
                             : 'Customer'}
@@ -254,8 +263,25 @@ const Header = () => {
                           </Menu.Item>
                         ))}
                       
-                      {(authState.userRole === '8' || authState.userRole === 8) &&
+                      {(authState.userRole === '6' || authState.userRole === 6) &&
                         operationsMenuItems.map((item) => (
+                          <Menu.Item key={item.href}>
+                            {({ active }) => (
+                              <Link
+                                href={item.href}
+                                className={`${
+                                  active ? 'bg-orange-50 text-orange-700' : 'text-slate-700'
+                                } flex items-center px-3 py-2 text-sm rounded-lg`}
+                              >
+                                <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
+                                {item.name}
+                              </Link>
+                            )}
+                          </Menu.Item>
+                        ))}
+
+                      {(authState.userRole === '8' || authState.userRole === 8) &&
+                        mpTourismMenuItems.map((item) => (
                           <Menu.Item key={item.href}>
                             {({ active }) => (
                               <Link
@@ -271,7 +297,7 @@ const Header = () => {
                           </Menu.Item>
                         ))}
                       
-                      {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '8' && authState.userRole !== 8) &&
+                      {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '6' && authState.userRole !== 6 && authState.userRole !== '8' && authState.userRole !== 8) &&
                         userMenuItems.map((item) => (
                         <Menu.Item key={item.href}>
                           {({ active }) => (
@@ -480,6 +506,8 @@ const Header = () => {
                         ? 'Admin'
                         : authState.userRole === '2'
                         ? 'Agent'
+                        : authState.userRole === '6'
+                        ? 'Operations'
                         : authState.userRole === '8'
                         ? 'MP Tourism Portal'
                         : 'Customer'}
@@ -499,8 +527,21 @@ const Header = () => {
                       </Link>
                     ))}
 
-                  {(authState.userRole === '8' || authState.userRole === 8) &&
+                  {(authState.userRole === '6' || authState.userRole === 6) &&
                     operationsMenuItems.map((item) => (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn('flex', 'items-center', 'px-3', 'py-2', 'text-base', 'font-medium', 'text-black', 'hover:text-orange-600', 'hover:bg-orange-50', 'rounded-lg')}
+                      >
+                        <item.icon className={cn('w-5', 'h-5', 'mr-3')} />
+                        {item.name}
+                      </Link>
+                    ))}
+
+                  {(authState.userRole === '8' || authState.userRole === 8) &&
+                    mpTourismMenuItems.map((item) => (
                       <Link
                         key={item.href}
                         href={item.href}
@@ -512,7 +553,7 @@ const Header = () => {
                       </Link>
                     ))}
 
-                  {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '8' && authState.userRole !== 8) &&
+                  {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '6' && authState.userRole !== 6 && authState.userRole !== '8' && authState.userRole !== 8) &&
                     userMenuItems.map((item) => (
                     <Link
                       key={item.href}

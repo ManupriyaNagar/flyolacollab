@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { FaPlane, FaHelicopter, FaSearch } from "react-icons/fa";
-import { MdClose } from "react-icons/md";
+import { FaSearch } from "react-icons/fa";
+import { cn } from "@/lib/utils";
 
 export default function AirportAutocomplete({
   airports,
@@ -20,42 +20,30 @@ export default function AirportAutocomplete({
   const dropdownRef = useRef(null);
   const containerRef = useRef(null);
 
-  // Get selected airport details
+  // Find selected location - check helipad_code first, then airport_code
   const selectedAirport = airports.find(
-    (a) => (a.airport_code || a.helipad_code) === value
+    (a) => a.helipad_code === value || a.airport_code === value
   );
 
-  // Filter airports based on search
   const filteredAirports = airports.filter((airport) => {
     const searchLower = searchTerm.toLowerCase();
     const name = (airport.airport_name || airport.helipad_name || "").toLowerCase();
     const city = (airport.city || "").toLowerCase();
     const code = (airport.airport_code || airport.helipad_code || "").toLowerCase();
-    
-    return (
-      name.includes(searchLower) ||
-      city.includes(searchLower) ||
-      code.includes(searchLower)
-    );
+    return name.includes(searchLower) || city.includes(searchLower) || code.includes(searchLower);
   });
 
-  // Handle click outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target)
-      ) {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
         setIsOpen(false);
         setSearchTerm("");
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Handle keyboard navigation
   const handleKeyDown = (e) => {
     if (!isOpen) {
       if (e.key === "Enter" || e.key === "ArrowDown") {
@@ -95,62 +83,47 @@ export default function AirportAutocomplete({
     setIsOpen(false);
   };
 
-  const handleClear = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onChange("");
-    setSearchTerm("");
-    setIsOpen(false);
-  };
-
   const handleContainerClick = (e) => {
     if (!disabled) {
       e.preventDefault();
       e.stopPropagation();
       setIsOpen(true);
       setSearchTerm("");
-      setTimeout(() => {
-        if (inputRef.current) {
-          inputRef.current.focus();
-        }
-      }, 50);
+      setTimeout(() => inputRef.current?.focus(), 50);
     }
   };
 
   return (
-    <div className="relative flex-1 " ref={containerRef}>
+    <div className={cn('relative', 'flex-1')} ref={containerRef}>
       {label && (
-        <label className="block text-sm font-semibold text-gray-700  flex items-center gap-2">
+        <label className={cn('block', 'text-sm', 'font-semibold', 'text-gray-700', 'flex', 'items-center', 'gap-2')}>
           {Icon && <Icon className="text-indigo-500" />}
           {label}
         </label>
       )}
 
-      {/* Input Field */}
       <div className="relative">
         <div
-          className={`flex flex-col justify-center w-full   transition-all duration-200 bg-white cursor-pointer h-14 ${
-            isOpen
-              ? ""
-              : ""
-          } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
+          className={`flex flex-col justify-center w-full transition-all duration-200 bg-white cursor-pointer h-14 ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
+          }`}
           onClick={handleContainerClick}
         >
           {!isOpen && selectedAirport ? (
-            <div className="flex items-center justify-between">
+            <div className={cn('flex', 'items-center', 'justify-between')}>
               <div className="flex-1">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className={cn('text-3xl', 'font-bold', 'text-gray-900')}>
                   {selectedAirport.city.toUpperCase()}
                 </div>
-                <div className="text-sm text-gray-500 truncate">
-                  {selectedAirport.airport_code || selectedAirport.helipad_code}, {selectedAirport.airport_name || selectedAirport.helipad_name}
+                <div className={cn('text-sm', 'text-gray-500', 'truncate')}>
+                  {selectedAirport.airport_code || selectedAirport.helipad_code},{" "}
+                  {selectedAirport.airport_name || selectedAirport.helipad_name}
                 </div>
               </div>
-              
             </div>
           ) : (
-            <div className="flex items-center gap-2">
-              <FaSearch className="text-gray-400 text-sm flex-shrink-0" />
+            <div className={cn('flex', 'items-center', 'gap-2')}>
+              <FaSearch className={cn('text-gray-400', 'text-sm', 'flex-shrink-0')} />
               {isOpen ? (
                 <input
                   ref={inputRef}
@@ -163,7 +136,7 @@ export default function AirportAutocomplete({
                   onKeyDown={handleKeyDown}
                   placeholder={placeholder}
                   disabled={disabled}
-                  className="flex-1 outline-none bg-transparent text-gray-900 placeholder-gray-400"
+                  className={cn('flex-1', 'outline-none', 'bg-transparent', 'text-gray-900', 'placeholder-gray-400')}
                   autoFocus
                 />
               ) : (
@@ -173,12 +146,27 @@ export default function AirportAutocomplete({
           )}
         </div>
 
-        {/* Dropdown */}
-        {isOpen && (
-          <div
-            ref={dropdownRef}
-            className="absolute  w-full mt-2 bg-white border-2 border-indigo-200 rounded-xl shadow-2xl max-h-80 overflow-y-auto"
-          >
+    {isOpen && (
+  <div
+    ref={dropdownRef}
+    className={cn(
+      'w-72',
+      'absolute',
+      '-right-9',
+      'top-full',
+      'mt-2',
+      
+      'bg-white',
+      'border-2',
+     
+      'rounded-sm',
+      'shadow-sm',
+      'max-h-80',
+      'overflow-y-auto',
+      'z-50'
+    )}
+  >
+
             {filteredAirports.length > 0 ? (
               <div className="py-2">
                 {filteredAirports.map((airport, index) => {
@@ -193,7 +181,7 @@ export default function AirportAutocomplete({
                       type="button"
                       onClick={() => handleSelect(airport)}
                       onMouseEnter={() => setHighlightedIndex(index)}
-                      className={`w-full px-4 py-3 flex items-center justify-between gap-3 transition-colors ${
+                      className={`w-full px-4 py-2 flex items-center justify-between gap-3 transition-colors ${
                         isHighlighted
                           ? "bg-indigo-50"
                           : isSelected
@@ -201,43 +189,28 @@ export default function AirportAutocomplete({
                           : "hover:bg-gray-50"
                       }`}
                     >
-                      <div className="flex-1 text-left">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900">
+                      <div className={cn('flex-1', 'text-left')}>
+                        <div className={cn('flex', 'items-center', 'flex' , 'justify-between')}>
+                          <span className={cn('font-semibold', 'text-gray-900')}>
                             {airport.city}
                           </span>
-                          <span className="text-xs font-mono text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                          <span className={cn('text-xs', 'font-mono', 'text-gray-500', 'bg-gray-100', 'px-2', 'py-0.5', 'rounded')}>
                             {code}
                           </span>
                         </div>
-                        <div className="text-sm text-gray-600 truncate">
+                        <div className={cn('text-sm', 'text-gray-600', 'truncate')}>
                           {name}
                         </div>
-                      </div>
-
-                      <div className="flex items-center gap-1 flex-shrink-0">
-                        {airport.airport_code && (
-                          <FaPlane
-                            className="text-blue-500 text-xs"
-                            title="Airport"
-                          />
-                        )}
-                        {airport.has_helipad && (
-                          <FaHelicopter
-                            className="text-red-500 text-xs"
-                            title="Helipad"
-                          />
-                        )}
                       </div>
                     </button>
                   );
                 })}
               </div>
             ) : (
-              <div className="px-4 py-8 text-center text-gray-500">
-                <FaSearch className="mx-auto text-3xl mb-2 text-gray-300" />
+              <div className={cn('px-4', 'py-8', 'text-center', 'text-gray-500')}>
+                <FaSearch className={cn('mx-auto', 'text-3xl', 'mb-2', 'text-gray-300')} />
                 <p className="text-sm">No airports found</p>
-                <p className="text-xs text-gray-400 mt-1">
+                <p className={cn('text-xs', 'text-gray-400', 'mt-1')}>
                   Try a different search term
                 </p>
               </div>

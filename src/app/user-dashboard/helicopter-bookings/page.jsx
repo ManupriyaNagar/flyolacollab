@@ -1,20 +1,20 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
-import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { useAuth } from "@/components/AuthContext";
 import CancellationModal from "@/components/CancellationModal";
-import { 
-  TicketIcon, 
-  CalendarDaysIcon, 
-  UserGroupIcon, 
-  CurrencyRupeeIcon,
-  XCircleIcon,
-  CheckCircleIcon,
-  ClockIcon,
-  ExclamationTriangleIcon
+import {
+    CalendarDaysIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    CurrencyRupeeIcon,
+    ExclamationTriangleIcon,
+    TicketIcon,
+    UserGroupIcon,
+    XCircleIcon
 } from '@heroicons/react/24/outline';
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -290,9 +290,7 @@ export default function UserHelicopterBookingsPage() {
                         <>
                           <button 
                             onClick={() => {
-                              toast.info('Rescheduling feature coming soon!');
-                              // TODO: Implement rescheduling functionality
-                              // router.push(`/reschedule?bookingId=${booking.id}&pnr=${booking.pnr}`);
+                              router.push(`/reschedule?bookingId=${booking.id}&pnr=${booking.pnr}&type=helicopter`);
                             }}
                             className="px-4 py-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
                           >

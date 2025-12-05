@@ -1,23 +1,23 @@
 "use client";
 
+import LazySection from "@/components/LazySection";
+import dynamic from "next/dynamic";
 import { useEffect } from 'react';
 import "./globals.css";
-import dynamic from "next/dynamic";
-import LazySection from "@/components/LazySection";
 
-import MobileFlightBooking from "@/components/Home/MobileFlightBooking";
 import FlightBooking from '@/components/Home/FlightBooking';
+import MobileFlightBooking from "@/components/Home/MobileFlightBooking";
+import { cn } from "@/lib/utils";
 
 // Lazy load components that are below the fold
 const FeatureCards = dynamic(() => import("@/components/Home/FeatureCard"), { ssr: false });
 const PrivateJetRental = dynamic(() => import("@/components/Home/Banner"), { ssr: false });
 const AviationHighlights = dynamic(() => import("@/components/Home/Highlights"), { ssr: false });
-const Hero = dynamic(() => import("@/components/Home/Hero"), { ssr: false });
 const WhyChooseFlyola = dynamic(() => import("@/components/Home/WhyChoose"), { ssr: false });
 const CityCaurasol = dynamic(() => import("@/components/Home/CityCaurasol"), { ssr: false });
 const ArticleSection = dynamic(() => import("@/components/Home/Article"), { ssr: false });
 const HoverEffect = dynamic(() => import("@/components/ui/HoverEffect"), { ssr: false });
-const WorldMapDemo = dynamic(() => import("@/components/Home/WorldMapDemo"), { ssr: false });
+
 const PopularDestinations = dynamic(() => import("@/components/Home/PopularDestinations"), { ssr: false });
 
 export default function Home() {
@@ -42,7 +42,7 @@ export default function Home() {
       
       if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) > 300000) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com      '}/airport`);
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com  '}/airport`);
           if (response.ok) {
             const data = await response.json();
             sessionStorage.setItem('airports_data', JSON.stringify(data));
@@ -70,9 +70,9 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={cn('min-h-screen', 'bg-gray-50')}>
 
-      <div id="booking" className="hidden md:block">
+      <div id="booking" className={cn('hidden', 'md:block')}>
         <FlightBooking />
       </div>
       
@@ -92,10 +92,7 @@ export default function Home() {
         <AviationHighlights />
       </LazySection>
       
-      <LazySection>
-        <Hero />
-      </LazySection>
-      
+
       <LazySection>
         <WhyChooseFlyola />
       </LazySection>
@@ -112,9 +109,7 @@ export default function Home() {
         <HoverEffect />
       </LazySection>
       
-      <LazySection>
-        <WorldMapDemo />
-      </LazySection>
+
       
       <LazySection>
         <PopularDestinations />

@@ -1,33 +1,33 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
-import * as XLSX from "xlsx";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { debounce } from "lodash";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import BASE_URL from "@/baseUrl/baseUrl";
-import {
-    MagnifyingGlassIcon,
-    ArrowDownTrayIcon,
-    EyeIcon,
-    CalendarDaysIcon,
-    UserGroupIcon,
-    CreditCardIcon,
-    ExclamationTriangleIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ClockIcon,
-    ArrowsUpDownIcon,
-    ChartBarIcon,
-    BanknotesIcon,
-} from "@heroicons/react/24/outline";
 import AdminCancellationModal from "@/components/AdminCancellationModal";
+import { useAuth } from "@/components/AuthContext";
 import BookingDetailsModal from "@/components/BookingDetailsModal";
 import { cn } from "@/lib/utils";
+import {
+    ArrowDownTrayIcon,
+    ArrowsUpDownIcon,
+    BanknotesIcon,
+    CalendarDaysIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    CreditCardIcon,
+    ExclamationTriangleIcon,
+    EyeIcon,
+    MagnifyingGlassIcon,
+    UserGroupIcon,
+    XCircleIcon,
+} from "@heroicons/react/24/outline";
+import { debounce } from "lodash";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx";
 
 const BOOKINGS_PER_PAGE = 50;
 
@@ -63,7 +63,7 @@ export default function HelicopterBookingsPage() {
 
     // Redirect if not admin
     useEffect(() => {
-        if (!authState.isLoading && (!authState.isLoggedIn || authState.userRole !== "1")) {
+        if (!authState.isLoading && (!authState.isLoggedIn || (authState.userRole !== "1" && authState.userRole !== "6"))) {
             router.push("/sign-in");
         }
     }, [authState.isLoading, authState.isLoggedIn, authState.userRole]);
@@ -79,11 +79,11 @@ export default function HelicopterBookingsPage() {
 
 
     useEffect(() => {
-        // only run when fully authenticated & admin
+        // only run when fully authenticated & admin or operations
         if (
             authState.isLoading ||
             !authState.isLoggedIn ||
-            authState.userRole !== "1"
+            (authState.userRole !== "1" && authState.userRole !== "6")
         ) {
             return;
         }
@@ -542,6 +542,9 @@ export default function HelicopterBookingsPage() {
             const passengerNames = item.passengers?.length
                 ? item.passengers.map((p) => p.name || "Unknown").join(", ")
                 : "N/A";
+            const passengerWeights = item.passengers?.length
+                ? item.passengers.map((p) => p.weight ? `${p.weight}kg` : "-").join(", ")
+                : "N/A";
 
             return {
                 BookingId: item.bookingNo || "N/A",
@@ -552,6 +555,7 @@ export default function HelicopterBookingsPage() {
                 ContactNumber: item.contact_no || "N/A",
                 Passengers: item.noOfPassengers || 0,
                 PassengerNames: passengerNames,
+                PassengerWeights: passengerWeights,
                 BillingName: item.billingName || "N/A",
                 BookedSeats: item.booked_seat || "N/A",
                 TotalFare: item.totalFare ? parseFloat(item.totalFare).toFixed(2) : "N/A",
@@ -1187,6 +1191,7 @@ ookings Table */}
                                     { key: 'contact_no', label: 'Phone', sortable: false, width: 'min-w-[120px]' },
                                     { key: 'noOfPassengers', label: 'Passengers', sortable: true, width: 'min-w-[100px]' },
                                     { key: 'passengers', label: 'Names', sortable: false, width: 'min-w-[320px]' },
+                                    { key: 'passengerWeights', label: 'Weights (kg)', sortable: false, width: 'min-w-[150px]' },
                                     { key: 'billingName', label: 'Billing Name', sortable: false, width: 'min-w-[200px]' },
                                     { key: 'booked_seat', label: 'Seats', sortable: false, width: 'min-w-[120px]' },
                                     { key: 'totalFare', label: 'Price', sortable: true, width: 'min-w-[100px]' },
@@ -1254,6 +1259,11 @@ ookings Table */}
                                         <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'w-80')}>
                                             <div className={cn('max-w-[320px]', 'truncate', 'text-slate-700')} title={booking.passengers?.map((p) => p.name).join(", ") || "N/A"}>
                                                 {booking.passengers?.map((p) => p.name).join(", ") || "N/A"}
+                                            </div>
+                                        </td>
+                                        <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>
+                                            <div className={cn('max-w-[150px]', 'truncate')} title={booking.passengers?.map((p) => p.weight ? `${p.weight}kg` : '-').join(", ") || "N/A"}>
+                                                {booking.passengers?.map((p) => p.weight ? `${p.weight}` : '-').join(", ") || "N/A"}
                                             </div>
                                         </td>
                                         <td className={cn('px-4', 'py-2', 'whitespace-nowrap', 'text-slate-700')}>

@@ -22,6 +22,9 @@ export default function HelipadManagementPage() {
     const [helipads, setHelipads] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [entriesPerPage, setEntriesPerPage] = useState(10);
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [showModal, setShowModal] = useState(false);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
@@ -138,11 +141,17 @@ export default function HelipadManagementPage() {
     const filteredHelipads = useMemo(() => {
         let filtered = helipads.filter((helipad) => {
             const searchLower = searchTerm.toLowerCase();
-            return (
+            const matchesSearch = (
                 helipad.helipad_name?.toLowerCase().includes(searchLower) ||
                 helipad.helipad_code?.toLowerCase().includes(searchLower) ||
                 helipad.city?.toLowerCase().includes(searchLower)
             );
+            
+            const matchesStatus = statusFilter === 'all' ||
+                (statusFilter === 'active' && helipad.status === 1) ||
+                (statusFilter === 'inactive' && helipad.status === 0);
+            
+            return matchesSearch && matchesStatus;
         });
 
         if (sortConfig.key) {
@@ -166,7 +175,14 @@ export default function HelipadManagementPage() {
         }
 
         return filtered;
-    }, [helipads, searchTerm, sortConfig]);
+    }, [helipads, searchTerm, statusFilter, sortConfig]);
+    
+    // Pagination
+    const totalPages = Math.ceil(filteredHelipads.length / entriesPerPage) || 1;
+    const paginatedHelipads = useMemo(() => {
+        const start = (currentPage - 1) * entriesPerPage;
+        return filteredHelipads.slice(start, start + entriesPerPage);
+    }, [filteredHelipads, currentPage, entriesPerPage]);
 
     const getSortIcon = (columnKey) => {
         if (sortConfig.key !== columnKey) {
@@ -204,16 +220,52 @@ export default function HelipadManagementPage() {
 
             {/* Search and Filters */}
             <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-                <div className="flex flex-col md:flex-row gap-4">
-                    <div className="relative flex-1">
-                        <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                        <input
-                            type="text"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
-                            placeholder="Search helipads by name, code, or city..."
-                        />
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row gap-4 flex-1">
+                        <div className="relative flex-1 max-w-md">
+                            <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => {
+                                    setSearchTerm(e.target.value);
+                                    setCurrentPage(1);
+                                }}
+                                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                                placeholder="Search helipads..."
+                            />
+                        </div>
+                        
+                        <select
+                            value={statusFilter}
+                            onChange={(e) => {
+                                setStatusFilter(e.target.value);
+                                setCurrentPage(1);
+                            }}
+                            className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent transition-all"
+                        >
+                            <option value="all">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                        </select>
+                    </div>
+                    
+                    <div className="flex items-center gap-3">
+                        <span className="text-sm text-slate-600">Show</span>
+                        <select
+                            value={entriesPerPage}
+                            onChange={(e) => {
+                                setEntriesPerPage(Number(e.target.value));
+                                setCurrentPage(1);
+                            }}
+                            className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        >
+                            <option value={10}>10</option>
+                            <option value={25}>25</option>
+                            <option value={50}>50</option>
+                            <option value={100}>100</option>
+                        </select>
+                        <span className="text-sm text-slate-600">entries</span>
                     </div>
                 </div>
             </div>
@@ -277,7 +329,7 @@ export default function HelipadManagementPage() {
                                     </td>
                                 </tr>
                             ) : (
-                                filteredHelipads.map((helipad) => (
+                                paginatedHelipads.map((helipad) => (
                                     <tr key={helipad.id} className="hover:bg-slate-50 transition-colors">
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-slate-900">{helipad.helipad_name}</div>
@@ -320,6 +372,62 @@ export default function HelipadManagementPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {/* Pagination */}
+                {!loading && filteredHelipads.length > 0 && (
+                    <div className="px-6 py-4 border-t border-slate-200 bg-slate-50">
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="text-sm text-slate-600">
+                                Showing {((currentPage - 1) * entriesPerPage) + 1} to {Math.min(currentPage * entriesPerPage, filteredHelipads.length)} of {filteredHelipads.length} entries
+                            </div>
+                            
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                
+                                <div className="flex items-center gap-1">
+                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
+                                        if (
+                                            page === 1 ||
+                                            page === totalPages ||
+                                            (page >= currentPage - 1 && page <= currentPage + 1)
+                                        ) {
+                                            return (
+                                                <button
+                                                    key={page}
+                                                    onClick={() => setCurrentPage(page)}
+                                                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                                        currentPage === page
+                                                            ? 'bg-orange-500 text-white'
+                                                            : 'border border-slate-300 text-slate-700 hover:bg-white'
+                                                    }`}
+                                                >
+                                                    {page}
+                                                </button>
+                                            );
+                                        } else if (page === currentPage - 2 || page === currentPage + 2) {
+                                            return <span key={page} className="px-2 text-slate-400">...</span>;
+                                        }
+                                        return null;
+                                    })}
+                                </div>
+                                
+                                <button
+                                    onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-3 py-2 border border-slate-300 rounded-lg text-sm font-medium text-slate-700 hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </div>
 
             {/* Add/Edit Modal */}

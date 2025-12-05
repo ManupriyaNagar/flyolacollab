@@ -7,6 +7,11 @@ module.exports = {
     "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
   ],
   theme: {
+    // Font family using Next.js optimized font
+    fontFamily: {
+      sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+      inter: ['var(--font-inter)', 'sans-serif'],
+    },
     // static hex and css‑var backed palette
     colors: {
       transparent: 'transparent',

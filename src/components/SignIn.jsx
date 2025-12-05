@@ -1,4 +1,4 @@
-"use client";
+ "use client";
 
 import React, { useState } from "react";
 import { useAuth } from "./AuthContext";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import BASE_URL from "@/baseUrl/baseUrl";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 const SignIn = () => {
   const [email, setEmail] = useState("");
@@ -107,22 +108,22 @@ const SignIn = () => {
   };
 
   return (
-    <div className="relative flex items-center justify-center min-h-screen">
+    <div className={cn('relative', 'flex', 'items-center', 'justify-center', 'min-h-screen')}>
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover z-20"
+        className={cn('absolute', 'top-0', 'left-0', 'w-full', 'h-full', 'object-cover', 'z-20')}
       >
         <source src="/signin.mp4" type="video/mp4" />
       </video>
 
-      <div className="absolute top-0 left-0 w-full h-full bg-black bg-opacity-50 z-10"></div>
+      <div className={cn('absolute', 'top-0', 'left-0', 'w-full', 'h-full', 'bg-black', 'bg-opacity-50', 'z-10')}></div>
 
-      <Card className="w-96 p-6 shadow-lg rounded-2xl z-20 bg-white bg-opacity-90 backdrop-blur-sm">
+      <Card className={cn('w-96', 'p-6', 'shadow-lg', 'rounded-2xl', 'z-20', 'bg-white', 'bg-opacity-90', 'backdrop-blur-sm')}>
         <CardContent>
-          <h2 className="text-2xl font-semibold text-center mb-4">
+          <h2 className={cn('text-2xl', 'font-semibold', 'text-center', 'mb-4')}>
             {showForgotPassword ? "Reset Password" : "Sign In"}
           </h2>
           {!showForgotPassword ? (
@@ -153,13 +154,13 @@ const SignIn = () => {
                 Sign In
               </Button>
               <p
-                className="text-center text-sm text-blue-500 hover:underline cursor-pointer mt-2"
+                className={cn('text-center', 'text-sm', 'text-blue-500', 'hover:underline', 'cursor-pointer', 'mt-2')}
                 onClick={() => setShowForgotPassword(true)}
               >
                 Forgot Password?
               </p>
               {errorMessage && (
-                <p className="text-red-500 text-sm text-center mt-2">
+                <p className={cn('text-red-500', 'text-sm', 'text-center', 'mt-2')}>
                   {errorMessage}
                 </p>
               )}
@@ -210,7 +211,7 @@ const SignIn = () => {
                 {otpSent ? "Verify OTP" : "Send OTP"}
               </Button>
               <p
-                className="text-center text-sm text-blue-500 hover:underline cursor-pointer mt-2"
+                className={cn('text-center', 'text-sm', 'text-blue-500', 'hover:underline', 'cursor-pointer', 'mt-2')}
                 onClick={() => {
                   setShowForgotPassword(false);
                   setOtpSent(false);
@@ -220,17 +221,17 @@ const SignIn = () => {
                 Back to Sign In
               </p>
               {errorMessage && (
-                <p className="text-red-500 text-sm text-center mt-2">
+                <p className={cn('text-red-500', 'text-sm', 'text-center', 'mt-2')}>
                   {errorMessage}
                 </p>
               )}
             </form>
           )}
-          <p className="text-center text-sm text-gray-500 mt-4">
+          <p className={cn('text-center', 'text-sm', 'text-gray-500', 'mt-4')}>
             Don't have an account?{" "}
             <span
               onClick={() => router.push("/sign-up")}
-              className="text-blue-500 hover:underline cursor-pointer"
+              className={cn('text-blue-500', 'hover:underline', 'cursor-pointer')}
             >
               Sign Up
             </span>

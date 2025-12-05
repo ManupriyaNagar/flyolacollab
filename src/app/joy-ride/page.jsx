@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState } from 'react';
 import { useAuth } from '@/components/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
-import PassengerSelection from './../../components/Joyride/PassengerSelection';
+import { cn } from "@/lib/utils";
 import CalendarAndSlots from './../../components/Joyride/CalendarAndSlots';
+import PassengerSelection from './../../components/Joyride/PassengerSelection';
 
 export default function JoyrideBookingPage() {
   const [selectedSlot, setSelectedSlot] = useState(null);
@@ -112,146 +113,55 @@ export default function JoyrideBookingPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-sky-50 via-blue-50 to-indigo-100">
+    <div className={cn('min-h-screen', 'bg-gradient-to-br', 'from-sky-50', 'via-blue-50', 'to-indigo-100')}>
       
-      
-      {/* Hero Section */}
-      <div className="relative bg-gradient-to-br from-blue-900 via-indigo-900 to-purple-900 text-white py-20 overflow-hidden">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="absolute inset-0">
-          <div className="absolute top-10 left-10 w-20 h-20 bg-yellow-400/20 rounded-full blur-xl animate-pulse"></div>
-          <div className="absolute top-32 right-20 w-16 h-16 bg-pink-400/20 rounded-full blur-lg animate-bounce"></div>
-          <div className="absolute bottom-20 left-1/3 w-24 h-24 bg-blue-400/20 rounded-full blur-2xl animate-pulse"></div>
-        </div>
-        
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <div className="mb-8">
-            <span className="inline-block text-6xl mb-4 animate-bounce">🚁</span>
-            <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-yellow-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-              Sky High Joy Rides
-            </h1>
-            <p className="text-xl md:text-2xl mb-8 max-w-3xl mx-auto text-blue-100">
-              Soar above the clouds and experience the world from a breathtaking new perspective. 
-              Your adventure in the sky awaits! ✨
-            </p>
-          </div>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            <button 
-              onClick={() => document.getElementById('booking-section').scrollIntoView({ behavior: 'smooth' })}
-              className="bg-gradient-to-r from-yellow-400 to-orange-500 text-black px-8 py-4 rounded-full font-bold text-lg hover:from-yellow-500 hover:to-orange-600 transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              🎫 Book Your Adventure
-            </button>
-            <button 
-              onClick={() => document.getElementById('experiences-section').scrollIntoView({ behavior: 'smooth' })}
-              className="border-2 border-white text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white hover:text-blue-900 transition-all duration-300 transform hover:scale-105"
-            >
-              🌟 Explore Experiences
-            </button>
-          </div>
-          
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-yellow-400">500+</div>
-              <div className="text-blue-200">Happy Flyers</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-pink-400">100%</div>
-              <div className="text-blue-200">Safety Record</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-green-400">4.9★</div>
-              <div className="text-blue-200">Rating</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-purple-400">24/7</div>
-              <div className="text-blue-200">Support</div>
-            </div>
-          </div>
-        </div>
+ {/* Hero Section */}
+<div className={cn('relative', 'bg-white', 'text-gray-900', 'pt-20', 'overflow-hidden')}>
+
+  <div className={cn('relative', 'max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+    <div className={cn('text-center')}>
+      <div className={cn('inline-flex', 'items-center', 'gap-2', 'mb-6', 'px-4', 'py-2', 'bg-blue-50', 'rounded-full', 'border', 'border-blue-100')}>
+        <span className="text-2xl">🚁</span>
+        <span className={cn('text-sm', 'font-semibold', 'text-blue-900', 'uppercase', 'tracking-wider')}>Premium Aviation</span>
       </div>
+      
+      <h1 className={cn('text-5xl', 'md:text-6xl', 'lg:text-7xl', 'font-bold', 'mb-6', 'text-gray-900', 'tracking-tight')}>
+        Sky High Joy Rides
+      </h1>
+      
+      <p className={cn('text-lg', 'md:text-xl', 'mb-12', 'max-w-3xl', 'mx-auto', 'text-gray-600', 'leading-relaxed')}>
+        Experience breathtaking aerial perspectives with our premium helicopter tours. 
+        Professional pilots, state-of-the-art aircraft, and unforgettable memories await.
+      </p>
+    </div>
+    
 
-      {/* Experience Types Section */}
-      <section id="experiences-section" className="py-20 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Choose Your Sky Adventure 🌈
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              From romantic sunset flights to thrilling city tours, we have the perfect experience for every dreamer
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {experiences.map((experience, index) => (
-              <div key={index} className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-6 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 border border-blue-100">
-                <div className="text-center mb-4">
-                  <div className="text-4xl mb-3">{experience.icon}</div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{experience.title}</h3>
-                  <div className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-medium">
-                    {experience.duration}
-                  </div>
-                </div>
-                <p className="text-gray-600 text-center">{experience.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+    
+    {/* Stats Section */}
+    
+  </div>
+</div>
 
-      {/* Features Section */}
-      <section className="py-20 bg-gradient-to-br from-indigo-50 to-purple-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Why Choose Flyola Joy Rides? 🎯
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              We're committed to making your sky adventure safe, memorable, and absolutely magical
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {features.map((feature, index) => (
-              <div key={index} className="bg-white rounded-2xl p-6 text-center hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-                <div className="text-4xl mb-4">{feature.icon}</div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3">{feature.title}</h3>
-                <p className="text-gray-600">{feature.description}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Booking Section */}
-      <section id="booking-section" className="py-20 bg-white">
-        <div className="  px-4 sm:px-6 lg:px-16">
-          <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Ready for Takeoff? 🚀
-            </h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-              Select your preferred date and time, and let's make your sky dreams come true!
-            </p>
-          </div>
-          
-          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-3xl p-8 shadow-2xl border border-blue-100">
+      <section id="booking-section" className={cn('py-20', 'bg-white')}>
+        <div className={cn('px-4', 'sm:px-6', 'lg:px-16')}>
+
+          <div>
             {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700 text-center">
-                <span className="text-2xl mr-2">⚠️</span>
+              <div className={cn('mb-6', 'p-4', 'bg-red-50', 'border', 'border-red-200', 'rounded-xl', 'text-red-700', 'text-center')}>
+                <span className={cn('text-2xl', 'mr-2')}>⚠️</span>
                 {error}
               </div>
             )}
             
             {selectedSlot ? (
               <div>
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                <div className={cn('text-center', 'mb-8')}>
+                  <h3 className={cn('text-2xl', 'font-bold', 'text-gray-900', 'mb-2')}>
                     🎉 Almost There! Complete Your Booking
                   </h3>
-                  <div className="bg-blue-600 text-white px-6 py-3 rounded-full inline-block">
+                  <div className={cn('bg-blue-600', 'text-white', 'px-6', 'py-3', 'rounded-full', 'inline-block')}>
                     {selectedSlot.date} at {selectedSlot.time}
                   </div>
                 </div>
@@ -264,13 +174,9 @@ export default function JoyrideBookingPage() {
               </div>
             ) : (
               <div>
-                <div className="text-center mb-8">
-                  <h3 className="text-2xl font-bold text-gray-900 mb-4">
-                    📅 Choose Your Perfect Flight Time
-                  </h3>
-                  <p className="text-gray-600">
-                    Select from our available slots and get ready for an unforgettable experience!
-                  </p>
+                <div className={cn('text-center', 'mb-8')}>
+                 
+                             
                 </div>
                 <CalendarAndSlots onSlotSelect={handleSlotSelect} />
               </div>
@@ -279,35 +185,95 @@ export default function JoyrideBookingPage() {
         </div>
       </section>
 
-      {/* Important Information */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">📋 Important Flight Information</h2>
+
+
+
+
+      {/* <section id="experiences-section" className={cn('py-20', 'bg-white')}>
+        <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+          <div className={cn('text-center', 'mb-16')}>
+            <h2 className={cn('text-4xl', 'font-bold', 'text-gray-900', 'mb-4')}>
+              Choose Your Sky Adventure 🌈
+            </h2>
+            <p className={cn('text-xl', 'text-gray-600', 'max-w-3xl', 'mx-auto')}>
+              From romantic sunset flights to thrilling city tours, we have the perfect experience for every dreamer
+            </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl mb-4">⏰</div>
-              <h3 className="text-xl font-bold mb-3">Flight Schedule</h3>
+          <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-4', 'gap-8')}>
+            {experiences.map((experience, index) => (
+              <div key={index} className={cn('bg-gradient-to-br', 'from-blue-50', 'to-indigo-50', 'rounded-2xl', 'p-6', 'hover:shadow-xl', 'transition-all', 'duration-300', 'transform', 'hover:-translate-y-2', 'border', 'border-blue-100')}>
+                <div className={cn('text-center', 'mb-4')}>
+                  <div className={cn('text-4xl', 'mb-3')}>{experience.icon}</div>
+                  <h3 className={cn('text-xl', 'font-bold', 'text-gray-900', 'mb-2')}>{experience.title}</h3>
+                  <div className={cn('bg-blue-600', 'text-white', 'px-3', 'py-1', 'rounded-full', 'text-sm', 'font-medium')}>
+                    {experience.duration}
+                  </div>
+                </div>
+                <p className={cn('text-gray-600', 'text-center')}>{experience.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+ */}
+
+      {/* Features Section */}
+      <section className={cn('py-20', 'bg-gradient-to-br', 'from-indigo-50', 'to-purple-50')}>
+        <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+          <div className={cn('text-center', 'mb-16')}>
+            <h2 className={cn('text-4xl', 'font-bold', 'text-gray-900', 'mb-4')}>
+              Why Choose Flyola Joy Rides? 🎯
+            </h2>
+            <p className={cn('text-xl', 'text-gray-600', 'max-w-3xl', 'mx-auto')}>
+              We're committed to making your sky adventure safe, memorable, and absolutely magical
+            </p>
+          </div>
+          
+          <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-4', 'gap-8')}>
+            {features.map((feature, index) => (
+              <div key={index} className={cn('bg-white', 'rounded-2xl', 'p-6', 'text-center', 'hover:shadow-xl', 'transition-all', 'duration-300', 'transform', 'hover:-translate-y-2')}>
+                <div className={cn('text-4xl', 'mb-4')}>{feature.icon}</div>
+                <h3 className={cn('text-xl', 'font-bold', 'text-gray-900', 'mb-3')}>{feature.title}</h3>
+                <p className="text-gray-600">{feature.description}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+
+
+      {/* Important Information */}
+      <section className={cn('py-16', 'bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white')}>
+        <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8')}>
+          <div className={cn('text-center', 'mb-12')}>
+            <h2 className={cn('text-3xl', 'font-bold', 'mb-4')}>📋 Important Flight Information</h2>
+          </div>
+          
+          <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-8')}>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-2xl', 'p-6', 'text-center')}>
+              <div className={cn('text-3xl', 'mb-4')}>⏰</div>
+              <h3 className={cn('text-xl', 'font-bold', 'mb-3')}>Flight Schedule</h3>
               <p className="text-blue-100">
                 Flights operate between 4:00 PM and 6:00 PM daily. 
                 Please arrive 15 minutes before your scheduled time.
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl mb-4">🎫</div>
-              <h3 className="text-xl font-bold mb-3">Booking Policy</h3>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-2xl', 'p-6', 'text-center')}>
+              <div className={cn('text-3xl', 'mb-4')}>🎫</div>
+              <h3 className={cn('text-xl', 'font-bold', 'mb-3')}>Booking Policy</h3>
               <p className="text-blue-100">
                 Easy rescheduling and refund options available. 
                 Contact our support team for any changes.
               </p>
             </div>
             
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 text-center">
-              <div className="text-3xl mb-4">🌟</div>
-              <h3 className="text-xl font-bold mb-3">Special Partnership</h3>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-2xl', 'p-6', 'text-center')}>
+              <div className={cn('text-3xl', 'mb-4')}>🌟</div>
+              <h3 className={cn('text-xl', 'font-bold', 'mb-3')}>Special Partnership</h3>
               <p className="text-blue-100">
                 Proudly partnered with Delhi NCR influencers! 
                 Share your experience and get special discounts.
@@ -315,15 +281,15 @@ export default function JoyrideBookingPage() {
             </div>
           </div>
           
-          <div className="text-center mt-12">
-            <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-6 inline-block">
-              <h3 className="text-xl font-bold mb-3">📞 Need Help?</h3>
-              <p className="text-blue-100 mb-4">Our friendly team is here to assist you!</p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <a href="tel:+919311896389" className="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors duration-200">
+          <div className={cn('text-center', 'mt-12')}>
+            <div className={cn('bg-white/10', 'backdrop-blur-sm', 'rounded-2xl', 'p-6', 'inline-block')}>
+              <h3 className={cn('text-xl', 'font-bold', 'mb-3')}>📞 Need Help?</h3>
+              <p className={cn('text-blue-100', 'mb-4')}>Our friendly team is here to assist you!</p>
+              <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4', 'justify-center')}>
+                <a href="tel:+919311896389" className={cn('bg-white', 'text-blue-600', 'px-6', 'py-3', 'rounded-full', 'font-semibold', 'hover:bg-blue-50', 'transition-colors', 'duration-200')}>
                   📱 +91 9311896389
                 </a>
-                <a href="tel:+919202961237" className="bg-white text-blue-600 px-6 py-3 rounded-full font-semibold hover:bg-blue-50 transition-colors duration-200">
+                <a href="tel:+919202961237" className={cn('bg-white', 'text-blue-600', 'px-6', 'py-3', 'rounded-full', 'font-semibold', 'hover:bg-blue-50', 'transition-colors', 'duration-200')}>
                   📱 +91 9202961237
                 </a>
               </div>
@@ -336,7 +302,7 @@ export default function JoyrideBookingPage() {
 
       {/* Success/Error Popup */}
       {popup.show && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/50 backdrop-blur-sm">
+        <div className={cn('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'z-50', 'bg-black/50', 'backdrop-blur-sm')}>
           <div
             className={`p-8 rounded-2xl shadow-2xl max-w-md w-full mx-4 text-center transform transition-all duration-300 ${
               popup.isError 
@@ -344,12 +310,12 @@ export default function JoyrideBookingPage() {
                 : 'bg-gradient-to-br from-green-500 to-emerald-600 text-white'
             }`}
           >
-            <div className="text-4xl mb-4">
+            <div className={cn('text-4xl', 'mb-4')}>
               {popup.isError ? '😞' : '🎉'}
             </div>
-            <p className="text-lg font-medium">{popup.message}</p>
+            <p className={cn('text-lg', 'font-medium')}>{popup.message}</p>
             {!popup.isError && (
-              <div className="mt-4 text-sm opacity-90">
+              <div className={cn('mt-4', 'text-sm', 'opacity-90')}>
                 Redirecting to your ticket...
               </div>
             )}

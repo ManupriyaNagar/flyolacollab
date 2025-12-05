@@ -1,41 +1,41 @@
 "use client";
 
 import BASE_URL from "@/baseUrl/baseUrl";
-import React, { useState, useEffect, useMemo } from "react";
 import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
 import {
-  CalendarDaysIcon,
-  UserIcon,
-  CurrencyDollarIcon,
-  TicketIcon,
-  UsersIcon,
-  CreditCardIcon,
-  PaperAirplaneIcon,
-  ChartBarIcon,
-  ArrowTrendingUpIcon,
-  SparklesIcon,
-  BuildingOfficeIcon,
-  ExclamationTriangleIcon,
+  ArrowPathIcon,
   ArrowRightIcon,
+  ArrowTrendingUpIcon,
+  BuildingOfficeIcon,
+  CalendarDaysIcon,
+  ChartBarIcon,
+  CreditCardIcon,
+  ExclamationTriangleIcon,
+  PaperAirplaneIcon,
+  SparklesIcon,
+  TicketIcon,
+  UserIcon,
+  UsersIcon
 } from "@heroicons/react/24/outline";
-import { Bar, Doughnut, Line } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
+  ArcElement,
   BarElement,
+  CategoryScale,
+  Chart as ChartJS,
+  Filler,
+  Legend,
+  LineElement,
+  LinearScale,
+  PointElement,
   Title,
   Tooltip,
-  Legend,
-  ArcElement,
-  PointElement,
-  LineElement,
-  Filler,
 } from "chart.js";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import { Bar, Doughnut, Line } from "react-chartjs-2";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 ChartJS.register(
   CategoryScale,
@@ -67,8 +67,12 @@ export default function AdminDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!authState.isLoading && (!authState.isLoggedIn || authState.userRole !== "1")) {
+    // Only redirect after auth state is fully loaded and confirmed not logged in
+    if (!authState.isLoading && authState.isLoggedIn === false) {
       router.push("/sign-in");
+    } else if (!authState.isLoading && authState.isLoggedIn && authState.userRole !== "1") {
+      // Logged in but not admin - redirect to appropriate dashboard
+      router.push("/");
     }
   }, [authState.isLoading, authState.isLoggedIn, authState.userRole, router]);
 
@@ -531,6 +535,13 @@ export default function AdminDashboard() {
       link: "/admin-dashboard/bookid-joyride",
       color: "bg-pink-100",
     },
+    {
+      title: "Reschedule Booking",
+      description: "Reschedule bookings (no payment)",
+      icon: <ArrowPathIcon className="w-6 h-6 text-orange-600" />,
+      link: "/admin-dashboard/reschedule-booking",
+      color: "bg-orange-100",
+    },
   ];
 
   const recentBookingsList = useMemo(() => {
@@ -539,13 +550,25 @@ export default function AdminDashboard() {
       .slice(0, 5);
   }, [bookings]);
 
-  // Don't show anything if not authenticated
-  if (authState.isLoading || !authState.isLoggedIn || authState.userRole !== "1") {
+  // Show loading while auth is being verified
+  if (authState.isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Verifying authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render if not admin (redirect will happen via useEffect)
+  if (!authState.isLoggedIn || authState.userRole !== "1") {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
         </div>
       </div>
     );

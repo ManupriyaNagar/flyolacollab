@@ -1,10 +1,20 @@
 // RootLayout.tsx
-import "./globals.css";
 import ClientLayout from "@/components/ClientLayout";
+import { Inter } from 'next/font/google';
+import "./globals.css";
+
+// Optimize font loading with Next.js
+const inter = Inter({ 
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '600', '700'],
+  display: 'swap',
+  variable: '--font-inter',
+  preload: true,
+});
 
 export const metadata = {
   title: "Flyola - Premium Aviation Services | Book Flights & Private Charters",
-  description: "Experience premium aviation services with Flyola. Book scheduled flights, private charters, helicopter rides, and joy rides. Safe, comfortable, and reliable air travel.",
+  description: "Book premium flights, private charters & helicopter rides with Flyola. Safe, comfortable air travel across India. Instant booking available.",
   keywords: "flights, aviation, private charter, helicopter, joy rides, air travel, premium flights",
   icons: {
     icon: "/pp.svg",
@@ -32,17 +42,11 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className={inter.variable}>
       <head>
-        {/* Performance optimizations */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        <link 
-          href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" 
-          rel="stylesheet" 
-        />
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com      "} />
-        <link rel="prefetch" href={`${process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com      "}/airport`} />
+        {/* Performance optimizations - Font now loaded via Next.js optimization */}
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com "} />
+        <link rel="prefetch" href={`${process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com "}/airport`} />
         <link rel="preload" href="/pp.svg" as="image" />
         <link rel="preload" href="/logoo-04.png" as="image" />
         <link rel="preload" href="/1.png" as="image" />
@@ -108,7 +112,7 @@ export default function RootLayout({ children }) {
               new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
               j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
               'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
-              })(window,document,'script','dataLayer','GTM-KTCNV7NN');
+              })(window,document,'script','dataLayer','GTM-P6HPLDHD');
             `,
           }}
         />
@@ -117,7 +121,7 @@ export default function RootLayout({ children }) {
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe
-            src="https://www.googletagmanager.com/ns.html?id=GTM-KTCNV7NN"
+            src="https://www.googletagmanager.com/ns.html?id=GTM-P6HPLDHD"
             height="0"
             width="0"
             style={{ display: "none", visibility: "hidden" }}
