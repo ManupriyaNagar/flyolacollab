@@ -1,18 +1,20 @@
-import {
-    FaHome,
-    FaPlane,
-    FaClock,
-    FaBook,
-    FaUsers,
-    FaTicketAlt,
-    FaChartBar,
-    FaMapMarkerAlt,
-    FaCalendarAlt,
-    FaUserShield,
-    FaDollarSign,
-    FaCog,
-} from "react-icons/fa";
 import { ToyBrickIcon } from "lucide-react";
+import {
+    FaBook,
+    FaCalendarAlt,
+    FaChartBar,
+    FaClock,
+    FaCog,
+    FaDollarSign,
+    FaExclamationTriangle,
+    FaFileAlt,
+    FaHome,
+    FaMapMarkerAlt,
+    FaPlane,
+    FaTicketAlt,
+    FaUsers,
+    FaUserShield
+} from "react-icons/fa";
 
 /**
  * Centralized menu configuration
@@ -115,6 +117,13 @@ export const menuConfig = {
                 iconColor: "text-red-400",
                 iconClassName: "rotate-45",
             },
+            {
+                href: "/admin-dashboard/reschedule-booking",
+                icon: FaClock,
+                label: "Reschedule Booking",
+                iconColor: "text-orange-400",
+                activeGradient: "from-orange-600 to-red-600",
+            },
         ],
     },
 
@@ -193,6 +202,40 @@ export const menuConfig = {
                 icon: FaCog,
                 label: "Booking Settings",
                 iconColor: "text-yellow-400",
+            },
+            {
+                href: "/admin-dashboard/schedule-management",
+                icon: FaBook,
+                label: "Schedule Management",
+                iconColor: "text-indigo-400",
+                activeGradient: "from-indigo-600 to-purple-600",
+            },
+        ],
+    },
+
+    logsAndMonitoring: {
+        title: "Logs & Monitoring",
+        items: [
+            {
+                href: "/admin-dashboard/system-logs",
+                icon: FaFileAlt,
+                label: "System Logs",
+                iconColor: "text-blue-400",
+                activeGradient: "from-blue-600 to-cyan-600",
+            },
+            {
+                href: "/admin-dashboard/user-activity",
+                icon: FaUsers,
+                label: "User Activity",
+                iconColor: "text-green-400",
+                activeGradient: "from-green-600 to-emerald-600",
+            },
+            {
+                href: "/admin-dashboard/error-logs",
+                icon: FaExclamationTriangle,
+                label: "Error Logs",
+                iconColor: "text-red-400",
+                activeGradient: "from-red-600 to-pink-600",
             },
         ],
     },

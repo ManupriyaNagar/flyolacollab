@@ -1,27 +1,27 @@
 "use client";
 
 import BASE_URL from "@/baseUrl/baseUrl";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import {
+    ArrowsUpDownIcon,
+    CalendarDaysIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    CurrencyDollarIcon,
+    ExclamationTriangleIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    PaperAirplaneIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    XCircleIcon,
+    XMarkIcon,
+} from "@heroicons/react/24/outline";
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  PlusIcon,
-  TrashIcon,
-  PencilIcon,
-  XMarkIcon,
-  MagnifyingGlassIcon,
-  ExclamationTriangleIcon,
-  ClockIcon,
-  CalendarDaysIcon,
-  MapPinIcon,
-  CurrencyDollarIcon,
-  ArrowsUpDownIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-  PaperAirplaneIcon,
-} from "@heroicons/react/24/outline";
-import { Dialog, Transition } from "@headlessui/react";
-import { debounce } from "lodash";
 
 const ENTRIES_PER_PAGE = [10, 25, 50, 100];
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -745,7 +745,7 @@ const FlightSchedulePage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                       <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Flight
+                        Flight <span className="text-xs text-slate-500">({flights.filter(f => f.status === 1).length} active flights available)</span>
                       </label>
                       <select
                         name="flight_id"
@@ -755,12 +755,18 @@ const FlightSchedulePage = () => {
                         required
                         disabled={loading}
                       >
-                        <option value="">Select a flight</option>
-                        {flights.map((flight) => (
-                          <option key={flight.id} value={flight.id}>
-                            {flight.flight_number}
-                          </option>
-                        ))}
+                        <option value="">
+                          {flights.filter(f => f.status === 1).length > 0 
+                            ? "Select a flight" 
+                            : "No active flights available"}
+                        </option>
+                        {flights
+                          .filter((flight) => flight.status === 1) // Only show active flights
+                          .map((flight) => (
+                            <option key={flight.id} value={flight.id}>
+                              {flight.flight_number}
+                            </option>
+                          ))}
                       </select>
                     </div>
 

@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import FilterSidebar from "@/components/HelicopterFlight/FilterSidebar";
-import HelicopterFlightCard from "@/components/HelicopterFlight/HelicopterFlightCard";
-import Header2 from "@/components/HelicopterFlight/Header";
-import { useAuth } from "@/components/AuthContext";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { useAuth } from "@/components/AuthContext";
+import FilterSidebar from "@/components/HelicopterFlight/FilterSidebar";
+import Header2 from "@/components/HelicopterFlight/Header";
+import HelicopterFlightCard from "@/components/HelicopterFlight/HelicopterFlightCard";
+import { useEffect, useState } from "react";
 
 const tz = "Asia/Kolkata";
 const fmtIso = (d) =>
@@ -112,18 +112,22 @@ const HelicopterFlightsPage = () => {
     const params = new URLSearchParams(window.location.search);
     const dep = params.get("departure") || "";
     const arrCity = params.get("arrival") || "";
-    const date = params.get("date") || fmtIso(new Date());
+    const dateParam = params.get("date");
     const pax = parseInt(params.get("passengers")) || 1;
 
-    if (!isValidISO(date)) return;
+    // Use date from URL if valid, otherwise use today's date
+    let selectedDate = fmtIso(new Date());
+    if (dateParam && isValidISO(dateParam)) {
+      selectedDate = dateParam;
+    }
 
     setFilterDepartureCity(dep);
     setFilterArrivalCity(arrCity);
     setFilterMinSeats(pax);
-    setSearchCriteria({ departure: dep, arrival: arrCity, date, passengers: pax });
+    setSearchCriteria({ departure: dep, arrival: arrCity, date: selectedDate, passengers: pax });
 
     setDates(getMonthDates());
-    fetchData(date);
+    fetchData(selectedDate);
   }, [isClient]);
 
   useEffect(() => {

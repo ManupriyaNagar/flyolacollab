@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { FixedSizeList as List } from 'react-window';
-import { cn } from "@/lib/utils";
 
 const VirtualizedSelect = ({ options, value, onChange, placeholder }) => {
   const [isOpen, setIsOpen] = useState(false);

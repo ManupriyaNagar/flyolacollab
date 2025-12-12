@@ -1,10 +1,9 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import Image from "next/image";
-import { FaMapMarkerAlt, FaStar, FaPlane, FaArrowRight } from "react-icons/fa";
-import { cn } from "@/lib/utils";
-
+import { FaMapMarkerAlt, FaPlane, FaStar } from "react-icons/fa";
 const destinations = [
   {
     image: "/f2.png",
@@ -88,7 +87,7 @@ export default function PopularDestinations() {
         <div className={cn('relative', 'flex', 'flex-wrap', 'justify-center', 'items-center', 'gap-8', 'lg:gap-14', 'mb-16' ) }>
           {destinations.map((destination, index) => (
             <motion.div
-       
+              key={index}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               className={cn('group', 'relative', 'w-72', 'h-auto', 'bg-white', 'rounded-xl', 'shadow-md', 'overflow-hidden', 'border', 'border-gray-100')}
               style={{

@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "./../../../components/AuthContext";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { useEffect, useState } from "react";
+import { useAuth } from "./../../../components/AuthContext";
 
 const UserProfile = () => {
   const { authState } = useAuth();
@@ -29,6 +29,9 @@ const UserProfile = () => {
   const [success, setSuccess] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
   const [debugInfo, setDebugInfo] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
 
   useEffect(() => {
     if (!authState.isLoggedIn && !authState.isLoading) {
@@ -163,6 +166,57 @@ const UserProfile = () => {
       setSaving(false);
     }
   };
+
+  const handleDeleteAccount = async () => {
+    setDeleting(true);
+    setError(null);
+    setSuccess(null);
+
+    if (!token) {
+      setError("No authentication token found.");
+      setDeleting(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${BASE_URL}/users/profile`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `HTTP ${res.status}: Failed to delete account`);
+      }
+
+      const data = await res.json();
+      
+      // Clear local storage and redirect to home page
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      
+      // Show success message briefly before redirect
+      setSuccess("Account deleted successfully. Redirecting...");
+      
+      // Redirect to home page after 2 seconds
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 2000);
+      
+    } catch (e) {
+      if (e.message.includes('fetch')) {
+        setError("Unable to connect to server. Please check your internet connection.");
+      } else {
+        setError(`Delete failed: ${e.message}`);
+      }
+      setDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
 
   if (loading) return (
     <div className="space-y-6">
@@ -451,7 +505,51 @@ const UserProfile = () => {
           >
             {saving ? "Saving..." : "Save Profile"}
           </button>
+
+          <button
+            type="button"
+            onClick={() => setShowDeleteModal(true)}
+            disabled={deleting}
+            className={`w-full bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors mt-4 ${
+              deleting ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+          >
+            Delete Account
+          </button>
         </form>
+
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+              <h3 className="text-xl font-bold text-gray-900 mb-4">
+                Delete Account
+              </h3>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete your account? This action cannot be undone. 
+                All your data will be permanently removed.
+              </p>
+              <div className="flex gap-4">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  disabled={deleting}
+                  className="flex-1 bg-gray-200 text-gray-800 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeleteAccount}
+                  disabled={deleting}
+                  className={`flex-1 bg-red-600 text-white py-2 px-4 rounded-md hover:bg-red-700 transition-colors ${
+                    deleting ? "opacity-50 cursor-not-allowed" : ""
+                  }`}
+                >
+                  {deleting ? "Deleting..." : "Delete"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

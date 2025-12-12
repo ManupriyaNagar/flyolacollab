@@ -1,32 +1,32 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
-import * as XLSX from "xlsx";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { debounce } from "lodash";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
 import BASE_URL from "@/baseUrl/baseUrl";
-import {
-    MagnifyingGlassIcon,
-    ArrowDownTrayIcon,
-    EyeIcon,
-    CalendarDaysIcon,
-    UserGroupIcon,
-    CreditCardIcon,
-    ExclamationTriangleIcon,
-    CheckCircleIcon,
-    XCircleIcon,
-    ClockIcon,
-    ArrowsUpDownIcon,
-    ChartBarIcon,
-    BanknotesIcon,
-} from "@heroicons/react/24/outline";
+import { useAuth } from "@/components/AuthContext";
 import BookingDetailsModal from "@/components/BookingDetailsModal";
 import { cn } from "@/lib/utils";
+import {
+    ArrowDownTrayIcon,
+    ArrowsUpDownIcon,
+    BanknotesIcon,
+    CalendarDaysIcon,
+    ChartBarIcon,
+    CheckCircleIcon,
+    ClockIcon,
+    CreditCardIcon,
+    ExclamationTriangleIcon,
+    EyeIcon,
+    MagnifyingGlassIcon,
+    UserGroupIcon,
+    XCircleIcon,
+} from "@heroicons/react/24/outline";
+import { debounce } from "lodash";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import * as XLSX from "xlsx";
 
 const BOOKINGS_PER_PAGE = 50;
 

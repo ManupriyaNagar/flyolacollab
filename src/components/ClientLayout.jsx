@@ -1,11 +1,11 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import Header from "@/components/Header";
-import Footer from "@/components/Footer";
 import { AuthProvider } from "@/components/AuthContext";
+import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import RouteProtection from "@/components/RouteProtection";
 import SessionExpiredModal from "@/components/SessionExpiredModal";
+import { usePathname } from "next/navigation";
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -13,7 +13,7 @@ import 'react-toastify/dist/ReactToastify.css';
 export default function ClientLayout({ children }) {
   const pathname = usePathname();
 
-  // Check for all dashboard routes
+  // Check for all dashboard routes and /home page
   const isDashboard =
     pathname.startsWith("/admin-dashboard") ||
     pathname.startsWith("/user-dashboard") ||
@@ -23,7 +23,8 @@ export default function ClientLayout({ children }) {
     pathname.startsWith("/director-admin-dashboard") ||
     pathname.startsWith("/accounts-admin-dashboard") ||
     pathname.startsWith("/operations-dashboard") ||
-    pathname.startsWith("/mp-tourism-portal");
+    pathname.startsWith("/mp-tourism-portal") ||
+    pathname.startsWith("/home"); // Hide header on /home page (handles /home and /home/)
 
   return (
     <AuthProvider>

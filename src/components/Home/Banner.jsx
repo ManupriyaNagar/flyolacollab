@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { FaHelicopter, FaPlane, FaRocket, FaStar } from "react-icons/fa";
-
 const services = [
   {
     title: "Personal Charter",
@@ -67,7 +66,7 @@ const PrivateJetRental = () => {
           {services.map((service, index) => {
             const IconComponent = service.icon;
             return (
-              <div className={cn('group', 'relative')} >
+              <div key={index} className={cn('group', 'relative')} >
                 <div className={cn('', 'rounded-sm', 'shadow-sm', 'overflow-hidden', 'border', 'border-gray-100')}>
                   {/* Image Container */}
                   <div className={cn('relative', 'overflow-hidden')}>

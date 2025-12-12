@@ -3,9 +3,9 @@
 import { cn } from "@/lib/utils";
 import API from "@/services/api";
 import {
-    ArrowPathIcon,
-    CheckCircleIcon,
-    MagnifyingGlassIcon
+  ArrowPathIcon,
+  CheckCircleIcon,
+  MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
 import { useState } from "react";
 import { toast } from "react-toastify";

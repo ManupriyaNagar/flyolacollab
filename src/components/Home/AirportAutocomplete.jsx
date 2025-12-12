@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { FaSearch } from "react-icons/fa";
 import { cn } from "@/lib/utils";
-
+import { useEffect, useRef, useState } from "react";
+import { FaSearch } from "react-icons/fa";
 export default function AirportAutocomplete({
   airports,
   value,

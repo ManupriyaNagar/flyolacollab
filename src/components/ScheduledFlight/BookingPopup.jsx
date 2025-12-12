@@ -1,9 +1,10 @@
 "use client";
-import { FaUserFriends, FaClock, FaPlane, FaCalendarAlt } from "react-icons/fa";
-import { useRouter } from "next/navigation";
-import { useState, useEffect, useCallback, useMemo, memo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { FaCalendarAlt, FaClock, FaPlane, FaUserFriends } from "react-icons/fa";
 
 const tz = "Asia/Kolkata";
 
@@ -164,7 +165,7 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 overflow-y-auto"
+        className={cn('fixed', 'inset-0', 'bg-black/60', 'flex', 'items-center', 'justify-center', 'z-50', 'p-4', 'overflow-y-auto')}
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -172,7 +173,7 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
         onClick={handleBackdropClick}
       >
         <motion.div
-          className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-y-auto border border-gray-200"
+          className={cn('bg-white', 'rounded-3xl', 'shadow-2xl', 'w-full', 'max-w-2xl', 'max-h-[95vh]', 'overflow-y-auto', 'border', 'border-gray-200')}
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -180,50 +181,50 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-t-3xl">
-            <div className="flex justify-between items-center">
+          <div className={cn('bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white', 'p-6', 'rounded-t-3xl')}>
+            <div className={cn('flex', 'justify-between', 'items-center')}>
               <div>
-                <h2 className="text-2xl font-bold flex items-center gap-3">
+                <h2 className={cn('text-2xl', 'font-bold', 'flex', 'items-center', 'gap-3')}>
                   <FaPlane className="text-yellow-300" />
                   Complete Your Booking
                 </h2>
-                <p className="text-blue-100 mt-1">Secure your seats in just a few clicks</p>
+                <p className={cn('text-blue-100', 'mt-1')}>Secure your seats in just a few clicks</p>
               </div>
               <button
-                className="text-white/80 hover:text-white hover:bg-white/20 p-2 rounded-full transition-all"
+                className={cn('text-white/80', 'hover:text-white', 'hover:bg-white/20', 'p-2', 'rounded-full', 'transition-all')}
                 onClick={closePopup}
                 aria-label="Close"
               >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className={cn('w-6', 'h-6')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
 
-          <div className="p-6 space-y-6">
+          <div className={cn('p-6', 'space-y-6')}>
             {/* Flight Details */}
-            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <div className={cn('bg-gradient-to-br', 'from-blue-50', 'to-indigo-50', 'p-6', 'rounded-2xl', 'border', 'border-blue-200')}>
+              <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
                 <FaPlane className="text-blue-600" />
                 Flight Details
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4')}>
                 <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                    <span className="text-sm text-gray-600">From:</span>
-                    <span className="font-semibold text-gray-800">{departure}</span>
+                  <div className={cn('flex', 'items-center', 'gap-3')}>
+                    <div className={cn('w-2', 'h-2', 'bg-green-500', 'rounded-full')}></div>
+                    <span className={cn('text-sm', 'text-gray-600')}>From:</span>
+                    <span className={cn('font-semibold', 'text-gray-800')}>{departure}</span>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-                    <span className="text-sm text-gray-600">To:</span>
-                    <span className="font-semibold text-gray-800">{arrival}</span>
+                  <div className={cn('flex', 'items-center', 'gap-3')}>
+                    <div className={cn('w-2', 'h-2', 'bg-red-500', 'rounded-full')}></div>
+                    <span className={cn('text-sm', 'text-gray-600')}>To:</span>
+                    <span className={cn('font-semibold', 'text-gray-800')}>{arrival}</span>
                   </div>
-                  <div className="flex items-center gap-3">
+                  <div className={cn('flex', 'items-center', 'gap-3')}>
                     <FaCalendarAlt className="text-blue-500" size={12} />
-                    <span className="text-sm text-gray-600">Date:</span>
-                    <span className="font-semibold text-gray-800">
+                    <span className={cn('text-sm', 'text-gray-600')}>Date:</span>
+                    <span className={cn('font-semibold', 'text-gray-800')}>
                       {new Date(formattedDate).toLocaleDateString("en-US", {
                         weekday: 'long',
                         year: 'numeric',
@@ -234,22 +235,22 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 flex items-center gap-2">
+                  <div className={cn('bg-white', 'p-3', 'rounded-xl', 'border', 'border-gray-200')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
+                      <span className={cn('text-sm', 'text-gray-600', 'flex', 'items-center', 'gap-2')}>
                         <FaClock className="text-green-500" />
                         Departure
                       </span>
-                      <span className="font-bold text-lg text-gray-800">{departureTime}</span>
+                      <span className={cn('font-bold', 'text-lg', 'text-gray-800')}>{departureTime}</span>
                     </div>
                   </div>
-                  <div className="bg-white p-3 rounded-xl border border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-gray-600 flex items-center gap-2">
+                  <div className={cn('bg-white', 'p-3', 'rounded-xl', 'border', 'border-gray-200')}>
+                    <div className={cn('flex', 'items-center', 'justify-between')}>
+                      <span className={cn('text-sm', 'text-gray-600', 'flex', 'items-center', 'gap-2')}>
                         <FaClock className="text-blue-500" />
                         Arrival
                       </span>
-                      <span className="font-bold text-lg text-gray-800">{arrivalTime}</span>
+                      <span className={cn('font-bold', 'text-lg', 'text-gray-800')}>{arrivalTime}</span>
                     </div>
                   </div>
                 </div>
@@ -257,81 +258,81 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
             </div>
 
             {/* Passenger Information */}
-            <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-6 rounded-2xl border border-green-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <div className={cn('bg-gradient-to-br', 'from-green-50', 'to-emerald-50', 'p-6', 'rounded-2xl', 'border', 'border-green-200')}>
+              <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
                 <FaUserFriends className="text-green-600" />
                 Passenger Details
               </h3>
-              <div className="grid grid-cols-3 gap-4">
-                <div className="text-center bg-white p-4 rounded-xl border border-green-200">
-                  <div className="text-2xl font-bold text-green-600">{passengers.adults}</div>
-                  <div className="text-sm text-gray-600">Adults</div>
+              <div className={cn('grid', 'grid-cols-3', 'gap-4')}>
+                <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
+                  <div className={cn('text-2xl', 'font-bold', 'text-green-600')}>{passengers.adults}</div>
+                  <div className={cn('text-sm', 'text-gray-600')}>Adults</div>
                 </div>
-                <div className="text-center bg-white p-4 rounded-xl border border-green-200">
-                  <div className="text-2xl font-bold text-blue-600">{passengers.children}</div>
-                  <div className="text-sm text-gray-600">Children</div>
+                <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
+                  <div className={cn('text-2xl', 'font-bold', 'text-blue-600')}>{passengers.children}</div>
+                  <div className={cn('text-sm', 'text-gray-600')}>Children</div>
                 </div>
-                <div className="text-center bg-white p-4 rounded-xl border border-green-200">
-                  <div className="text-2xl font-bold text-purple-600">{passengers.infants}</div>
-                  <div className="text-sm text-gray-600">Infants</div>
+                <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
+                  <div className={cn('text-2xl', 'font-bold', 'text-purple-600')}>{passengers.infants}</div>
+                  <div className={cn('text-sm', 'text-gray-600')}>Infants</div>
                 </div>
               </div>
             </div>
 
             {/* Seat Selection */}
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 p-6 rounded-2xl border border-yellow-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                <svg className="w-5 h-5 text-yellow-600" fill="currentColor" viewBox="0 0 20 20">
+            <div className={cn('bg-gradient-to-br', 'from-yellow-50', 'to-orange-50', 'p-6', 'rounded-2xl', 'border', 'border-yellow-200')}>
+              <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
+                <svg className={cn('w-5', 'h-5', 'text-yellow-600')} fill="currentColor" viewBox="0 0 20 20">
                   <path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" />
                 </svg>
                 Select Your Seats ({selectedSeats.length}/{totalPassengers})
               </h3>
 
               {loading ? (
-                <div className="py-8 space-y-4">
-                  <div className="flex items-center justify-center mb-4">
-                    <div className="h-4 w-48 bg-gray-200 rounded animate-pulse"></div>
+                <div className={cn('py-8', 'space-y-4')}>
+                  <div className={cn('flex', 'items-center', 'justify-center', 'mb-4')}>
+                    <div className={cn('h-4', 'w-48', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 max-w-[8rem] mx-auto">
+                  <div className={cn('grid', 'grid-cols-2', 'gap-3', 'max-w-[8rem]', 'mx-auto')}>
                     {Array.from({ length: 6 }).map((_, i) => (
-                      <div key={i} className="h-10 bg-gray-200 rounded-lg animate-pulse"></div>
+                      <div key={i} className={cn('h-10', 'bg-gray-200', 'rounded-lg', 'animate-pulse')}></div>
                     ))}
                   </div>
                 </div>
               ) : error && availableSeats.length === 0 ? (
-                <div className="text-center py-6 bg-red-50 rounded-xl border border-red-200">
-                  <p className="text-red-600 mb-3">{error}</p>
+                <div className={cn('text-center', 'py-6', 'bg-red-50', 'rounded-xl', 'border', 'border-red-200')}>
+                  <p className={cn('text-red-600', 'mb-3')}>{error}</p>
                   <button
                     onClick={handleRetry}
-                    className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors"
+                    className={cn('px-4', 'py-2', 'bg-red-500', 'text-white', 'rounded-lg', 'hover:bg-red-600', 'transition-colors')}
                   >
                     Try Again
                   </button>
                 </div>
               ) : (
                 <div>
-                  <div className="mb-4 flex items-center justify-center gap-6 text-sm">
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-green-500 rounded"></div>
+                  <div className={cn('mb-4', 'flex', 'items-center', 'justify-center', 'gap-6', 'text-sm')}>
+                    <div className={cn('flex', 'items-center', 'gap-2')}>
+                      <div className={cn('w-4', 'h-4', 'bg-green-500', 'rounded')}></div>
                       <span>Selected</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-blue-200 rounded"></div>
+                    <div className={cn('flex', 'items-center', 'gap-2')}>
+                      <div className={cn('w-4', 'h-4', 'bg-blue-200', 'rounded')}></div>
                       <span>Available</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 bg-red-200 rounded"></div>
+                    <div className={cn('flex', 'items-center', 'gap-2')}>
+                      <div className={cn('w-4', 'h-4', 'bg-red-200', 'rounded')}></div>
                       <span>Occupied</span>
                     </div>
                   </div>
 
-                  <div className="bg-white p-4 rounded-xl border border-gray-200">
-                    <div className="text-center mb-4">
-                      <div className="inline-block bg-gray-800 text-white px-4 py-1 rounded-full text-xs font-medium">
+                  <div className={cn('bg-white', 'p-4', 'rounded-xl', 'border', 'border-gray-200')}>
+                    <div className={cn('text-center', 'mb-4')}>
+                      <div className={cn('inline-block', 'bg-gray-800', 'text-white', 'px-4', 'py-1', 'rounded-full', 'text-xs', 'font-medium')}>
                         ✈️ FRONT OF AIRCRAFT
                       </div>
                     </div>
-                    <div className="grid grid-cols-3 gap-3 max-w-xs mx-auto">
+                    <div className={cn('grid', 'grid-cols-3', 'gap-3', 'max-w-xs', 'mx-auto')}>
                       {allSeats.map((seat) => (
                         <SeatButton
                           key={seat}
@@ -349,31 +350,31 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
             </div>
 
             {/* Price Summary */}
-            <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-6 rounded-2xl border border-purple-200">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Price Breakdown</h3>
+            <div className={cn('bg-gradient-to-br', 'from-purple-50', 'to-pink-50', 'p-6', 'rounded-2xl', 'border', 'border-purple-200')}>
+              <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4')}>Price Breakdown</h3>
               <div className="space-y-3">
-                <div className="flex justify-between items-center">
+                <div className={cn('flex', 'justify-between', 'items-center')}>
                   <span className="text-gray-600">Base Price (Adults: {passengers.adults})</span>
                   <span className="font-semibold">₹{(basePrice * passengers.adults).toLocaleString('en-IN')}</span>
                 </div>
                 {passengers.children > 0 && (
-                  <div className="flex justify-between items-center">
+                  <div className={cn('flex', 'justify-between', 'items-center')}>
                     <span className="text-gray-600">Children ({passengers.children}) - 50% off</span>
                     <span className="font-semibold">₹{(basePrice * passengers.children * childDiscount).toLocaleString('en-IN')}</span>
                   </div>
                 )}
                 {passengers.infants > 0 && (
-                  <div className="flex justify-between items-center">
+                  <div className={cn('flex', 'justify-between', 'items-center')}>
                     <span className="text-gray-600">Infants ({passengers.infants})</span>
                     <span className="font-semibold">₹{(passengers.infants * infantFee).toLocaleString('en-IN')}</span>
                   </div>
                 )}
-                <div className="border-t border-gray-300 pt-3">
-                  <div className="flex justify-between items-center text-xl font-bold">
+                <div className={cn('border-t', 'border-gray-300', 'pt-3')}>
+                  <div className={cn('flex', 'justify-between', 'items-center', 'text-xl', 'font-bold')}>
                     <span className="text-gray-800">Total Amount</span>
                     <span className="text-green-600">₹{parseFloat(calculateTotalPrice).toLocaleString('en-IN')}</span>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">✅ Includes all taxes and fees</p>
+                  <p className={cn('text-xs', 'text-gray-500', 'mt-1')}>✅ Includes all taxes and fees</p>
                 </div>
               </div>
             </div>
@@ -381,12 +382,12 @@ const BookingPopup = ({ closePopup, passengerData, departure, arrival, selectedD
             {/* Confirm Button */}
             <button
               onClick={handleConfirmBooking}
-              className="w-full py-4 bg-gradient-to-r from-green-600 to-blue-600 text-white rounded-2xl text-lg font-bold hover:from-green-700 hover:to-blue-700 transition-colors duration-200 shadow-lg hover:shadow-xl disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed"
+              className={cn('w-full', 'py-4', 'bg-gradient-to-r', 'from-green-600', 'to-blue-600', 'text-white', 'rounded-2xl', 'text-lg', 'font-bold', 'hover:from-green-700', 'hover:to-blue-700', 'transition-colors', 'duration-200', 'shadow-lg', 'hover:shadow-xl', 'disabled:from-gray-400', 'disabled:to-gray-500', 'disabled:cursor-not-allowed')}
               disabled={loading || (error && availableSeats.length === 0) || selectedSeats.length !== totalPassengers}
             >
               {loading ? (
-                <div className="flex items-center justify-center gap-3">
-                  <div className="h-5 w-5 bg-white/30 rounded animate-pulse"></div>
+                <div className={cn('flex', 'items-center', 'justify-center', 'gap-3')}>
+                  <div className={cn('h-5', 'w-5', 'bg-white/30', 'rounded', 'animate-pulse')}></div>
                   Processing...
                 </div>
               ) : selectedSeats.length !== totalPassengers ? (

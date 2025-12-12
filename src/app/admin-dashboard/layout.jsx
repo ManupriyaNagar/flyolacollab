@@ -1,26 +1,25 @@
 "use client";
-
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import AdminDebugPanel from "@/components/AdminDebugPanel";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
-import AdminDebugPanel from "@/components/AdminDebugPanel";
-import {
-  FaBars,
-  FaPlane,
-  FaTimes,
-  FaUserShield,
-  FaSignOutAlt,
-} from "react-icons/fa";
-import { 
-  Bell,
-  Settings,
-  Search,
-  User,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import { SidebarMenuItem, SidebarSection } from "@/components/admin/SidebarComponents";
 import { menuConfig } from "@/components/admin/menuConfig";
+import { cn } from "@/lib/utils";
+import {
+    Bell,
+    Search,
+    Settings,
+    User,
+} from "lucide-react";
+import { usePathname } from "next/navigation";
+import { useState } from "react";
+import {
+    FaBars,
+    FaPlane,
+    FaSignOutAlt,
+    FaTimes,
+    FaUserShield,
+} from "react-icons/fa";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
 
@@ -181,6 +180,21 @@ export default function AdminDashboardLayout({ children }) {
           {/* System Settings */}
           <SidebarSection title={menuConfig.systemSettings.title}>
             {menuConfig.systemSettings.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
+
+          {/* Logs & Monitoring */}
+          <SidebarSection title={menuConfig.logsAndMonitoring.title}>
+            {menuConfig.logsAndMonitoring.items.map((item) => (
               <SidebarMenuItem
                 key={item.href}
                 href={item.href}

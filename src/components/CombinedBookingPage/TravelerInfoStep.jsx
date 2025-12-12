@@ -76,10 +76,18 @@ const TravelerInfoStep = ({
     freeWeightLimit: 75
   });
 
+  // Helper function to detect if this is a helicopter booking
+  // Checks multiple sources to be robust against missing bookingType
+  const isHelicopterBooking = () => {
+    return bookingData?.bookingType === 'helicopter' || 
+           bookingData?.type === 'helicopter' || 
+           !!bookingData?.helicopterNumber;
+  };
+
   useEffect(() => {
     // Fetch weight pricing settings for helicopter bookings
     const fetchWeightSettings = async () => {
-      if (bookingData?.bookingType === 'helicopter') {
+      if (isHelicopterBooking()) {
         try {
           const response = await API.systemSettings.getBookingCutoffTime();
           setWeightSettings({
@@ -92,7 +100,7 @@ const TravelerInfoStep = ({
       }
     };
     fetchWeightSettings();
-  }, [bookingData?.bookingType]);
+  }, [bookingData?.bookingType, bookingData?.type, bookingData?.helicopterNumber]);
 
   const validateField = (field, value, idx) => {
     const key = `${idx}-${field}`;
@@ -120,7 +128,7 @@ const TravelerInfoStep = ({
         }
         break;
       case 'weight':
-        if (bookingData?.bookingType === 'helicopter') {
+        if (isHelicopterBooking()) {
           if (!value || parseFloat(value) <= 0) {
             newErr[key] = 'Weight is required';
             newStat[key] = 'error';
@@ -183,7 +191,7 @@ const TravelerInfoStep = ({
     let stats = {};
     let hasError = false;
 
-    const isHelicopter = bookingData?.bookingType === 'helicopter';
+    const isHelicopter = isHelicopterBooking();
 
     travelerDetails.forEach((t, idx) => {
       ['title','fullName','dateOfBirth'].forEach(fld => {
@@ -234,7 +242,7 @@ const TravelerInfoStep = ({
               <li>Names must match your ID documents exactly</li>
               <li>Contact information will be used for booking updates</li>
               <li>Fields with * are required</li>
-              {bookingData?.bookingType === 'helicopter' && (
+              {isHelicopterBooking() && (
                 <li className="font-medium text-orange-700">
                   Weight over {weightSettings.freeWeightLimit}kg will be charged ₹{weightSettings.pricePerKg}/kg
                 </li>
@@ -275,7 +283,7 @@ const TravelerInfoStep = ({
             <div className="grid md:grid-cols-2 gap-4 mb-4">
               <InputField label="Date of Birth" type="date" value={trav.dateOfBirth} onChange={v=>handleInputChange(i,'dateOfBirth',v)} onBlur={v=>handleBlur(i,'dateOfBirth',v)} required icon={FaIdCard} status={getStatus(i,'dateOfBirth')} error={getError(i,'dateOfBirth')} />
               
-              {bookingData?.bookingType === 'helicopter' && (
+              {isHelicopterBooking() && (
                 <div className="space-y-1">
                   <label className="block text-sm font-medium text-gray-700">
                     Weight (kg) <span className="text-red-500">*</span>

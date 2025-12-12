@@ -5,13 +5,13 @@ import API from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  FaClock,
-  FaCreditCard,
-  FaExclamationTriangle,
-  FaPlane,
-  FaShieldAlt,
-  FaSpinner,
-  FaUserFriends
+    FaClock,
+    FaCreditCard,
+    FaExclamationTriangle,
+    FaPlane,
+    FaShieldAlt,
+    FaSpinner,
+    FaUserFriends
 } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 
@@ -515,6 +515,7 @@ async function handleBooking() {
         age: t.dateOfBirth
           ? Math.floor((Date.now() - new Date(t.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
           : 0,
+        weight: t.weight ? parseFloat(t.weight) : null,
       })),
     };
 

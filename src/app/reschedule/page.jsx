@@ -12,7 +12,6 @@ import {
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { toast } from "react-toastify";
-
 const ReschedulePageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();

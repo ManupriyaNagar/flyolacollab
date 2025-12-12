@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { FaHelicopter, FaClock, FaUserFriends, FaCheckCircle } from "react-icons/fa";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import API from "@/services/api";
 import AuthModal from "@/components/AuthModal";
+import API from "@/services/api";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FaCheckCircle, FaHelicopter, FaUserFriends } from "react-icons/fa";
 
 const tz = "Asia/Kolkata";
 const fmtTime = (t) => {
@@ -136,7 +136,11 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       try {
         const response = await API.systemSettings.getBookingCutoffTime();
         setCutoffTime(response.data.helicopter_cutoff_time || "09:00");
-        setAdvanceBookingDays(response.data.advance_booking_days || 0);
+        setAdvanceBookingDays(
+          response.data.helicopter_advance_booking_days !== undefined 
+            ? response.data.helicopter_advance_booking_days 
+            : (response.data.advance_booking_days || 0)
+        );
       } catch (error) {
         console.error("Error fetching cutoff settings:", error);
         // Keep defaults if fetch fails
@@ -202,14 +206,17 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       const isHelicopterDeparted =
         selectedDate === currentDate && currentTimeInMinutes >= departureTimeInMinutes;
 
-      setIsBookingDisabled(isAfterCutoff || isHelicopterDeparted);
+      // Admin (role 1) can book anytime - bypass cutoff time
+      const isAdmin = authState?.userRole === "1";
+      
+      setIsBookingDisabled(isAdmin ? isHelicopterDeparted : (isAfterCutoff || isHelicopterDeparted));
       setIsDeparted(isHelicopterDeparted);
     };
 
     checkBookingStatus();
     const interval = setInterval(checkBookingStatus, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [schedule.departure_time, selectedDate, cutoffTime, advanceBookingDays]);
+  }, [schedule.departure_time, selectedDate, cutoffTime, advanceBookingDays, authState?.userRole]);
 
   const handleBookNowClick = useCallback(() => {
     if (!authState?.isLoggedIn) {
@@ -224,7 +231,10 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       alert(`Only ${availableSeats.length} seat(s) left. Please reduce passengers.`);
       return;
     }
-    if (isBookingDisabled) {
+    // Admin (role 1) can bypass cutoff time restrictions
+    const isAdmin = authState?.userRole === "1";
+    
+    if (isBookingDisabled && !isAdmin) {
       if (isDeparted) {
         alert("This helicopter has departed.");
       } else if (advanceBookingDays > 0) {
@@ -232,6 +242,12 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
       } else {
         alert(`Booking is closed after ${cutoffTime} IST on the departure date.`);
       }
+      return;
+    }
+    
+    // Even admin cannot book departed flights
+    if (isDeparted) {
+      alert("This helicopter has departed.");
       return;
     }
     

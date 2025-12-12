@@ -1,10 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { FaNewspaper, FaClock, FaArrowRight, FaCalendarAlt } from "react-icons/fa";
 import { cn } from "@/lib/utils";
-
+import { motion } from "framer-motion";
+import { FaArrowRight, FaCalendarAlt, FaClock, FaNewspaper } from "react-icons/fa";
 const ArticleSection = () => {
   const articles = [
     {

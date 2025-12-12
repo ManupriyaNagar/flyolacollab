@@ -1,15 +1,16 @@
 "use client";
 
 import LazySection from "@/components/LazySection";
+import { cn } from "@/lib/utils";
 import dynamic from "next/dynamic";
 import { useEffect } from 'react';
 import "./globals.css";
 
 import FlightBooking from '@/components/Home/FlightBooking';
 import MobileFlightBooking from "@/components/Home/MobileFlightBooking";
-import { cn } from "@/lib/utils";
 
 // Lazy load components that are below the fold
+const ImageShowcase = dynamic(() => import("@/components/Home/ImageShowcase"), { ssr: false });
 const FeatureCards = dynamic(() => import("@/components/Home/FeatureCard"), { ssr: false });
 const PrivateJetRental = dynamic(() => import("@/components/Home/Banner"), { ssr: false });
 const AviationHighlights = dynamic(() => import("@/components/Home/Highlights"), { ssr: false });
@@ -42,7 +43,7 @@ export default function Home() {
       
       if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) > 300000) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com  '}/airport`);
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com '}/airport`);
           if (response.ok) {
             const data = await response.json();
             sessionStorage.setItem('airports_data', JSON.stringify(data));
@@ -79,6 +80,10 @@ export default function Home() {
       <div className="md:hidden">
         <MobileFlightBooking />
       </div>
+      
+      <LazySection>
+        <ImageShowcase />
+      </LazySection>
       
       <LazySection>
         <FeatureCards />

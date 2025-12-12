@@ -1,24 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
+import { cn } from "@/lib/utils";
+import { Home } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   FaBars,
-  FaHome,
-  FaPlane,
-  FaClock,
-  FaBook,
-  FaUsers,
-  FaTimes,
   FaBell,
+  FaBook,
   FaCog,
+  FaHome,
   FaTicketAlt,
+  FaTimes
 } from "react-icons/fa";
-import { Home, ToyBrickIcon } from "lucide-react";
-import Link from "next/link";
-
 const normalizePath = (path) => path.replace(/\/+$/, "");
 
 export default function AgentDashboardLayout({ children }) {
@@ -40,26 +37,26 @@ export default function AgentDashboardLayout({ children }) {
 
   return (
     <RouteGuard>
-      <div className="flex min-h-screen bg-gradient-to-br from-gray-50 to-indigo-100">
+      <div className={cn('flex', 'min-h-screen', 'bg-gradient-to-br', 'from-gray-50', 'to-indigo-100')}>
       <aside
         className={`fixed top-0 left-0 h-full z-20 w-72 p-6 flex flex-col overflow-y-auto transition-transform duration-300 ${
           isSidebarVisible ? "translate-x-0" : "-translate-x-full"
         } md:translate-x-0 bg-gradient-to-b from-indigo-900 to-indigo-800 text-white shadow-2xl`}
       >
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-indigo-300">
+        <div className={cn('flex', 'items-center', 'justify-between', 'mb-8')}>
+          <h1 className={cn('text-3xl', 'font-extrabold', 'tracking-tight', 'bg-clip-text', 'text-transparent', 'bg-gradient-to-r', 'from-white', 'to-indigo-300')}>
             Agent Dashboard
           </h1>
           <button
             onClick={() => setSidebarVisible(false)}
-            className="md:hidden text-white hover:text-gray-300"
+            className={cn('md:hidden', 'text-white', 'hover:text-gray-300')}
             aria-label="Close sidebar"
           >
             <FaTimes size={24} />
           </button>
         </div>
 
-        <nav className="space-y-4 flex-1">
+        <nav className={cn('space-y-4', 'flex-1')}>
 
           
           <Link
@@ -104,31 +101,31 @@ export default function AgentDashboardLayout({ children }) {
       {isSidebarVisible && (
         <div
           onClick={() => setSidebarVisible(false)}
-          className="fixed inset-0 bg-black opacity-50 z-10 md:hidden"
+          className={cn('fixed', 'inset-0', 'bg-black', 'opacity-50', 'z-10', 'md:hidden')}
           aria-hidden="true"
         />
       )}
 
-      <main className="flex-1 relative md:ml-72">
-        <header className="fixed top-0 left-0 right-0 md:left-72 bg-white shadow-md p-4 flex items-center justify-between z-10">
+      <main className={cn('flex-1', 'relative', 'md:ml-72')}>
+        <header className={cn('fixed', 'top-0', 'left-0', 'right-0', 'md:left-72', 'bg-white', 'shadow-md', 'p-4', 'flex', 'items-center', 'justify-between', 'z-10')}>
           <div>
-            <h2 className="md:text-4xl text-sm font-bold text-gray-800">
+            <h2 className={cn('md:text-4xl', 'text-sm', 'font-bold', 'text-gray-800')}>
               Welcome Back, Agent!
             </h2>
           </div>
-          <nav className="flex items-center space-x-4">
-            <a href="/" className="text-gray-600 hover:text-indigo-600">
+          <nav className={cn('flex', 'items-center', 'space-x-4')}>
+            <a href="/" className={cn('text-gray-600', 'hover:text-indigo-600')}>
               <Home size={20} />
             </a>
-            <a href="/notifications" className="text-gray-600 hover:text-indigo-600">
+            <a href="/notifications" className={cn('text-gray-600', 'hover:text-indigo-600')}>
               <FaBell size={20} />
             </a>
-            <a href="/settings" className="text-gray-600 hover:text-indigo-600">
+            <a href="/settings" className={cn('text-gray-600', 'hover:text-indigo-600')}>
               <FaCog size={20} />
             </a>
             <button
               onClick={() => setSidebarVisible(!isSidebarVisible)}
-              className="md:hidden text-black rounded-full"
+              className={cn('md:hidden', 'text-black', 'rounded-full')}
               aria-label="Toggle sidebar"
             >
               <FaBars size={20} />
@@ -136,8 +133,8 @@ export default function AgentDashboardLayout({ children }) {
           </nav>
         </header>
 
-        <div className="pt-20 p-10 overflow-y-auto h-screen">
-          <section className="bg-white p-8 rounded-2xl shadow-xl mt-12 border border-gray-200 transform transition-all hover:shadow-2xl">
+        <div className={cn('pt-20', 'p-10', 'overflow-y-auto', 'h-screen')}>
+          <section className={cn('bg-white', 'p-8', 'rounded-2xl', 'shadow-xl', 'mt-12', 'border', 'border-gray-200', 'transform', 'transition-all', 'hover:shadow-2xl')}>
             {children}
           </section>
         </div>

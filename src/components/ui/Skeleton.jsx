@@ -1,6 +1,5 @@
 "use client";
 
-import { cn } from "@/lib/utils";
 
 // Base Skeleton Component
 export function Skeleton({ className, ...props }) {

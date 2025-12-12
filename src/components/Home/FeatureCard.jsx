@@ -1,11 +1,10 @@
 "use client";
 
-import React, { memo } from "react";
 import { motion } from "framer-motion";
-import { FaPlane, FaGlobe, FaCompass, FaHeadset } from "react-icons/fa";
+import { memo } from "react";
+import { FaCompass, FaGlobe, FaHeadset, FaPlane } from "react-icons/fa";
+
 import { cn } from "@/lib/utils";
-
-
 
 const features = [
   {

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
+import { useState } from "react";
 
 export default function HelicopterHirePage() {
   // Helicopter carousel data
@@ -10,19 +10,19 @@ export default function HelicopterHirePage() {
     {
       title: "Luxury Sky Tour",
       description: "Experience breathtaking views from above",
-      src: "/1.png",
+      src: "/home/home4.jpeg",
       button: "Book Now",
     },
     {
       title: "City Escape",
       description: "Quick getaways over urban landscapes",
-      src: "/2.png",
+      src: "https://media.cnn.com/api/v1/images/stellar/prod/200102145651-uh-60-black-hawk.jpg?q=w_1600,h_1069,x_0,y_0,c_fill",
       button: "Reserve Flight",
     },
     {
       title: "Mountain Adventure",
       description: "Soar above majestic peaks",
-      src: "5.png",
+      src: "https://images.stockcake.com/public/2/1/9/21947095-b369-4b2d-9b48-b62bff8fb8da_large/helicopter-over-mountains-stockcake.jpg",
       button: "Schedule Now",
     },
   ];

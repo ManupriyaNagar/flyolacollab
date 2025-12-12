@@ -1,10 +1,8 @@
 "use client";
 
-import React from "react";
-import { motion } from "framer-motion";
-import { FaHeadset, FaMousePointer, FaDollarSign, FaStar, FaCheckCircle } from "react-icons/fa";
 import { cn } from "@/lib/utils";
-
+import { motion } from "framer-motion";
+import { FaCheckCircle, FaDollarSign, FaHeadset, FaMousePointer } from "react-icons/fa";
 const features = [
   {
     id: "01",

@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
-import { 
-  ClockIcon, 
-  MapPinIcon, 
-  UsersIcon, 
-  CurrencyDollarIcon,
-  ArrowRightIcon,
+import { cn } from "@/lib/utils";
+import {
   CalendarDaysIcon,
-  CheckCircleIcon
+  CheckCircleIcon,
+  ClockIcon,
+  MapPinIcon,
+  UsersIcon
 } from "@heroicons/react/24/outline";
+import { useState } from "react";
 import BookingPopup from "./BookingPopup";
 
 const HelicopterCard = ({ 
@@ -72,10 +71,10 @@ const HelicopterCard = ({
       <div className={`bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden transition-all duration-300 hover:shadow-2xl hover:border-blue-200 ${!isActive ? 'opacity-75' : ''}`}>
         <div className="p-8">
           {/* Header */}
-          <div className="flex justify-between items-start mb-8">
+          <div className={cn('flex', 'justify-between', 'items-start', 'mb-8')}>
             <div>
-              <div className="flex items-center gap-3 mb-3">
-                <h3 className="text-2xl font-bold text-slate-800">
+              <div className={cn('flex', 'items-center', 'gap-3', 'mb-3')}>
+                <h3 className={cn('text-2xl', 'font-bold', 'text-slate-800')}>
                   {helicopter?.helicopter_number || 'Unknown Helicopter'}
                 </h3>
                 <span className={`px-4 py-2 rounded-full text-sm font-semibold ${
@@ -86,53 +85,53 @@ const HelicopterCard = ({
                   {isActive ? '✈️ Available' : '🚫 Unavailable'}
                 </span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-slate-600 bg-slate-50 rounded-lg px-3 py-2">
-                <CalendarDaysIcon className="w-4 h-4 text-blue-500" />
+              <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-600', 'bg-slate-50', 'rounded-lg', 'px-3', 'py-2')}>
+                <CalendarDaysIcon className={cn('w-4', 'h-4', 'text-blue-500')} />
                 <span className="font-medium">Operates on {helicopter?.departure_day || 'Unknown'}</span>
               </div>
             </div>
             <div className="text-right">
-              <div className="text-3xl font-bold text-slate-800 mb-1">
+              <div className={cn('text-3xl', 'font-bold', 'text-slate-800', 'mb-1')}>
                 ₹{schedule?.price ? Number(schedule.price).toLocaleString('en-IN') : '0'}
               </div>
-              <div className="text-sm text-slate-500 font-medium">per person</div>
-              <div className="text-xs text-blue-600 font-medium mt-1">All inclusive</div>
+              <div className={cn('text-sm', 'text-slate-500', 'font-medium')}>per person</div>
+              <div className={cn('text-xs', 'text-blue-600', 'font-medium', 'mt-1')}>All inclusive</div>
             </div>
           </div>
 
           {/* Route Information */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+          <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-3', 'gap-6', 'mb-6')}>
             {/* Departure */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <MapPinIcon className="w-5 h-5 text-green-500" />
-                <span className="font-semibold text-slate-800">Departure</span>
+              <div className={cn('flex', 'items-center', 'justify-center', 'gap-2', 'mb-2')}>
+                <MapPinIcon className={cn('w-5', 'h-5', 'text-green-500')} />
+                <span className={cn('font-semibold', 'text-slate-800')}>Departure</span>
               </div>
-              <div className="text-lg font-bold text-slate-800">
+              <div className={cn('text-lg', 'font-bold', 'text-slate-800')}>
                 {formatTime(schedule?.departure_time)}
               </div>
-              <div className="text-sm text-slate-600">
+              <div className={cn('text-sm', 'text-slate-600')}>
                 {departureHelipad?.helipad_name || 'Unknown Helipad'}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className={cn('text-xs', 'text-slate-500')}>
                 {departureHelipad?.city || 'Unknown City'}
               </div>
             </div>
 
             {/* Duration & Stops */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <ClockIcon className="w-5 h-5 text-blue-500" />
-                <span className="font-semibold text-slate-800">Duration</span>
+              <div className={cn('flex', 'items-center', 'justify-center', 'gap-2', 'mb-2')}>
+                <ClockIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                <span className={cn('font-semibold', 'text-slate-800')}>Duration</span>
               </div>
-              <div className="text-lg font-bold text-slate-800">
+              <div className={cn('text-lg', 'font-bold', 'text-slate-800')}>
                 {calculateDuration()}
               </div>
-              <div className="text-sm text-slate-600">
+              <div className={cn('text-sm', 'text-slate-600')}>
                 {stopHelipads.length === 0 ? 'Non-stop' : `${stopHelipads.length} stop${stopHelipads.length > 1 ? 's' : ''}`}
               </div>
               {stopHelipads.length > 0 && (
-                <div className="text-xs text-slate-500 mt-1">
+                <div className={cn('text-xs', 'text-slate-500', 'mt-1')}>
                   via {stopHelipads.map(h => h.city).join(', ')}
                 </div>
               )}
@@ -140,61 +139,61 @@ const HelicopterCard = ({
 
             {/* Arrival */}
             <div className="text-center">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <MapPinIcon className="w-5 h-5 text-red-500" />
-                <span className="font-semibold text-slate-800">Arrival</span>
+              <div className={cn('flex', 'items-center', 'justify-center', 'gap-2', 'mb-2')}>
+                <MapPinIcon className={cn('w-5', 'h-5', 'text-red-500')} />
+                <span className={cn('font-semibold', 'text-slate-800')}>Arrival</span>
               </div>
-              <div className="text-lg font-bold text-slate-800">
+              <div className={cn('text-lg', 'font-bold', 'text-slate-800')}>
                 {formatTime(schedule?.arrival_time)}
               </div>
-              <div className="text-sm text-slate-600">
+              <div className={cn('text-sm', 'text-slate-600')}>
                 {arrivalHelipad?.helipad_name || 'Unknown Helipad'}
               </div>
-              <div className="text-xs text-slate-500">
+              <div className={cn('text-xs', 'text-slate-500')}>
                 {arrivalHelipad?.city || 'Unknown City'}
               </div>
             </div>
           </div>
 
           {/* Route Visualization */}
-          <div className="flex items-center justify-center mb-6 px-4">
-            <div className="flex items-center w-full max-w-md">
-              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-              <div className="flex-1 h-0.5 bg-gradient-to-r from-green-500 via-blue-500 to-red-500 mx-2 relative">
+          <div className={cn('flex', 'items-center', 'justify-center', 'mb-6', 'px-4')}>
+            <div className={cn('flex', 'items-center', 'w-full', 'max-w-md')}>
+              <div className={cn('w-3', 'h-3', 'bg-green-500', 'rounded-full')}></div>
+              <div className={cn('flex-1', 'h-0.5', 'bg-gradient-to-r', 'from-green-500', 'via-blue-500', 'to-red-500', 'mx-2', 'relative')}>
                 {stopHelipads.map((_, index) => (
                   <div 
                     key={index}
-                    className="absolute w-2 h-2 bg-blue-500 rounded-full top-1/2 transform -translate-y-1/2"
+                    className={cn('absolute', 'w-2', 'h-2', 'bg-blue-500', 'rounded-full', 'top-1/2', 'transform', '-translate-y-1/2')}
                     style={{ left: `${((index + 1) / (stopHelipads.length + 1)) * 100}%` }}
                   />
                 ))}
               </div>
-              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+              <div className={cn('w-3', 'h-3', 'bg-red-500', 'rounded-full')}></div>
             </div>
           </div>
 
           {/* Features */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <UsersIcon className="w-4 h-4 text-blue-500" />
+          <div className={cn('grid', 'grid-cols-2', 'md:grid-cols-4', 'gap-4', 'mb-6')}>
+            <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-600')}>
+              <UsersIcon className={cn('w-4', 'h-4', 'text-blue-500')} />
               <span>{helicopter?.seat_limit || 'N/A'} seats</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <CheckCircleIcon className="w-4 h-4 text-green-500" />
+            <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-600')}>
+              <CheckCircleIcon className={cn('w-4', 'h-4', 'text-green-500')} />
               <span>Premium Service</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <CheckCircleIcon className="w-4 h-4 text-green-500" />
+            <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-600')}>
+              <CheckCircleIcon className={cn('w-4', 'h-4', 'text-green-500')} />
               <span>Scenic Views</span>
             </div>
-            <div className="flex items-center gap-2 text-sm text-slate-600">
-              <CheckCircleIcon className="w-4 h-4 text-green-500" />
+            <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-600')}>
+              <CheckCircleIcon className={cn('w-4', 'h-4', 'text-green-500')} />
               <span>Professional Pilot</span>
             </div>
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
+          <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-3')}>
             <button
               onClick={() => setShowBookingPopup(true)}
               disabled={!isActive}
@@ -204,10 +203,10 @@ const HelicopterCard = ({
                   : 'bg-slate-300 text-slate-500 cursor-not-allowed'
               }`}
             >
-              <CalendarDaysIcon className="w-5 h-5" />
+              <CalendarDaysIcon className={cn('w-5', 'h-5')} />
               {isActive ? 'Book Now' : 'Unavailable'}
             </button>
-            <button className="px-6 py-3 border border-slate-300 text-slate-700 rounded-xl hover:bg-slate-50 transition-colors font-medium">
+            <button className={cn('px-6', 'py-3', 'border', 'border-slate-300', 'text-slate-700', 'rounded-xl', 'hover:bg-slate-50', 'transition-colors', 'font-medium')}>
               View Details
             </button>
           </div>

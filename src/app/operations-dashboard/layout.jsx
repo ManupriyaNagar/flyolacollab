@@ -1,21 +1,21 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
+import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
   FaBars,
+  FaChartBar,
+  FaHelicopter,
   FaHome,
   FaPlane,
-  FaTimes,
-  FaTicketAlt,
-  FaChartBar,
   FaSignOutAlt,
-  FaHelicopter,
+  FaTicketAlt,
+  FaTimes,
 } from "react-icons/fa";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
 

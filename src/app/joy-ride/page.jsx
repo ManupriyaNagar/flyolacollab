@@ -1,10 +1,9 @@
 "use client";
 
 import { useAuth } from '@/components/AuthContext';
+import { cn } from "@/lib/utils";
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-import { cn } from "@/lib/utils";
 import CalendarAndSlots from './../../components/Joyride/CalendarAndSlots';
 import PassengerSelection from './../../components/Joyride/PassengerSelection';
 

@@ -1,12 +1,10 @@
 "use client";
-
-import { FaUserFriends, FaClock, FaPlane, FaHelicopter, FaCalendarAlt, FaArrowLeft } from "react-icons/fa";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useState, useEffect, useCallback, useMemo, Suspense } from "react";
-import { motion } from "framer-motion";
-import Link from "next/link";
 import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { FaArrowLeft, FaCalendarAlt, FaClock, FaHelicopter, FaPlane, FaUserFriends } from "react-icons/fa";
 
 const tz = "Asia/Kolkata";
 

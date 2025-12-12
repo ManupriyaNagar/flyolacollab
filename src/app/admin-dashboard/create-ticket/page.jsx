@@ -1,22 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/components/AuthContext";
-import { useRouter } from "next/navigation";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import ProfessionalTicket from "./../../../components/SingleTicket/ProfessionalTicket";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { useAuth } from "@/components/AuthContext";
+import { cn } from "@/lib/utils";
+import { AirportService } from "@/services/api";
 import {
-  TicketIcon,
-  PlusCircleIcon,
   EyeIcon,
+  PlusCircleIcon,
+  TicketIcon,
   UserPlusIcon,
   XMarkIcon,
 } from "@heroicons/react/24/outline";
-import { AirportService } from "@/services/api";
-import { cn } from "@/lib/utils";
-
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import ProfessionalTicket from "./../../../components/SingleTicket/ProfessionalTicket";
 const CreateTicketPage = () => {
   const { authState } = useAuth();
   const router = useRouter();
@@ -293,7 +292,7 @@ const CreateTicketPage = () => {
         <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-3', 'gap-6')}>
           <div>
             <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
-              {ticketType === 'flight' ? 'Departure Airport' : 'Departure Helipad'} * {(ticketType === 'flight' ? airports : helipads).length > 0 && <span className="text-xs text-slate-500">({(ticketType === 'flight' ? airports : helipads).length} {ticketType === 'flight' ? 'airports' : 'helipads'})</span>}
+              {ticketType === 'flight' ? 'Departure Airport' : 'Departure Helipad'} * {(ticketType === 'flight' ? airports : helipads).length > 0 && <span className={cn('text-xs', 'text-slate-500')}>({(ticketType === 'flight' ? airports : helipads).length} {ticketType === 'flight' ? 'airports' : 'helipads'})</span>}
             </label>
             <select
               value={flightData.departure}
@@ -327,7 +326,7 @@ const CreateTicketPage = () => {
 
           <div>
             <label className={cn('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-2')}>
-              {ticketType === 'flight' ? 'Arrival Airport' : 'Arrival Helipad'} * {(ticketType === 'flight' ? airports : helipads).length > 0 && <span className="text-xs text-slate-500">({(ticketType === 'flight' ? airports : helipads).length} {ticketType === 'flight' ? 'airports' : 'helipads'})</span>}
+              {ticketType === 'flight' ? 'Arrival Airport' : 'Arrival Helipad'} * {(ticketType === 'flight' ? airports : helipads).length > 0 && <span className={cn('text-xs', 'text-slate-500')}>({(ticketType === 'flight' ? airports : helipads).length} {ticketType === 'flight' ? 'airports' : 'helipads'})</span>}
             </label>
             <select
               value={flightData.arrival}

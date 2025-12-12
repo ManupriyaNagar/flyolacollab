@@ -1,10 +1,8 @@
 "use client"
+import { cn } from "@/lib/utils";
+import * as SelectPrimitive from "@radix-ui/react-select";
+import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react";
 
-import * as React from "react"
-import * as SelectPrimitive from "@radix-ui/react-select"
-import { CheckIcon, ChevronDownIcon, ChevronUpIcon } from "lucide-react"
-
-import { cn } from "@/lib/utils"
 
 function Select({
   ...props
@@ -41,7 +39,7 @@ function SelectTrigger({
       {...props}>
       {children}
       <SelectPrimitive.Icon asChild>
-        <ChevronDownIcon className="size-4 opacity-50" />
+        <ChevronDownIcon className={cn('size-4', 'opacity-50')} />
       </SelectPrimitive.Icon>
     </SelectPrimitive.Trigger>
   );
@@ -102,7 +100,7 @@ function SelectItem({
         className
       )}
       {...props}>
-      <span className="absolute right-2 flex size-3.5 items-center justify-center">
+      <span className={cn('absolute', 'right-2', 'flex', 'size-3.5', 'items-center', 'justify-center')}>
         <SelectPrimitive.ItemIndicator>
           <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
@@ -162,5 +160,6 @@ export {
   SelectScrollUpButton,
   SelectSeparator,
   SelectTrigger,
-  SelectValue,
-}
+  SelectValue
+};
+

@@ -1,9 +1,8 @@
 "use client";
-
 import BASE_URL from "@/baseUrl/baseUrl";
 import { useAuth } from "@/components/AuthContext";
+import { cn } from "@/lib/utils";
 import {
-  ArrowPathIcon,
   ArrowRightIcon,
   ArrowTrendingUpIcon,
   BuildingOfficeIcon,
@@ -510,37 +509,38 @@ export default function AdminDashboard() {
     {
       title: "Add Flight",
       description: "Create a new flight route",
-      icon: <PaperAirplaneIcon className="w-6 h-6 text-blue-600" />,
+      icon: <PaperAirplaneIcon className={cn('w-6', 'h-6', 'text-blue-600')} />,
       link: "/admin-dashboard/add-flight",
       color: "bg-blue-100",
     },
     {
       title: "Add Airport",
       description: "Add a new airport location",
-      icon: <BuildingOfficeIcon className="w-6 h-6 text-emerald-600" />,
+      icon: <BuildingOfficeIcon className={cn('w-6', 'h-6', 'text-emerald-600')} />,
       link: "/admin-dashboard/add-airport",
       color: "bg-emerald-100",
     },
     {
       title: "Schedule Flight",
       description: "Create flight schedules",
-      icon: <CalendarDaysIcon className="w-6 h-6 text-purple-600" />,
+      icon: <CalendarDaysIcon className={cn('w-6', 'h-6', 'text-purple-600')} />,
       link: "/admin-dashboard/scheduled-flight",
       color: "bg-purple-100",
     },
     {
       title: "Joy Ride Slots",
       description: "Manage joy ride availability",
-      icon: <SparklesIcon className="w-6 h-6 text-pink-600" />,
+      icon: <SparklesIcon className={cn('w-6', 'h-6', 'text-pink-600')} />,
       link: "/admin-dashboard/bookid-joyride",
       color: "bg-pink-100",
     },
+
     {
-      title: "Reschedule Booking",
-      description: "Reschedule bookings (no payment)",
-      icon: <ArrowPathIcon className="w-6 h-6 text-orange-600" />,
-      link: "/admin-dashboard/reschedule-booking",
-      color: "bg-orange-100",
+      title: "Schedule Management",
+      description: "Upload flight schedule file",
+      icon: <CalendarDaysIcon className={cn('w-6', 'h-6', 'text-indigo-600')} />,
+      link: "/admin-dashboard/schedule-management",
+      color: "bg-indigo-100",
     },
   ];
 
@@ -553,9 +553,9 @@ export default function AdminDashboard() {
   // Show loading while auth is being verified
   if (authState.isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className={cn('w-12', 'h-12', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto', 'mb-4')}></div>
           <p className="text-gray-600">Verifying authentication...</p>
         </div>
       </div>
@@ -565,9 +565,9 @@ export default function AdminDashboard() {
   // Don't render if not admin (redirect will happen via useEffect)
   if (!authState.isLoggedIn || authState.userRole !== "1") {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
         <div className="text-center">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className={cn('w-12', 'h-12', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto', 'mb-4')}></div>
           <p className="text-gray-600">Redirecting...</p>
         </div>
       </div>
@@ -578,39 +578,39 @@ export default function AdminDashboard() {
     <div className="space-y-8">
       <ToastContainer position="top-right" autoClose={3000} />
 
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-xl">
-              <ChartBarIcon className="w-8 h-8 text-white" />
+          <h1 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'flex', 'items-center', 'gap-3')}>
+            <div className={cn('p-2', 'bg-gradient-to-r', 'from-blue-500', 'to-indigo-500', 'rounded-xl')}>
+              <ChartBarIcon className={cn('w-8', 'h-8', 'text-white')} />
             </div>
             Admin Dashboard
           </h1>
-          <p className="text-slate-600 mt-2">Welcome to the Flyola admin dashboard - Monitor your business at a glance</p>
+          <p className={cn('text-slate-600', 'mt-2')}>Welcome to the Flyola admin dashboard - Monitor your business at a glance</p>
         </div>
 
-        <div className="text-sm text-slate-500">
+        <div className={cn('text-sm', 'text-slate-500')}>
           Last updated: {new Date().toLocaleString()}
         </div>
       </div>
 
       {error && (
-        <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-red-700">
-          <ExclamationTriangleIcon className="w-5 h-5 flex-shrink-0" />
+        <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-red-50', 'border', 'border-red-200', 'rounded-xl', 'text-red-700')}>
+          <ExclamationTriangleIcon className={cn('w-5', 'h-5', 'flex-shrink-0')} />
           {error}
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
+      <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-4', 'gap-6')}>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6', 'transition-all', 'duration-200', 'hover:shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'justify-between')}>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Revenue</p>
-              <h3 className="text-3xl font-bold text-slate-800 mt-1">
+              <p className={cn('text-sm', 'font-medium', 'text-slate-500')}>Total Revenue</p>
+              <h3 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'mt-1')}>
                 {loading ? "--" : `₹${stats.combinedRevenue.toLocaleString('en-IN')}`}
               </h3>
               {!loading && stats.combinedRevenue === 0 && (
-                <p className="text-xs text-amber-600 mt-1">
+                <p className={cn('text-xs', 'text-amber-600', 'mt-1')}>
                   No revenue data available
                 </p>
               )}
@@ -618,7 +618,7 @@ export default function AdminDashboard() {
           
           </div>
           <div className="mt-4">
-            <div className="text-xs text-slate-600 mb-2">
+            <div className={cn('text-xs', 'text-slate-600', 'mb-2')}>
               <div>Payments: ₹{stats.totalRevenue.toLocaleString('en-IN')}</div>
               <div>Joyrides: ₹{stats.joyrideRevenue.toLocaleString('en-IN')}</div>
               {stats.bookingRevenue > 0 && (
@@ -627,142 +627,142 @@ export default function AdminDashboard() {
             </div>
             <Link
               href="/admin-dashboard/booking-data"
-              className="text-sm text-green-600 hover:text-green-800 font-medium flex items-center gap-1"
+              className={cn('text-sm', 'text-green-600', 'hover:text-green-800', 'font-medium', 'flex', 'items-center', 'gap-1')}
             >
               View analytics
-              <ArrowRightIcon className="w-4 h-4" />
+              <ArrowRightIcon className={cn('w-4', 'h-4')} />
             </Link>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6', 'transition-all', 'duration-200', 'hover:shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'justify-between')}>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Bookings</p>
-              <h3 className="text-3xl font-bold text-slate-800 mt-1">
+              <p className={cn('text-sm', 'font-medium', 'text-slate-500')}>Total Bookings</p>
+              <h3 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'mt-1')}>
                 {loading ? "--" : stats.totalBookings + stats.totalJoyrideBookings}
               </h3>
             </div>
-            <div className="p-3 bg-blue-100 rounded-xl">
-              <TicketIcon className="w-6 h-6 text-blue-600" />
+            <div className={cn('p-3', 'bg-blue-100', 'rounded-xl')}>
+              <TicketIcon className={cn('w-6', 'h-6', 'text-blue-600')} />
             </div>
           </div>
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+          <div className={cn('mt-4', 'flex', 'items-center', 'gap-4', 'text-sm')}>
+            <div className={cn('flex', 'items-center', 'gap-1')}>
+              <div className={cn('w-2', 'h-2', 'bg-blue-500', 'rounded-full')}></div>
               <span className="text-slate-600">{stats.totalBookings} Flights</span>
             </div>
-            <div className="flex items-center gap-1">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            <div className={cn('flex', 'items-center', 'gap-1')}>
+              <div className={cn('w-2', 'h-2', 'bg-green-500', 'rounded-full')}></div>
               <span className="text-slate-600">{stats.totalJoyrideBookings} Joyrides</span>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6', 'transition-all', 'duration-200', 'hover:shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'justify-between')}>
             <div>
-              <p className="text-sm font-medium text-slate-500">Total Users</p>
-              <h3 className="text-3xl font-bold text-slate-800 mt-1">
+              <p className={cn('text-sm', 'font-medium', 'text-slate-500')}>Total Users</p>
+              <h3 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'mt-1')}>
                 {loading ? "--" : stats.totalUsers}
               </h3>
             </div>
-            <div className="p-3 bg-indigo-100 rounded-xl">
-              <UsersIcon className="w-6 h-6 text-indigo-600" />
+            <div className={cn('p-3', 'bg-indigo-100', 'rounded-xl')}>
+              <UsersIcon className={cn('w-6', 'h-6', 'text-indigo-600')} />
             </div>
           </div>
           <div className="mt-4">
             <Link
               href="/admin-dashboard/all-users"
-              className="text-sm text-indigo-600 hover:text-indigo-800 font-medium flex items-center gap-1"
+              className={cn('text-sm', 'text-indigo-600', 'hover:text-indigo-800', 'font-medium', 'flex', 'items-center', 'gap-1')}
             >
               Manage users
-              <ArrowRightIcon className="w-4 h-4" />
+              <ArrowRightIcon className={cn('w-4', 'h-4')} />
             </Link>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 transition-all duration-200 hover:shadow-xl">
-          <div className="flex items-center justify-between">
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6', 'transition-all', 'duration-200', 'hover:shadow-xl')}>
+          <div className={cn('flex', 'items-center', 'justify-between')}>
             <div>
-              <p className="text-sm font-medium text-slate-500">System Health</p>
-              <h3 className="text-3xl font-bold text-emerald-600 mt-1">
+              <p className={cn('text-sm', 'font-medium', 'text-slate-500')}>System Health</p>
+              <h3 className={cn('text-3xl', 'font-bold', 'text-emerald-600', 'mt-1')}>
                 {loading ? "--" : "Excellent"}
               </h3>
             </div>
-            <div className="p-3 bg-emerald-100 rounded-xl">
-              <ArrowTrendingUpIcon className="w-6 h-6 text-emerald-600" />
+            <div className={cn('p-3', 'bg-emerald-100', 'rounded-xl')}>
+              <ArrowTrendingUpIcon className={cn('w-6', 'h-6', 'text-emerald-600')} />
             </div>
           </div>
-          <div className="mt-4 text-sm text-slate-600">
+          <div className={cn('mt-4', 'text-sm', 'text-slate-600')}>
             <div>Active Schedules: {stats.activeSchedules}</div>
             <div>Airports: {stats.totalAirports}</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center gap-3">
-            <PaperAirplaneIcon className="w-5 h-5 text-blue-500" />
+      <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-5', 'gap-4')}>
+        <div className={cn('bg-white', 'rounded-xl', 'shadow-md', 'border', 'border-slate-200', 'p-4')}>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <PaperAirplaneIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
             <div>
-              <p className="text-xs text-slate-500">Flights</p>
-              <p className="font-semibold text-slate-800">{stats.totalFlights}</p>
+              <p className={cn('text-xs', 'text-slate-500')}>Flights</p>
+              <p className={cn('font-semibold', 'text-slate-800')}>{stats.totalFlights}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center gap-3">
-            <CalendarDaysIcon className="w-5 h-5 text-purple-500" />
+        <div className={cn('bg-white', 'rounded-xl', 'shadow-md', 'border', 'border-slate-200', 'p-4')}>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <CalendarDaysIcon className={cn('w-5', 'h-5', 'text-purple-500')} />
             <div>
-              <p className="text-xs text-slate-500">Schedules</p>
-              <p className="font-semibold text-slate-800">{stats.totalSchedules}</p>
+              <p className={cn('text-xs', 'text-slate-500')}>Schedules</p>
+              <p className={cn('font-semibold', 'text-slate-800')}>{stats.totalSchedules}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center gap-3">
-            <UserIcon className="w-5 h-5 text-green-500" />
+        <div className={cn('bg-white', 'rounded-xl', 'shadow-md', 'border', 'border-slate-200', 'p-4')}>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <UserIcon className={cn('w-5', 'h-5', 'text-green-500')} />
             <div>
-              <p className="text-xs text-slate-500">Passengers</p>
-              <p className="font-semibold text-slate-800">{stats.totalPassengers}</p>
+              <p className={cn('text-xs', 'text-slate-500')}>Passengers</p>
+              <p className={cn('font-semibold', 'text-slate-800')}>{stats.totalPassengers}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center gap-3">
-            <SparklesIcon className="w-5 h-5 text-pink-500" />
+        <div className={cn('bg-white', 'rounded-xl', 'shadow-md', 'border', 'border-slate-200', 'p-4')}>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <SparklesIcon className={cn('w-5', 'h-5', 'text-pink-500')} />
             <div>
-              <p className="text-xs text-slate-500">Joyride Slots</p>
-              <p className="font-semibold text-slate-800">{stats.totalJoyrideSlots}</p>
+              <p className={cn('text-xs', 'text-slate-500')}>Joyride Slots</p>
+              <p className={cn('font-semibold', 'text-slate-800')}>{stats.totalJoyrideSlots}</p>
             </div>
           </div>
         </div>
 
-        <div className="bg-white rounded-xl shadow-md border border-slate-200 p-4">
-          <div className="flex items-center gap-3">
-            <CreditCardIcon className="w-5 h-5 text-orange-500" />
+        <div className={cn('bg-white', 'rounded-xl', 'shadow-md', 'border', 'border-slate-200', 'p-4')}>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <CreditCardIcon className={cn('w-5', 'h-5', 'text-orange-500')} />
             <div>
-              <p className="text-xs text-slate-500">Avg Rating</p>
-              <p className="font-semibold text-slate-800">{stats.averageRating}/5</p>
+              <p className={cn('text-xs', 'text-slate-500')}>Avg Rating</p>
+              <p className={cn('font-semibold', 'text-slate-800')}>{stats.averageRating}/5</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Weekly Bookings</h3>
+      <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-6')}>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+          <div className={cn('bg-gradient-to-r', 'from-blue-50', 'to-indigo-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+            <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Weekly Bookings</h3>
           </div>
           <div className="p-6">
             <div className="h-80">
               {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                <div className={cn('flex', 'justify-center', 'items-center', 'h-full')}>
+                  <div className={cn('w-8', 'h-8', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                 </div>
               ) : (
                 <Bar data={bookingsByDay} options={chartOptions} />
@@ -771,15 +771,15 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-purple-50 to-pink-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Revenue Trend (7 Days)</h3>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+          <div className={cn('bg-gradient-to-r', 'from-purple-50', 'to-pink-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+            <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Revenue Trend (7 Days)</h3>
           </div>
           <div className="p-6">
             <div className="h-80">
               {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
+                <div className={cn('flex', 'justify-center', 'items-center', 'h-full')}>
+                  <div className={cn('w-8', 'h-8', 'border-4', 'border-purple-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                 </div>
               ) : (
                 <Line data={revenueTrend} options={lineChartOptions} />
@@ -789,16 +789,16 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-emerald-50 to-teal-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Booking Status</h3>
+      <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-3', 'gap-6')}>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+          <div className={cn('bg-gradient-to-r', 'from-emerald-50', 'to-teal-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+            <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Booking Status</h3>
           </div>
           <div className="p-6">
             <div className="h-64">
               {loading ? (
-                <div className="flex justify-center items-center h-full">
-                  <div className="w-8 h-8 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                <div className={cn('flex', 'justify-center', 'items-center', 'h-full')}>
+                  <div className={cn('w-8', 'h-8', 'border-4', 'border-emerald-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                 </div>
               ) : (
                 <Doughnut data={bookingStatusData} options={doughnutOptions} />
@@ -807,46 +807,46 @@ export default function AdminDashboard() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-slate-50 to-blue-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Quick Actions</h3>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+          <div className={cn('bg-gradient-to-r', 'from-slate-50', 'to-blue-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+            <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Quick Actions</h3>
           </div>
-          <div className="p-6 space-y-3">
+          <div className={cn('p-6', 'space-y-3')}>
             {quickActions.map((action, index) => (
               <Link
                 key={index}
                 href={action.link}
-                className="flex items-center gap-3 p-3 rounded-xl border border-slate-200 hover:border-blue-300 hover:bg-blue-50 transition-all duration-200"
+                className={cn('flex', 'items-center', 'gap-3', 'p-3', 'rounded-xl', 'border', 'border-slate-200', 'hover:border-blue-300', 'hover:bg-blue-50', 'transition-all', 'duration-200')}
               >
                 <div className={`p-2 rounded-lg ${action.color}`}>
                   {action.icon}
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-semibold text-slate-800 text-sm">{action.title}</h4>
-                  <p className="text-xs text-slate-500">{action.description}</p>
+                  <h4 className={cn('font-semibold', 'text-slate-800', 'text-sm')}>{action.title}</h4>
+                  <p className={cn('text-xs', 'text-slate-500')}>{action.description}</p>
                 </div>
-                <ArrowRightIcon className="w-4 h-4 text-slate-400" />
+                <ArrowRightIcon className={cn('w-4', 'h-4', 'text-slate-400')} />
               </Link>
             ))}
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 px-6 py-4 border-b border-slate-200">
-            <h3 className="text-lg font-semibold text-slate-800">Recent Bookings</h3>
+        <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+          <div className={cn('bg-gradient-to-r', 'from-orange-50', 'to-red-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+            <h3 className={cn('text-lg', 'font-semibold', 'text-slate-800')}>Recent Bookings</h3>
           </div>
           <div className="p-6">
             {loading ? (
-              <div className="flex justify-center py-8">
-                <div className="w-6 h-6 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+              <div className={cn('flex', 'justify-center', 'py-8')}>
+                <div className={cn('w-6', 'h-6', 'border-4', 'border-orange-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
               </div>
             ) : recentBookingsList.length > 0 ? (
               <div className="space-y-3">
                 {recentBookingsList.map((booking, index) => (
-                  <div key={booking.id || index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                  <div key={booking.id || index} className={cn('flex', 'items-center', 'justify-between', 'p-3', 'bg-slate-50', 'rounded-lg')}>
                     <div>
-                      <p className="font-medium text-slate-800 text-sm">#{booking.bookingNo || booking.id}</p>
-                      <p className="text-xs text-slate-500">
+                      <p className={cn('font-medium', 'text-slate-800', 'text-sm')}>#{booking.bookingNo || booking.id}</p>
+                      <p className={cn('text-xs', 'text-slate-500')}>
                         {booking.pnr || 'N/A'} • {new Date(booking.created_at || booking.updated_at).toLocaleDateString()}
                       </p>
                     </div>
@@ -862,63 +862,63 @@ export default function AdminDashboard() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-8 text-slate-500">
-                <TicketIcon className="w-12 h-12 mx-auto mb-2 text-slate-300" />
+              <div className={cn('text-center', 'py-8', 'text-slate-500')}>
+                <TicketIcon className={cn('w-12', 'h-12', 'mx-auto', 'mb-2', 'text-slate-300')} />
                 <p>No recent bookings</p>
               </div>
             )}
-            <div className="mt-4 pt-4 border-t border-slate-200">
+            <div className={cn('mt-4', 'pt-4', 'border-t', 'border-slate-200')}>
               <Link
                 href="/admin-dashboard/booking-list"
-                className="text-sm text-orange-600 hover:text-orange-800 font-medium flex items-center justify-center gap-1"
+                className={cn('text-sm', 'text-orange-600', 'hover:text-orange-800', 'font-medium', 'flex', 'items-center', 'justify-center', 'gap-1')}
               >
                 View all bookings
-                <ArrowRightIcon className="w-4 h-4" />
+                <ArrowRightIcon className={cn('w-4', 'h-4')} />
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="bg-gradient-to-r from-slate-50 to-blue-50 rounded-2xl border border-blue-200 p-6">
-        <div className="flex items-start gap-3">
-          <div className="p-2 bg-blue-100 rounded-lg">
-            <ChartBarIcon className="w-5 h-5 text-blue-600" />
+      <div className={cn('bg-gradient-to-r', 'from-slate-50', 'to-blue-50', 'rounded-2xl', 'border', 'border-blue-200', 'p-6')}>
+        <div className={cn('flex', 'items-start', 'gap-3')}>
+          <div className={cn('p-2', 'bg-blue-100', 'rounded-lg')}>
+            <ChartBarIcon className={cn('w-5', 'h-5', 'text-blue-600')} />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-blue-800 mb-2">System Overview</h3>
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 text-sm">
+            <h3 className={cn('font-semibold', 'text-blue-800', 'mb-2')}>System Overview</h3>
+            <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-5', 'gap-4', 'text-sm')}>
               <div>
-                <span className="text-blue-700 font-medium">Recent Activity:</span>
-                <span className="ml-2 text-blue-600">{stats.recentBookings + stats.recentJoyrideBookings} bookings (7 days)</span>
+                <span className={cn('text-blue-700', 'font-medium')}>Recent Activity:</span>
+                <span className={cn('ml-2', 'text-blue-600')}>{stats.recentBookings + stats.recentJoyrideBookings} bookings (7 days)</span>
               </div>
               <div>
-                <span className="text-blue-700 font-medium">Confirmed Rate:</span>
-                <span className="ml-2 text-blue-600">
+                <span className={cn('text-blue-700', 'font-medium')}>Confirmed Rate:</span>
+                <span className={cn('ml-2', 'text-blue-600')}>
                   {stats.totalBookings > 0 ? Math.round((stats.confirmedBookings / stats.totalBookings) * 100) : 0}%
                 </span>
               </div>
               <div>
-                <span className="text-blue-700 font-medium">Payment Revenue:</span>
-                <span className="ml-2 text-blue-600">₹{stats.totalRevenue.toLocaleString('en-IN')}</span>
+                <span className={cn('text-blue-700', 'font-medium')}>Payment Revenue:</span>
+                <span className={cn('ml-2', 'text-blue-600')}>₹{stats.totalRevenue.toLocaleString('en-IN')}</span>
               </div>
               <div>
-                <span className="text-blue-700 font-medium">Joyride Revenue:</span>
-                <span className="ml-2 text-blue-600">₹{stats.joyrideRevenue.toLocaleString('en-IN')}</span>
+                <span className={cn('text-blue-700', 'font-medium')}>Joyride Revenue:</span>
+                <span className={cn('ml-2', 'text-blue-600')}>₹{stats.joyrideRevenue.toLocaleString('en-IN')}</span>
               </div>
               {stats.bookingRevenue > 0 && (
                 <div>
-                  <span className="text-blue-700 font-medium">Booking Revenue:</span>
-                  <span className="ml-2 text-blue-600">₹{stats.bookingRevenue.toLocaleString('en-IN')}</span>
+                  <span className={cn('text-blue-700', 'font-medium')}>Booking Revenue:</span>
+                  <span className={cn('ml-2', 'text-blue-600')}>₹{stats.bookingRevenue.toLocaleString('en-IN')}</span>
                 </div>
               )}
             </div>
 
             {/* Data Debug Info - Remove in production */}
             {!loading && (stats.combinedRevenue === 0 || payments.length === 0) && (
-              <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                <p className="text-amber-800 text-xs font-medium mb-2">Debug Info:</p>
-                <div className="text-xs text-amber-700 space-y-1">
+              <div className={cn('mt-4', 'p-3', 'bg-amber-50', 'border', 'border-amber-200', 'rounded-lg')}>
+                <p className={cn('text-amber-800', 'text-xs', 'font-medium', 'mb-2')}>Debug Info:</p>
+                <div className={cn('text-xs', 'text-amber-700', 'space-y-1')}>
                   <div>Payments in DB: {payments.length}</div>
                   <div>Joyride Bookings in DB: {joyrideBookings.length}</div>
                   <div>Sample Payment Fields: {payments[0] ? Object.keys(payments[0]).join(', ') : 'No payments'}</div>

@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { useAuth } from "./AuthContext";
 import { cn } from "@/lib/utils";
-
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useAuth } from "./AuthContext";
 // Use numbers, same as your middleware
 const ROLES = {
   ADMIN: 1,

@@ -1,25 +1,25 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
-import {
-  FaBars,
-  FaHome,
-  FaPlane,
-  FaTimes,
-  FaTicketAlt,
-  FaChartBar,
-  FaSignOutAlt,
-  FaClock,
-  FaDollarSign,
-  FaHeadset,
-  FaCreditCard,
-  FaUser,
-} from "react-icons/fa";
-import Link from "next/link";
 import { cn } from "@/lib/utils";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import {
+    FaBars,
+    FaChartBar,
+    FaClock,
+    FaCreditCard,
+    FaDollarSign,
+    FaHeadset,
+    FaHome,
+    FaPlane,
+    FaSignOutAlt,
+    FaTicketAlt,
+    FaTimes,
+    FaUser,
+} from "react-icons/fa";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
 

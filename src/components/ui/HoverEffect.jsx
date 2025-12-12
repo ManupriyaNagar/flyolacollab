@@ -4,8 +4,7 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useState } from "react";
-import { FaPlane, FaShieldAlt, FaClock, FaHeadset, FaStar, FaGlobe } from "react-icons/fa";
-
+import { FaClock, FaGlobe, FaHeadset, FaPlane, FaShieldAlt, FaStar } from "react-icons/fa";
 // Default items for aviation services
 const defaultItems = [
   {
@@ -57,34 +56,34 @@ export default function HoverEffect({ items = defaultItems, className }) {
   let [hoveredIndex, setHoveredIndex] = useState(null);
 
   return (
-    <section className="py-16 lg:py-24 bg-gradient-to-br from-gray-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+    <section className={cn('py-16', 'lg:py-24', 'bg-gradient-to-br', 'from-gray-900', 'via-blue-900', 'to-indigo-900', 'relative', 'overflow-hidden')}>
       {/* Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="absolute top-20 left-20 w-32 h-32 border border-blue-300 rounded-full"></div>
-        <div className="absolute bottom-20 right-20 w-40 h-40 border border-indigo-300 rounded-full"></div>
-        <div className="absolute top-1/2 left-1/4 w-24 h-24 border border-purple-300 rounded-full"></div>
+      <div className={cn('absolute', 'inset-0', 'opacity-10')}>
+        <div className={cn('absolute', 'top-20', 'left-20', 'w-32', 'h-32', 'border', 'border-blue-300', 'rounded-full')}></div>
+        <div className={cn('absolute', 'bottom-20', 'right-20', 'w-40', 'h-40', 'border', 'border-indigo-300', 'rounded-full')}></div>
+        <div className={cn('absolute', 'top-1/2', 'left-1/4', 'w-24', 'h-24', 'border', 'border-purple-300', 'rounded-full')}></div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 relative z-10">
+      <div className={cn('px-4', 'sm:px-6', 'lg:px-8', 'relative', 'z-10')}>
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
-          className="text-center mb-16"
+          className={cn('text-center', 'mb-16')}
         >
-          <div className="inline-flex items-center gap-2 bg-gradient-to-r from-blue-100/20 to-indigo-100/20 text-blue-200 px-6 py-2 text-sm font-bold rounded-full shadow-sm mb-6 backdrop-blur-sm border border-white/10">
+          <div className={cn('inline-flex', 'items-center', 'gap-2', 'bg-gradient-to-r', 'from-blue-100/20', 'to-indigo-100/20', 'text-blue-200', 'px-6', 'py-2', 'text-sm', 'font-bold', 'rounded-full', 'shadow-sm', 'mb-6', 'backdrop-blur-sm', 'border', 'border-white/10')}>
             <FaStar className="text-blue-400" />
             Our Services
           </div>
           
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6 leading-tight">
+          <h2 className={cn('text-3xl', 'sm:text-4xl', 'lg:text-5xl', 'font-bold', 'text-white', 'mb-6', 'leading-tight')}>
             Excellence in 
-            <span className="bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent"> Aviation</span>
+            <span className={cn('bg-gradient-to-r', 'from-blue-400', 'to-indigo-400', 'bg-clip-text', 'text-transparent')}> Aviation</span>
           </h2>
           
-          <p className="text-lg text-blue-100 max-w-7xl mx-auto leading-relaxed">
+          <p className={cn('text-lg', 'text-blue-100', 'max-w-7xl', 'mx-auto', 'leading-relaxed')}>
             Discover what sets Flyola apart in the aviation industry. Our commitment to excellence 
             ensures every aspect of your journey exceeds expectations.
           </p>
@@ -98,14 +97,14 @@ export default function HoverEffect({ items = defaultItems, className }) {
               <Link
                 href={item?.link || "#"}
                 key={idx}
-                className="relative group block p-2 h-full w-full"
+                className={cn('relative', 'group', 'block', 'p-2', 'h-full', 'w-full')}
                 onMouseEnter={() => setHoveredIndex(idx)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
                 <AnimatePresence>
                   {hoveredIndex === idx && (
                     <motion.span
-                      className="absolute inset-0 h-full w-full bg-gradient-to-r from-blue-500/20 to-indigo-600/20 block rounded-3xl backdrop-blur-sm border border-white/20"
+                      className={cn('absolute', 'inset-0', 'h-full', 'w-full', 'bg-gradient-to-r', 'from-blue-500/20', 'to-indigo-600/20', 'block', 'rounded-3xl', 'backdrop-blur-sm', 'border', 'border-white/20')}
                       layoutId="hoverBackground"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1, transition: { duration: 0.15 } }}
@@ -114,9 +113,9 @@ export default function HoverEffect({ items = defaultItems, className }) {
                   )}
                 </AnimatePresence>
                 <Card>
-                  <div className="flex items-center gap-4 mb-4">
+                  <div className={cn('flex', 'items-center', 'gap-4', 'mb-4')}>
                     <div className={`w-12 h-12 bg-gradient-to-r ${item.gradient} rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                      <IconComponent className="text-white text-xl" />
+                      <IconComponent className={cn('text-white', 'text-xl')} />
                     </div>
                     <CardTitle>{item?.title || "No Title"}</CardTitle>
                   </div>
@@ -133,14 +132,14 @@ export default function HoverEffect({ items = defaultItems, className }) {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.5 }}
-          className="text-center mt-16"
+          className={cn('text-center', 'mt-16')}
         >
-          <div className="bg-gradient-to-r from-blue-600/20 to-indigo-600/20 backdrop-blur-sm rounded-3xl p-8 border border-white/20">
-            <h3 className="text-2xl font-bold text-white mb-4">Experience the Flyola Difference</h3>
-            <p className="text-blue-100 mb-6 max-w-2xl mx-auto">
+          <div className={cn('bg-gradient-to-r', 'from-blue-600/20', 'to-indigo-600/20', 'backdrop-blur-sm', 'rounded-3xl', 'p-8', 'border', 'border-white/20')}>
+            <h3 className={cn('text-2xl', 'font-bold', 'text-white', 'mb-4')}>Experience the Flyola Difference</h3>
+            <p className={cn('text-blue-100', 'mb-6', 'max-w-2xl', 'mx-auto')}>
               Ready to experience premium aviation services? Contact us today and let us elevate your travel experience.
             </p>
-            <button className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white px-8 py-4 rounded-2xl font-bold text-lg hover:from-blue-600 hover:to-indigo-700 transform hover:scale-105 transition-all duration-300 shadow-lg">
+            <button className={cn('bg-gradient-to-r', 'from-blue-500', 'to-indigo-600', 'text-white', 'px-8', 'py-4', 'rounded-2xl', 'font-bold', 'text-lg', 'hover:from-blue-600', 'hover:to-indigo-700', 'transform', 'hover:scale-105', 'transition-all', 'duration-300', 'shadow-lg')}>
               Get Started
             </button>
           </div>
@@ -160,7 +159,7 @@ export const Card = ({
         "rounded-3xl h-full w-full p-6 overflow-hidden bg-white/10 backdrop-blur-sm border border-white/20 group-hover:bg-white/15 relative z-20 transition-all duration-300",
         className
       )}>
-      <div className="relative z-50">
+      <div className={cn('relative', 'z-50')}>
         {children}
       </div>
     </div>

@@ -1,10 +1,10 @@
 "use client";
-import { useState, useEffect, useCallback, useMemo } from "react";
-import { FaPlane, FaClock, FaUserFriends, FaCheckCircle } from "react-icons/fa";
-import { useRouter } from "next/navigation";
-import { motion } from "framer-motion";
-import API from "@/services/api";
 import AuthModal from "@/components/AuthModal";
+import API from "@/services/api";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FaCheckCircle, FaPlane, FaUserFriends } from "react-icons/fa";
 
 const tz = "Asia/Kolkata";
 const fmtTime = (t) => {
@@ -112,7 +112,11 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       try {
         const response = await API.systemSettings.getBookingCutoffTime();
         setCutoffTime(response.data.flight_cutoff_time || "09:00");
-        setAdvanceBookingDays(response.data.advance_booking_days || 0);
+        setAdvanceBookingDays(
+          response.data.flight_advance_booking_days !== undefined 
+            ? response.data.flight_advance_booking_days 
+            : (response.data.advance_booking_days || 0)
+        );
       } catch (error) {
         console.error("Error fetching cutoff settings:", error);
         // Keep defaults if fetch fails
@@ -178,14 +182,17 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       const isFlightDeparted =
         selectedDate === currentDate && currentTimeInMinutes >= departureTimeInMinutes;
 
-      setIsBookingDisabled(isAfterCutoff || isFlightDeparted);
+      // Admin (role 1) can book anytime - bypass cutoff time
+      const isAdmin = authState?.userRole === "1";
+      
+      setIsBookingDisabled(isAdmin ? isFlightDeparted : (isAfterCutoff || isFlightDeparted));
       setIsDeparted(isFlightDeparted);
     };
 
     checkBookingStatus();
     const interval = setInterval(checkBookingStatus, 60000); // Check every minute
     return () => clearInterval(interval);
-  }, [flightSchedule.departure_time, selectedDate, cutoffTime, advanceBookingDays]);
+  }, [flightSchedule.departure_time, selectedDate, cutoffTime, advanceBookingDays, authState?.userRole]);
 
   const handleBookNowClick = useCallback(() => {
     if (!authState.isLoggedIn) {
@@ -200,7 +207,10 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       alert(`Only ${availableSeats.length} seat(s) left. Please reduce passengers.`);
       return;
     }
-    if (isBookingDisabled) {
+    // Admin (role 1) can bypass cutoff time restrictions
+    const isAdmin = authState?.userRole === "1";
+    
+    if (isBookingDisabled && !isAdmin) {
       if (isDeparted) {
         alert("This flight has departed.");
       } else if (advanceBookingDays > 0) {
@@ -208,6 +218,12 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
       } else {
         alert(`Booking is closed after ${cutoffTime} IST on the departure date.`);
       }
+      return;
+    }
+    
+    // Even admin cannot book departed flights
+    if (isDeparted) {
+      alert("This flight has departed.");
       return;
     }
     

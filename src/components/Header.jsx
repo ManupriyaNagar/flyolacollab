@@ -1,23 +1,22 @@
 "use client";
-
-import React, { useState, useEffect, Fragment } from 'react';
-import Link from 'next/link';
-import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
-import {
-  Bars3Icon,
-  XMarkIcon,
-  UserCircleIcon,
-  ChevronDownIcon,
-  TicketIcon,
-  ArrowRightOnRectangleIcon,
-  Cog6ToothIcon,
-  ChartBarIcon,
-  PaperAirplaneIcon,
-  SparklesIcon,
-} from '@heroicons/react/24/outline';
-import { Menu, Transition } from '@headlessui/react';
 import { cn } from "@/lib/utils";
+import { Menu, Transition } from '@headlessui/react';
+import {
+    ArrowRightOnRectangleIcon,
+    Bars3Icon,
+    ChartBarIcon,
+    ChevronDownIcon,
+    Cog6ToothIcon,
+    PaperAirplaneIcon,
+    SparklesIcon,
+    TicketIcon,
+    UserCircleIcon,
+    XMarkIcon,
+} from '@heroicons/react/24/outline';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
+import { Fragment, useEffect, useState } from 'react';
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -46,10 +45,32 @@ const Header = () => {
     { name: 'Marriage', href: '/hire-for-marriage' },
   ];
   
+  const [scheduleUrl, setScheduleUrl] = useState('/schedule-final.pdf');
+  
   const downloads = [
     { name: 'Ticket', href: '/get-ticket' },
-    { name: 'Schedule', href: '/schedule-final.pdf', download: true },
+    { name: 'Schedule', href: scheduleUrl, download: true },
   ];
+  
+  // Fetch dynamic schedule URL
+  useEffect(() => {
+    const fetchScheduleUrl = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com'}/api/schedule-file/current`);
+        if (!response.ok) {
+          throw new Error('Schedule endpoint not available');
+        }
+        const data = await response.json();
+        if (data.url) {
+          setScheduleUrl(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com'}${data.url}`);
+        }
+      } catch (error) {
+        // Silently fail - use default schedule URL
+        console.warn('Schedule API not available, using default schedule');
+      }
+    };
+    fetchScheduleUrl();
+  }, []);
 
   // User menu
   const userMenuItems = [

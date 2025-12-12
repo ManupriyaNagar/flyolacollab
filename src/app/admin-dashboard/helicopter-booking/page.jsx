@@ -28,7 +28,6 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
-
 const BOOKINGS_PER_PAGE = 50;
 
 export default function HelicopterBookingsPage() {

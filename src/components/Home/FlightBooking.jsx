@@ -1,28 +1,23 @@
 "use client";
-
-import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
-import {
-  FaPlaneDeparture,
-  FaUser,
-  FaHelicopter,
-  FaCalendarCheck,
-  FaPlane,
-  FaClock,
-  FaHome,
-  FaUmbrellaBeach,
-  FaTrain,
-  FaBus,
-  FaTaxi,
-  FaPassport,
-  FaMapMarkerAlt
-} from "react-icons/fa";
-import { MdErrorOutline, MdFlightTakeoff, MdFlightLand } from "react-icons/md";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import {
+  FaBus,
+  FaHelicopter,
+  FaHome,
+  FaPassport,
+  FaPlane,
+  FaTaxi,
+  FaTrain,
+  FaUmbrellaBeach
+} from "react-icons/fa";
+import { MdErrorOutline, MdFlightLand, MdFlightTakeoff } from "react-icons/md";
 
-import { Card, CardContent } from "@/components/ui/card";
 import BASE_URL from "@/baseUrl/baseUrl";
+import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import AirportAutocomplete from "./AirportAutocomplete";
 import ServiceSelector from "./ServiceSelector";
@@ -32,7 +27,6 @@ import TripTypeSelector from "./TripTypeSelector";
 
 import { DayPicker } from "react-day-picker";
 import BookingFormSkeleton from "./BookingFormSkeleton";
-import { cn } from "@/lib/utils";
 
 
 const getTomorrowDateIST = () => {
@@ -93,7 +87,7 @@ export default function FlightBooking() {
   const [heliTripType, setHeliTripType] = useState("oneWay");
   const [heliDeparture, setHeliDeparture] = useState("");
   const [heliArrival, setHeliArrival] = useState("");
-  const [heliDate, setHeliDate] = useState("");
+  const [heliDate, setHeliDate] = useState(() => getTomorrowDateIST());
   const [heliReturnDate, setHeliReturnDate] = useState("");
   const [heliTravelClass, setHeliTravelClass] = useState("Economy");
   const [heliPassengerData, setHeliPassengerData] = useState({
@@ -558,7 +552,7 @@ export default function FlightBooking() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -10, scale: 0.95 }}
                               transition={{ duration: 0.2, ease: "easeInOut" }}
-                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-30', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
+                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-50', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
                             >
                               {/* Adults */}
                               <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
@@ -783,17 +777,17 @@ export default function FlightBooking() {
   {/* Visible formatted date */}
   <div className={cn('flex', 'flex-col')}>
     <div className={cn('flex', 'items-baseline', 'gap-2')}>
-      <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{heliDate ? new Date(heliDate + 'T00:00:00').getDate() : day}</span>
+      <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{new Date(heliDate + 'T00:00:00').getDate()}</span>
 
       <span className={cn('text-lg', 'font-semibold', 'leading-none')}>
-        {heliDate ? new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { month: "short" }) : month}
+        {new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { month: "short" })}
         <span className={cn('align-top', 'text-sm', 'font-semibold', 'ml-0.5')}>
-          '{heliDate ? new Date(heliDate + 'T00:00:00').getFullYear().toString().slice(-2) : yearShort}
+          '{new Date(heliDate + 'T00:00:00').getFullYear().toString().slice(-2)}
         </span>
       </span>
     </div>
 
-    <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{heliDate ? new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { weekday: "long" }) : weekday}</span>
+    <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{new Date(heliDate + 'T00:00:00').toLocaleString("en-US", { weekday: "long" })}</span>
   </div>
 </motion.div>
 
@@ -896,7 +890,7 @@ export default function FlightBooking() {
                               animate={{ opacity: 1, y: 0, scale: 1 }}
                               exit={{ opacity: 0, y: -10, scale: 0.95 }}
                               transition={{ duration: 0.2, ease: "easeInOut" }}
-                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-[100]', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
+                              className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-50', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
                             >
                               {/* Adults */}
                               <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
@@ -1162,10 +1156,15 @@ export default function FlightBooking() {
 
         <DayPicker
           mode="single"
-          selected={new Date(date)}
+          selected={new Date(selectedService === "helicopters" ? heliDate : date)}
           onSelect={(d) => {
             if (!d) return;
-            setDate(formatDateToInput(d));      // update your state
+            const formattedDate = formatDateToInput(d);
+            if (selectedService === "helicopters") {
+              setHeliDate(formattedDate);
+            } else {
+              setDate(formattedDate);
+            }
             setIsCalendarOpen(false);           // close popup
           }}
           numberOfMonths={2}                    // like screenshot

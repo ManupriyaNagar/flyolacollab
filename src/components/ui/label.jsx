@@ -1,8 +1,7 @@
 "use client"
-
-import * as React from "react"
-import * as LabelPrimitive from "@radix-ui/react-label"
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
+import * as LabelPrimitive from "@radix-ui/react-label";
+import * as React from "react";
 
 const Label = React.forwardRef(({ className, ...props }, ref) => (
   <LabelPrimitive.Root
@@ -16,4 +15,5 @@ const Label = React.forwardRef(({ className, ...props }, ref) => (
 ))
 Label.displayName = "Label"
 
-export { Label }
+export { Label };
+

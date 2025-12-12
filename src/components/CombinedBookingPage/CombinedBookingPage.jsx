@@ -1,17 +1,17 @@
 "use client";
 import dynamic from "next/dynamic";
-import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import TourReviewStep from "./TourReviewStep";
-import TravelerInfoStep from "./TravelerInfoStep";
+import { useEffect, useState } from "react";
+import AirportServices from "./AirportServices";
+import BookingHeader from "./BookingHeader";
 import BookingProgress from "./BookingProgress";
 import BookingSummary from "./BookingSummary";
-import BookingHeader from "./BookingHeader";
 import FlightInsights from "./FlightInsights";
-import WeatherInfo from "./WeatherInfo";
 import FlightSafetyInfo from "./FlightSafetyInfo";
+import TourReviewStep from "./TourReviewStep";
 import TravelDocuments from "./TravelDocuments";
-import AirportServices from "./AirportServices";
+import TravelerInfoStep from "./TravelerInfoStep";
+import WeatherInfo from "./WeatherInfo";
 
 import FlightRecommendations from "./FlightRecommendations";
 
@@ -105,7 +105,9 @@ useEffect(() => {
         arrivalTime: data.flightSchedule.arrival_time,
         selectedDate: data.selectedDate,
         passengers: data.passengers,
-        bookingType: data.bookingType, // Pass through the booking type
+        // CRITICAL FIX: Ensure bookingType is always set correctly
+        // Check multiple sources: bookingType, type, or presence of helicopterNumber
+        bookingType: data.bookingType || data.type || (data.helicopterNumber ? 'helicopter' : 'flight'),
         helicopterNumber: data.helicopterNumber,
         flightNumber: data.flightNumber,
       });

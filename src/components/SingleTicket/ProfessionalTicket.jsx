@@ -1571,6 +1571,43 @@ const ProfessionalTicket = ({ bookingData, travelerDetails, bookingResult }) => 
                       </p>
                     </div>
                   )}
+                  {bookingData?.bookingType === 'helicopter' && (
+                    <div style={{ marginBottom: "12px", backgroundColor: "#fef3c7", padding: "8px", borderRadius: "4px", border: "1px solid #fbbf24" }}>
+                      <p style={{
+                        fontWeight: "600",
+                        color: "#92400e",
+                        margin: "0 0 4px 0"
+                      }}>
+                        ⚠️ Boarding Policy
+                      </p>
+                      <p style={{ margin: 0, color: "#92400e", fontSize: "12px" }}>
+                        Only faulty weight/baggage found at boarding will result in deboarding.
+                      </p>
+                    </div>
+                  )}
+                  {bookingData?.bookingType === 'helicopter' && (
+                    <div style={{ marginBottom: "12px", backgroundColor: "#fce7f3", padding: "8px", borderRadius: "4px", border: "1px solid #f9a8d4" }}>
+                      <p style={{
+                        fontWeight: "600",
+                        color: "#831843",
+                        margin: "0 0 4px 0"
+                      }}>
+                        👶 Infant & Child Policy
+                      </p>
+                      <p style={{ margin: "0 0 4px 0", color: "#831843", fontSize: "12px" }}>
+                        • Infants (below 6 months or 8kg): No ticket required
+                      </p>
+                      <p style={{ margin: "0 0 4px 0", color: "#831843", fontSize: "12px" }}>
+                        • Infants (6 months+): Full ticket at ₹1,000 base fare
+                      </p>
+                       <p style={{ margin: 0, color: "#831843", fontSize: "12px" }}>
+                        • Child's  above 2 Years old full fare 
+                      </p>
+                      <p style={{ margin: 0, color: "#831843", fontSize: "12px" }}>
+                        • Child's  &  Infants  DOB mandatory during booking
+                      </p>
+                    </div>
+                  )}
                   <div>
                     <p style={{
                       fontWeight: "600",

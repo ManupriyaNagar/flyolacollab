@@ -550,6 +550,9 @@ const API = {
         updateBookingCutoffTime: (settings) => httpClient.put('/system-settings/booking-cutoff-time', settings),
         getAllSettings: () => httpClient.get('/system-settings/all'),
     },
+    scheduleFile: {
+        getCurrent: () => httpClient.get('/api/schedule-file/current'),
+    },
 
     rescheduling: {
         getReschedulingDetails: (bookingId, bookingType, date = null) => {
