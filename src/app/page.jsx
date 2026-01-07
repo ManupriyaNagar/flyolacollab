@@ -43,7 +43,7 @@ export default function Home() {
       
       if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) > 300000) {
         try {
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com '}/airport`);
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'NEXT_PUBLIC_API_URL'}/airport`);
           if (response.ok) {
             const data = await response.json();
             sessionStorage.setItem('airports_data', JSON.stringify(data));
@@ -72,6 +72,7 @@ export default function Home() {
 
   return (
     <div className={cn('min-h-screen', 'bg-gray-50')}>
+ 
 
       <div id="booking" className={cn('hidden', 'md:block')}>
         <FlightBooking />

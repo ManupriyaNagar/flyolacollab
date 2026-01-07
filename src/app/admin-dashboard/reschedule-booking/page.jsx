@@ -29,7 +29,7 @@ export default function AdminReschedulePage() {
 
   const searchBooking = async () => {
     if (!searchQuery.trim()) {
-      toast.error("Please enter a booking ID");
+      toast.error("Please enter a PNR");
       return;
     }
 
@@ -62,7 +62,7 @@ export default function AdminReschedulePage() {
     try {
       setLoadingSchedules(true);
       const response = await API.rescheduling.getReschedulingDetails(
-        bookingDetails.id, 
+        bookingDetails.pnr, 
         bookingDetails.bookingType, 
         date
       );
@@ -148,7 +148,7 @@ export default function AdminReschedulePage() {
     try {
       setRescheduling(true);
 
-      const response = await API.rescheduling.adminReschedule(bookingDetails.id, {
+      const response = await API.rescheduling.adminReschedule(bookingDetails.pnr, {
         bookingType: bookingDetails.bookingType,
         newScheduleId: selectedSchedule.id,
         newBookDate: selectedDate,
@@ -221,12 +221,12 @@ export default function AdminReschedulePage() {
             </div>
             
             <div>
-              <label className={cn("block", "text-sm", "font-medium", "text-gray-700", "mb-1")}>Booking ID</label>
+              <label className={cn("block", "text-sm", "font-medium", "text-gray-700", "mb-1")}>PNR</label>
               <input
                 type="text"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Enter Booking ID (e.g., 2483)"
+                onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                placeholder="Enter PNR (e.g., FLY123ABC)"
                 className={cn("w-full", "px-3", "py-2", "border", "border-gray-300", "rounded-lg")}
                 onKeyPress={(e) => e.key === "Enter" && searchBooking()}
               />

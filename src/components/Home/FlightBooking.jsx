@@ -2,13 +2,12 @@
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import {
   FaBus,
   FaHelicopter,
   FaHome,
-  FaPassport,
   FaPlane,
   FaTaxi,
   FaTrain,
@@ -23,10 +22,13 @@ import AirportAutocomplete from "./AirportAutocomplete";
 import ServiceSelector from "./ServiceSelector";
 
 import ComingSoonService from "./ComingSoonService";
-import TripTypeSelector from "./TripTypeSelector";
 
 import { DayPicker } from "react-day-picker";
 import BookingFormSkeleton from "./BookingFormSkeleton";
+import HotelBooking from "./HotelBooking";
+
+import Link from "next/link";
+import HolidayPackage from "./HolidayPackage";
 
 
 const getTomorrowDateIST = () => {
@@ -59,12 +61,33 @@ export default function FlightBooking() {
   const services = [
     { label: "Flights", value: "flights", icon: FaPlane },
     { label: "Helicopter", value: "helicopters", icon: FaHelicopter },
-    { label: "Homestays", value: "homestays", icon: FaHome },
-    { label: "Holiday", value: "packages", icon: FaUmbrellaBeach },
+    { label: "Hotels", value: "hotels", icon: FaHome },
+    {
+    label: (
+      <>
+        <span className="block">Holiday</span>
+        <span className="block">Packages</span>
+      </>
+    ),
+    value: "packages",
+    icon: FaUmbrellaBeach
+  },
+
+    
+   
     { label: "Trains", value: "trains", icon: FaTrain },
     { label: "Buses", value: "buses", icon: FaBus },
     { label: "Cabs", value: "cabs", icon: FaTaxi },
-    { label: "Visa", value: "visa", icon: FaPassport },
+    {
+    label: (
+      <>
+        <span className="block">Tours &</span>
+        <span className="block">Attraction</span>
+      </>
+    ),
+    value: "tour&attraction",
+    icon: FaUmbrellaBeach
+  }
   ];
 
   // Service selection state
@@ -97,12 +120,17 @@ export default function FlightBooking() {
   });
   
 
+  const router = useRouter();
   const [airports, setAirports] = useState([]);
   const [helipads, setHelipads] = useState([]);
   const [isLoadingAirports, setIsLoadingAirports] = useState(true);
   const [airportFetchError, setAirportFetchError] = useState(null);
+  const [schedulePrices, setSchedulePrices] = useState({});
+  const [loadingPrices, setLoadingPrices] = useState(false);
 
   const heliDropdownRef = useRef(null);
+  const hotelBookingRef = useRef(null);
+  const holidayPackageRef = useRef(null);
   const [date, setDate] = useState(() => getTomorrowDateIST());
 
   // Filter airports for flight booking (only locations with airport_code)
@@ -120,7 +148,39 @@ export default function FlightBooking() {
 
   const minDate = new Date().toISOString().split("T")[0];
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [calendarMode, setCalendarMode] = useState("flight"); // flight, helicopter, hotelCheckin, hotelCheckout, packageDate
 
+  // Close calendar when clicking anywhere outside or pressing Escape
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      // Check if the clicked element is inside the calendar modal
+      const isCalendarElement = event.target.closest('[data-calendar-modal]');
+      
+      // Close calendar if clicking anywhere outside the calendar
+      if (isCalendarOpen && !isCalendarElement) {
+        setIsCalendarOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event) => {
+      // Close calendar when pressing Escape key
+      if (event.key === 'Escape' && isCalendarOpen) {
+        setIsCalendarOpen(false);
+      }
+    };
+
+    // Add event listeners when calendar is open
+    if (isCalendarOpen) {
+      document.addEventListener('click', handleClickOutside, true);
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    
+    // Cleanup
+    return () => {
+      document.removeEventListener('click', handleClickOutside, true);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isCalendarOpen]);
 
   useEffect(() => {
     const fetchLocations = async () => {
@@ -304,8 +364,83 @@ export default function FlightBooking() {
   }
   }, [helipads, heliDeparture, heliArrival]);
 
+  // Set openCalendar function on child component refs
+  useEffect(() => {
+    if (hotelBookingRef.current && hotelBookingRef.current.setOpenCalendar) {
+      hotelBookingRef.current.setOpenCalendar((mode) => {
+        setCalendarMode(mode);
+        setIsCalendarOpen(true);
+      });
+    }
+    if (holidayPackageRef.current && holidayPackageRef.current.setOpenCalendar) {
+      holidayPackageRef.current.setOpenCalendar((mode) => {
+        setCalendarMode(mode);
+        setIsCalendarOpen(true);
+      });
+    }
+  }, [selectedService]);
 
 
+
+  // Custom day component to show prices
+  const CustomDay = ({ date, displayMonth }) => {
+    const dateStr = formatDateToInput(date);
+    const dayPrices = schedulePrices[dateStr] || [];
+    const isCurrentMonth = date.getMonth() === displayMonth.getMonth();
+    const isToday = formatDateToInput(new Date()) === dateStr;
+    const isPast = date < new Date().setHours(0, 0, 0, 0);
+    
+    // Get price information for this date
+    const prices = dayPrices.map(p => p.price);
+    const lowestPrice = prices.length > 0 ? Math.min(...prices) : null;
+    const highestPrice = prices.length > 0 ? Math.max(...prices) : null;
+    const totalSeats = dayPrices.reduce((sum, p) => sum + p.availableSeats, 0);
+    const hasMultiplePrices = prices.length > 1 && lowestPrice !== highestPrice;
+
+    return (
+      <div className={cn(
+        'relative', 'w-full', 'h-full', 'flex', 'flex-col', 'items-center', 'justify-center',
+        'text-sm', 'cursor-pointer', 'rounded-lg', 'transition-all', 'duration-200', 'min-h-[60px]',
+        isPast && 'text-gray-400 cursor-not-allowed',
+        !isCurrentMonth && 'text-gray-300',
+        isToday && 'bg-blue-100 font-bold',
+        !isPast && isCurrentMonth && 'hover:bg-blue-50'
+      )}>
+        <span className={cn('text-base', isToday && 'text-blue-600')}>
+          {date.getDate()}
+        </span>
+        
+        {lowestPrice && !isPast && isCurrentMonth && (
+          <div className={cn('flex', 'flex-col', 'items-center', 'mt-1')}>
+            <span className={cn(
+              'text-xs', 'font-semibold', 'text-green-600',
+              'bg-green-50', 'px-1', 'rounded'
+            )}>
+              {hasMultiplePrices 
+                ? `₹${lowestPrice.toLocaleString()}-${highestPrice.toLocaleString()}`
+                : `₹${lowestPrice.toLocaleString()}`
+              }
+            </span>
+            {totalSeats > 0 && (
+              <span className={cn('text-xs', 'text-gray-500')}>
+                {totalSeats} seats
+              </span>
+            )}
+          </div>
+        )}
+        
+        {dayPrices.length === 0 && !isPast && isCurrentMonth && !loadingPrices && 
+         ((selectedService === "flights" && departure && arrival) || 
+          (selectedService === "helicopters" && heliDeparture && heliArrival)) && (
+          <span className={cn('text-xs', 'text-gray-400', 'mt-1')}>No flights</span>
+        )}
+        
+        {loadingPrices && !isPast && isCurrentMonth && (
+          <div className={cn('text-xs', 'text-gray-400', 'mt-1', 'animate-pulse')}>...</div>
+        )}
+      </div>
+    );
+  };
 
     return (
       <div className={cn('relative', '-mt-20', 'flex', 'flex-col', 'items-center', 'justify-center', 'min-h-screen', 'p-4')}>
@@ -331,7 +466,7 @@ export default function FlightBooking() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className={cn('relative', 'z-10', 'bg-transparent', 'w-full')}
+              className={cn('relative', 'z-10', '', 'w-full')}
             >
               {/* Services Navigation Section */}
               <ServiceSelector 
@@ -344,15 +479,15 @@ export default function FlightBooking() {
               <div className={cn('relative', )}>
               <Card className={cn(  "relative",     
     "z-20",       ' bg-white/50', 'backdrop-blur-xl', 'shadow-2xl', 'rounded-3xl', 'border', 'border-white/20', 'mx-4', 'sm:mx-6', 'md:mx-20', 'lg:mx-26', 'overflow-visible')}>
-                <CardContent className={cn('p-6', 'sm:p-8', 'flex', 'flex-col', 'my-12', 'z-10', 'gap-6', 'pb-16')}>
+                <CardContent className={cn('p-6', 'sm:p-8', 'flex', 'flex-col', 'my-12', 'z-10', 'gap-6', 'pb-16' , )}>
                   {/* Trip Type Selector - Flights */}
-                  {selectedService === "flights" && (
+                  {/* {selectedService === "flights" && (
                     <TripTypeSelector 
                       tripType={tripType}
                       setTripType={setTripType}
                       serviceType="flights"
                     />
-                  )}
+                  )} */}
                   
 
              
@@ -414,7 +549,7 @@ export default function FlightBooking() {
   animate={{ opacity: 1, x: 0 }}
   transition={{ delay: 0.7 }}
   className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-  onClick={() => setIsCalendarOpen(true)}
+  onClick={() => { setCalendarMode('flight'); setIsCalendarOpen(true); }}
 >
   <label
     htmlFor="flight-date"
@@ -459,7 +594,7 @@ export default function FlightBooking() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.75 }}
                         className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-                         onClick={() => setIsCalendarOpen(true)}
+                         onClick={() => { setCalendarMode('flight'); setIsCalendarOpen(true); }}
                       >
                         <label
                           htmlFor="return-date"
@@ -661,25 +796,7 @@ export default function FlightBooking() {
                               
                               <Separator className="my-3" />
                               
-                              {/* Travel Class Selection */}
-                              <div className="space-y-3">
-                                <p className={cn('text-gray-800', 'font-semibold', 'text-sm')}>Choose Travel Class</p>
-                                <div className={cn('grid', 'grid-cols-2', 'gap-2')}>
-                                  {["Economy", "Premium Economy", "Business", "First Class"].map((classType) => (
-                                    <button
-                                      key={classType}
-                                      onClick={() => setTravelClass(classType)}
-                                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                        travelClass === classType
-                                          ? "bg-blue-600 text-white shadow-md"
-                                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                      }`}
-                                    >
-                                      {classType}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
+                         
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -698,13 +815,13 @@ export default function FlightBooking() {
                   )}
 
                   {/* Trip Type Selector - Helicopter */}
-                  {selectedService === "helicopters" && (
+                  {/* {selectedService === "helicopters" && (
                     <TripTypeSelector 
                       tripType={heliTripType}
                       setTripType={setHeliTripType}
                       serviceType="helicopters"
                     />
-                  )}
+                  )} */}
 
                   {/* Helicopter Booking Form */}
                   {selectedService === "helicopters" && (
@@ -765,7 +882,7 @@ export default function FlightBooking() {
   animate={{ opacity: 1, x: 0 }}
   transition={{ delay: 0.7 }}
   className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-  onClick={() => setIsCalendarOpen(true)}
+  onClick={() => { setCalendarMode('helicopter'); setIsCalendarOpen(true); }}
 >
   <label
     htmlFor="heli-date"
@@ -797,7 +914,7 @@ export default function FlightBooking() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 0.75 }}
                         className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-                         onClick={() => setIsCalendarOpen(true)}
+                         onClick={() => { setCalendarMode('helicopter'); setIsCalendarOpen(true); }}
                       >
                         <label
                           htmlFor="heli-return-date"
@@ -1000,24 +1117,7 @@ export default function FlightBooking() {
                               <Separator className="my-3" />
                               
                               {/* Travel Class Selection */}
-                              <div className="space-y-3">
-                                <p className={cn('text-gray-800', 'font-semibold', 'text-sm')}>Choose Travel Class</p>
-                                <div className={cn('grid', 'grid-cols-2', 'gap-2')}>
-                                  {["Economy", "Premium Economy", "Business", "First Class"].map((classType) => (
-                                    <button
-                                      key={classType}
-                                      onClick={() => setHeliTravelClass(classType)}
-                                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                                        heliTravelClass === classType
-                                          ? "bg-blue-600 text-white shadow-md"
-                                          : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                                      }`}
-                                    >
-                                      {classType}
-                                    </button>
-                                  ))}
-                                </div>
-                              </div>
+                        
                             </motion.div>
                           )}
                         </AnimatePresence>
@@ -1027,9 +1127,20 @@ export default function FlightBooking() {
                     )
                   )}
 
+                  {/* Hotel Booking */}
+                  {selectedService === "hotels" && <HotelBooking ref={hotelBookingRef} />}
+                  
+                  {/* Holiday Package Booking */}
+                  {selectedService === "packages" && (
+                    <HolidayPackage 
+                      ref={holidayPackageRef}
+                      airports={airports}
+                      isLoadingAirports={isLoadingAirports}
+                      airportFetchError={airportFetchError}
+                    />
+                  )}
+                  
                   {/* Coming Soon Services */}
-                  {selectedService === "homestays" && <ComingSoonService serviceName="Homestays" />}
-                  {selectedService === "packages" && <ComingSoonService serviceName="Holiday Packages" />}
                   {selectedService === "trains" && <ComingSoonService serviceName="Train Booking" />}
                   {selectedService === "buses" && <ComingSoonService serviceName="Bus Booking" />}
                   {selectedService === "cabs" && <ComingSoonService serviceName="Cab Booking" />}
@@ -1056,67 +1167,97 @@ export default function FlightBooking() {
 
 
 
-
+      {(selectedService === "flights" || selectedService === "helicopters" || selectedService === "hotels" || selectedService === "packages") && (
+                <Button
+                  asChild={selectedService === "flights" || selectedService === "helicopters"}
+                  onClick={() => {
+                    if (selectedService === "hotels" && hotelBookingRef.current) {
+                      const url = hotelBookingRef.current.handleSearch();
+                      router.push(url);
+                    } else if (selectedService === "packages" && holidayPackageRef.current) {
+                      const url = holidayPackageRef.current.handleSearch();
+                      router.push(url);
+                    }
+                  }}
+                  className={`absolute left-1/2 -translate-x-1/2 -bottom-7 z-40 px-16 py-3 h-14 text-lg font-bold rounded-full shadow-xl transform hover:scale-105 transition-all duration-300 ${
+                    selectedService === "helicopters"
+                      ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError
+                          ? "bg-orange-400 cursor-not-allowed"
+                          : "bg-orange-600 hover:bg-orange-700 text-white")
+                      : selectedService === "hotels"
+                      ? (hotelBookingRef.current?.isSearchDisabled() 
+                          ? "bg-purple-400 cursor-not-allowed" 
+                          : "bg-purple-600 hover:bg-purple-700 text-white")
+                      : selectedService === "packages"
+                      ? (holidayPackageRef.current?.isSearchDisabled() 
+                          ? "bg-blue-400 cursor-not-allowed" 
+                          : "bg-blue-700 hover:bg-blue-900 text-white")
+                      : (isSearchDisabled
+                          ? "bg-blue-400 cursor-not-allowed"
+                          : "bg-blue-700 hover:bg-blue-900 text-white")
+                  }`}
+                  disabled={
+                    selectedService === "helicopters" 
+                      ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError)
+                      : selectedService === "flights"
+                      ? isSearchDisabled
+                      : selectedService === "hotels"
+                      ? hotelBookingRef.current?.isSearchDisabled()
+                      : selectedService === "packages"
+                      ? holidayPackageRef.current?.isSearchDisabled()
+                      : false
+                  }
+                >
+                  {(selectedService === "flights" || selectedService === "helicopters") ? (
+                    <Link
+                      href={{
+                        pathname: selectedService === "helicopters" ? "/helicopter-flight" : "/scheduled-flight",
+                        query: selectedService === "helicopters" ? {
+                          departure: getHelipadCityFromCode(heliDeparture) || "",
+                          arrival: getHelipadCityFromCode(heliArrival) || "",
+                          departure_code: heliDeparture || "",
+                          arrival_code: heliArrival || "",
+                          date: heliDate || "",
+                          returnDate: heliReturnDate || "",
+                          tripType: heliTripType,
+                          travelClass: heliTravelClass,
+                          adults: heliPassengerData.adults,
+                          children: heliPassengerData.children,
+                          infants: heliPassengerData.infants,
+                          passengers: totalHeliPassengers,
+                        } : {
+                          departure: getCityFromCode(departure) || "",
+                          arrival: getCityFromCode(arrival) || "",
+                          departure_code: departure || "",
+                          arrival_code: arrival || "",
+                          date: date || "",
+                          returnDate: returnDate || "",
+                          tripType: tripType,
+                          travelClass: travelClass,
+                          adults: passengerData.adults,
+                          children: passengerData.children,
+                          infants: passengerData.infants,
+                          passengers: totalPassengers,
+                        },
+                      }}
+                      className={cn('flex', 'items-center', 'gap-3')}
+                    >
+                      <span>SEARCH</span>
+                    </Link>
+                  ) : (
+                    <span className={cn('flex', 'items-center', 'gap-3' , 'z-20')}>
+                      {selectedService === "hotels" ? "SEARCH HOTELS" : "SEARCH PACKAGES"}
+                    </span>
+                  )}
+                </Button>
+              )}
 
                 </CardContent>
                 
               </Card>
               
-              {/* Search Button - Outside card with overlap */}
-              {(selectedService === "flights" || selectedService === "helicopters") && (
-                <Button
-                  asChild
-                  className={`absolute left-1/2 -translate-x-1/2 -bottom-7 z-20 px-16 py-3 h-14 text-lg font-bold rounded-full shadow-xl transform hover:scale-105 transition-all duration-300 ${
-                    selectedService === "helicopters"
-                      ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError
-                          ? "bg-orange-400 cursor-not-allowed"
-                          : "bg-orange-600 hover:bg-orange-700 text-white")
-                      : (isSearchDisabled
-                          ? "bg-blue-400 cursor-not-allowed"
-                          : "bg-blue-700 hover:bg-blue-900 text-white")
-                  }`}
-                  disabled={selectedService === "helicopters" 
-                    ? (!heliDeparture || !heliArrival || !heliDate || totalHeliPassengers === 0 || airportFetchError)
-                    : isSearchDisabled
-                  }
-                >
-                  <Link
-                    href={{
-                      pathname: selectedService === "helicopters" ? "/helicopter-flight" : "/scheduled-flight",
-                      query: selectedService === "helicopters" ? {
-                        departure: getHelipadCityFromCode(heliDeparture) || "",
-                        arrival: getHelipadCityFromCode(heliArrival) || "",
-                        departure_code: heliDeparture || "",
-                        arrival_code: heliArrival || "",
-                        date: heliDate || "",
-                        returnDate: heliReturnDate || "",
-                        tripType: heliTripType,
-                        travelClass: heliTravelClass,
-                        adults: heliPassengerData.adults,
-                        children: heliPassengerData.children,
-                        infants: heliPassengerData.infants,
-                        passengers: totalHeliPassengers,
-                      } : {
-                        departure: getCityFromCode(departure) || "",
-                        arrival: getCityFromCode(arrival) || "",
-                        departure_code: departure || "",
-                        arrival_code: arrival || "",
-                        date: date || "",
-                        returnDate: returnDate || "",
-                        tripType: tripType,
-                        travelClass: travelClass,
-                        adults: passengerData.adults,
-                        children: passengerData.children,
-                        infants: passengerData.infants,
-                        passengers: totalPassengers,
-                      },
-                    }}
-                    className={cn('flex', 'items-center', 'gap-3')}
-                  >
-                    <span>SEARCH</span>
-                  </Link>
-                </Button>
-              )}
+
+        
               </div>
 
             </motion.div>
@@ -1125,58 +1266,66 @@ export default function FlightBooking() {
 
 
 
-        <AnimatePresence>
+<AnimatePresence>
   {isCalendarOpen && (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className={cn('fixed', 'inset-0', 'z-[200]', 'flex', 'items-center', 'justify-center', 'bg-black/40', 'backdrop-blur-sm')}
+    <div
+      className={cn('fixed', 'inset-0', 'z-[200]', 'flex', 'items-center', 'justify-center' , 'mt-80')}
       onClick={() => setIsCalendarOpen(false)}
+      data-calendar-modal
     >
-      <motion.div
-        initial={{ scale: 0.95, y: 20, opacity: 0 }}
-        animate={{ scale: 1, y: 0, opacity: 1 }}
-        exit={{ scale: 0.95, y: 20, opacity: 0 }}
-        transition={{ duration: 0.2 }}
-        className={cn('bg-white', 'rounded-3xl', 'shadow-2xl', 'p-6', 'sm:p-8', 'w-full', 'max-w-3xl', 'relative', 'mx-4')}
-        onClick={(e) => e.stopPropagation()} // prevent close when clicking inside
+      <div
+        className={cn('bg-white', 'rounded-xl', 'border', 'border-gray-200', 'shadow-2xl', 'p-6', 'sm:p-8', 'w-full', 'max-w-3xl', 'mx-4')}
+        onClick={(e) => e.stopPropagation()} 
+        data-calendar-modal
       >
-        {/* Close Button */}
-        <button
-          onClick={() => setIsCalendarOpen(false)}
-          className={cn('absolute', 'top-4', 'right-4', 'z-10', 'w-10', 'h-10', 'flex', 'items-center', 'justify-center', 'rounded-full', 'bg-gray-100', 'hover:bg-gray-200', 'transition-colors')}
-          aria-label="Close calendar"
-        >
-          <svg className={cn('w-5', 'h-5', 'text-gray-600')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-   
-
+        {/* Calendar Header */}
+    
+        
         <DayPicker
           mode="single"
-          selected={new Date(selectedService === "helicopters" ? heliDate : date)}
+          selected={new Date(
+            calendarMode === "helicopter" 
+              ? heliDate 
+              : calendarMode === "hotelCheckin" && hotelBookingRef.current
+              ? hotelBookingRef.current.getSearchData().checkInDate
+              : calendarMode === "hotelCheckout" && hotelBookingRef.current
+              ? hotelBookingRef.current.getSearchData().checkOutDate
+              : calendarMode === "packageDate" && holidayPackageRef.current
+              ? holidayPackageRef.current.getSearchData().departureDate
+              : date
+          )}
           onSelect={(d) => {
             if (!d) return;
             const formattedDate = formatDateToInput(d);
-            if (selectedService === "helicopters") {
+            
+            if (calendarMode === "helicopter") {
               setHeliDate(formattedDate);
+            } else if (calendarMode === "hotelCheckin" && hotelBookingRef.current) {
+              hotelBookingRef.current.setCheckInDate(formattedDate);
+            } else if (calendarMode === "hotelCheckout" && hotelBookingRef.current) {
+              hotelBookingRef.current.setCheckOutDate(formattedDate);
+            } else if (calendarMode === "packageDate" && holidayPackageRef.current) {
+              holidayPackageRef.current.setDate(formattedDate);
             } else {
               setDate(formattedDate);
             }
-            setIsCalendarOpen(false);           // close popup
+            setIsCalendarOpen(false);
           }}
-          numberOfMonths={2}                    // like screenshot
-          fromDate={new Date()}                 // min = today
+          numberOfMonths={2}
+          fromDate={
+            calendarMode === "hotelCheckout" && hotelBookingRef.current
+              ? new Date(hotelBookingRef.current.getSearchData().checkInDate + 'T00:00:00')
+              : new Date()
+          }
           captionLayout="buttons"
           weekStartsOn={0}
           className="mx-auto"
         />
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   )}
 </AnimatePresence>
+
 
 
 

@@ -8,40 +8,22 @@ export { default as API } from './api';
 
 // Individual services
 export {
-  AuthService,
-  FlightService,
-  AirportService,
-  BookingService,
-  PaymentService,
-  UserService,
-  AdminService,
-  JoyRideService,
-  CharterService,
-  TokenManager,
-  ApiError,
-  httpClient,
+  AdminService, AirportService, ApiError, AuthService, BookingService, CharterService, FlightService, HotelService, httpClient, JoyRideService, PaymentService, TokenManager, UserService
 } from './api';
 
 // API hooks
 export * from '../hooks/useApi';
 
-// Constants and utilities
-export { default as ApiConstants } from './apiConstants';
-export { default as ApiUtils } from './apiUtils';
+// Constants and utilities from common-api folder
+export { default as ApiConstants } from './common-api/apiConstants';
+export { default as ApiUtils } from './common-api/apiUtils';
 
 // Re-export specific constants for convenience
 export {
-  API_ENDPOINTS,
-  HTTP_STATUS,
-  ERROR_MESSAGES,
-  SUCCESS_MESSAGES,
-} from './apiConstants';
+  API_ENDPOINTS, ERROR_MESSAGES, HTTP_STATUS, SUCCESS_MESSAGES
+} from './common-api/apiConstants';
 
 // Re-export specific utilities for convenience
 export {
-  handleApiError,
-  buildUrl,
-  formatDateForApi,
-  debounce,
-  throttle,
-} from './apiUtils';
+  buildUrl, debounce, formatDateForApi, handleApiError, throttle
+} from './common-api/apiUtils';

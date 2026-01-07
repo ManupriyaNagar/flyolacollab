@@ -22,11 +22,13 @@ import {
     FaDollarSign,
     FaExchangeAlt,
     FaHelicopter,
+    FaHome,
     FaPlane,
     FaPlaneDeparture,
     FaUser
 } from "react-icons/fa";
 import { MdErrorOutline, MdFlightLand, MdFlightTakeoff } from "react-icons/md";
+import MobileHotelBooking from "./MobileHotelBooking";
 // Removed unused Loader import
 
 export default function MobileFlightBooking() {
@@ -39,7 +41,7 @@ export default function MobileFlightBooking() {
     const [passengerData, setPassengerData] = useState({
         adults: 1,
         children: 0,
-        infants: 0,
+        infants: 0, 
     });
     const [airports, setAirports] = useState([]);
     const [helipads, setHelipads] = useState([]);
@@ -200,46 +202,52 @@ export default function MobileFlightBooking() {
             <div className={cn('relative', 'z-10', 'px-4', 'py-6', 'safe-area-inset')}>
                 {/* Mobile Header */}
                 <motion.div
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
                     className={cn('relative','border', 'border-blue-300',   'overflow-hidden', 'bg-gradient-to-r', 'from-blue-600', 'to-blue-500', 'rounded-3xl', 'text-center', 'mb-8', 'py-6')}
                 >
        
 
-                    {/* Headline */}
+           
                     <motion.h1
-                        variants={itemVariants}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.2 }}
                         className={cn('text-3xl', 'font-extrabold', 'text-white', 'mb-2', 'drop-shadow-md')}
                     >
-                        {serviceType === "helicopter" ? "Book Your Helicopter" : "Book Your Flight"}
+                        {serviceType === "helicopter" ? "Book Your Helicopter" : serviceType === "hotel" ? "Book Your Hotel" : "Book Your Flight"}
                     </motion.h1>
 
-                    {/* Subheading */}
+           
                     <motion.p
-                        variants={itemVariants}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.3 }}
                         className={cn('text-blue-100', 'text-base', 'mb-4')}
                     >
-                        {serviceType === "helicopter" ? "Experience luxury helicopter travel" : "Experience premium aviation on mobile"}
+                        {serviceType === "helicopter" ? "Experience luxury helicopter travel" : serviceType === "hotel" ? "Find perfect stays at best prices" : "Experience premium aviation on mobile"}
                     </motion.p>
 
-                    {/* Features line */}
+ 
                     <motion.div
-                        variants={itemVariants}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.4 }}
                         className={cn('flex', 'items-center', 'justify-center', 'gap-2', 'text-xs', 'text-blue-200')}
                     >
                         <FaClock className="text-sm" />
                         <span>Safe • Comfortable • Reliable</span>
                     </motion.div>
                 </motion.div>
-                {/* Mobile Flight Search Card */}
+
                 <motion.div
                     initial={{ opacity: 0, y: 30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <Card className={cn('bg-white/98', 'backdrop-blur-xl', 'shadow-2xl', 'rounded-3xl', 'border', 'border-white/30', 'overflow-visible')}>
-                        <CardContent className="p-5">
+                    <Card className={cn('bg-white', 'backdrop-blur-xl', 'shadow-2xl', 'rounded-3xl', 'border', 'border-white/30', 'overflow-visible')}>
+                        <CardContent className="p-1">
                             {/* Service Type Toggle */}
                             <div className={cn('flex', 'gap-2', 'mb-5', 'p-1', 'bg-gray-100', 'rounded-2xl')}>
                                 <button
@@ -248,12 +256,12 @@ export default function MobileFlightBooking() {
                                         setDeparture("");
                                         setArrival("");
                                     }}
-                                    className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${serviceType === "flight"
+                                    className={`flex-1 py-3 px-2 rounded-xl font-semibold text-xs transition-all duration-300 flex items-center justify-center gap-1 ${serviceType === "flight"
                                         ? "bg-white text-blue-600 shadow-md"
                                         : "text-gray-600 hover:text-gray-900"
                                         }`}
                                 >
-                                    <FaPlane className="text-lg" />
+                                    <FaPlane className="text-base" />
                                     Flight
                                 </button>
                                 <button
@@ -262,18 +270,35 @@ export default function MobileFlightBooking() {
                                         setDeparture("");
                                         setArrival("");
                                     }}
-                                    className={`flex-1 py-3 px-4 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center justify-center gap-2 ${serviceType === "helicopter"
+                                    className={`flex-1 py-3 px-2 rounded-xl font-semibold text-xs transition-all duration-300 flex items-center justify-center gap-1 ${serviceType === "helicopter"
                                         ? "bg-white text-red-600 shadow-md"
                                         : "text-gray-600 hover:text-gray-900"
                                         }`}
                                 >
-                                    <FaHelicopter className="text-lg" />
-                                    Helicopter
+                                    <FaHelicopter className="text-base" />
+                                    Heli
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        setServiceType("hotel");
+                                    }}
+                                    className={`flex-1 py-3 px-2 rounded-xl font-semibold text-xs transition-all duration-300 flex items-center justify-center gap-1 ${serviceType === "hotel"
+                                        ? "bg-white text-purple-600 shadow-md"
+                                        : "text-gray-600 hover:text-gray-900"
+                                        }`}
+                                >
+                                    <FaHome className="text-base" />
+                                    Hotel
                                 </button>
                             </div>
 
                             {/* Mobile Form Layout */}
                             <div className="space-y-5">
+                                {/* Show Hotel Booking Form when hotel service is selected */}
+                                {serviceType === "hotel" ? (
+                                    <MobileHotelBooking />
+                                ) : (
+                                    <>
                                 {/* From/To Section */}
                                 <div className="space-y-3">
                                     {/* Departure */}
@@ -292,7 +317,7 @@ export default function MobileFlightBooking() {
                                             onValueChange={setDeparture}
                                             disabled={!!airportFetchError}
                                         >
-                                            <SelectTrigger className={cn('w-full', 'py-5', 'h-[16rem]', 'text-base', 'border-2', 'border-gray-200', 'rounded-sm', 'bg-white', 'shadow-sm', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'transition-all', 'duration-300')}>
+                                            <SelectTrigger className={cn('w-full', 'h-16', 'text-base', 'border-2', 'border-gray-200', 'rounded-md', 'bg-white', 'shadow-sm', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'transition-all', 'duration-300')}>
                                                 <SelectValue placeholder="Select departure city" />
                                             </SelectTrigger>
                                             <SelectContent className="max-h-60">
@@ -304,10 +329,10 @@ export default function MobileFlightBooking() {
                                                     getFilteredLocations().map((location) => (
                                                         <SelectItem key={`dep-${location.id}`} value={serviceType === "helicopter" ? location.helipad_code : location.airport_code}>
                                                             <div className={cn('flex', 'items-center', 'justify-between', 'w-full')}>
-                                                                <div className={cn('flex', 'flex-col')}>
+                                                                <div className={cn('flex', 'flex-row', 'items-center', 'gap-2')}>
                                                                     <span className="font-medium">{location.city}</span>
-                                                                    <span className={cn('text-xs', 'text-gray-500')}>
-                                                                        {serviceType === "helicopter" ? location.helipad_code : location.airport_code}
+                                                                    <span className={cn('text-xs', 'text-gray-500' , 'text-left')}>
+                                                                        ({serviceType === "helicopter" ? location.helipad_code : location.airport_code})
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -326,7 +351,7 @@ export default function MobileFlightBooking() {
                                                 setDeparture(arrival);
                                                 setArrival(temp);
                                             }}
-                                            className={cn('p-3', 'bg-blue-500', 'text-white', 'rounded-full', 'hover:bg-blue-600', 'transition-colors', 'shadow-lg', 'z-10')}
+                                            className={cn('p-3', 'bg-blue-500', 'text-white', 'rounded-full', 'hover:bg-blue-600', 'transition-colors', 'shadow-sm', 'z-10')}
                                         >
                                             <FaExchangeAlt className={cn('text-lg', 'transform', 'rotate-90')} />
                                         </button>
@@ -347,7 +372,7 @@ export default function MobileFlightBooking() {
                                             onValueChange={setArrival}
                                             disabled={!!airportFetchError}
                                         >
-                                            <SelectTrigger className={cn('w-full', 'h-16', 'py-5', 'text-base', 'border-2', 'border-gray-200', 'rounded-sm', 'bg-white', 'shadow-sm', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'transition-all', 'duration-300')}>
+                                            <SelectTrigger className={cn('w-full', 'h-16', 'text-base', 'border-2', 'border-gray-200', 'rounded-md', 'bg-white', 'shadow-sm', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'transition-all', 'duration-300')}>
                                                 <SelectValue placeholder="Select destination city" />
                                             </SelectTrigger>
                                             <SelectContent className="max-h-60">
@@ -359,10 +384,10 @@ export default function MobileFlightBooking() {
                                                     getFilteredLocations().map((location) => (
                                                         <SelectItem key={`arr-${location.id}`} value={serviceType === "helicopter" ? location.helipad_code : location.airport_code}>
                                                             <div className={cn('flex', 'items-center', 'justify-between', 'w-full')}>
-                                                                <div className={cn('flex', 'flex-col')}>
+                                                                <div className={cn('flex', 'flex-row', 'items-center', 'gap-2')}>
                                                                     <span className="font-medium">{location.city}</span>
-                                                                    <span className={cn('text-xs', 'text-gray-500')}>
-                                                                        {serviceType === "helicopter" ? location.helipad_code : location.airport_code}
+                                                                    <span className={cn('text-xs', 'text-gray-500' , 'text-left')}>
+                                                                        ({serviceType === "helicopter" ? location.helipad_code : location.airport_code})
                                                                     </span>
                                                                 </div>
                                                             </div>
@@ -391,7 +416,7 @@ export default function MobileFlightBooking() {
                                             value={date}
                                             onChange={(e) => setDate(e.target.value)}
                                             min={new Date().toISOString().split("T")[0]}
-                                            className={cn('w-full', 'h-14', 'text-sm', 'border-2', 'border-gray-200', 'rounded-2xl', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'shadow-sm', 'transition-all', 'duration-300', 'bg-white')}
+                                            className={cn('w-full', 'h-12', 'text-sm', 'border-2', 'border-gray-200', 'rounded-2xl', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-blue-500', 'shadow-sm', 'transition-all', 'duration-300', 'bg-white')}
                                         />
                                     </motion.div>
 
@@ -409,7 +434,7 @@ export default function MobileFlightBooking() {
                                         </label>
                                         <div
                                             onClick={() => setIsPassengerDropdownOpen(!isPassengerDropdownOpen)}
-                                            className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-14 ${isPassengerDropdownOpen
+                                            className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-12 ${isPassengerDropdownOpen
                                                 ? "ring-2 ring-blue-500 border-blue-500"
                                                 : "hover:border-blue-300"
                                                 }`}
@@ -454,7 +479,7 @@ export default function MobileFlightBooking() {
                                                         animate={{ y: 0, opacity: 1 }}
                                                         exit={{ y: "100%", opacity: 0 }}
                                                         transition={{ duration: 0.25, ease: "easeOut" }}
-                                                        className={cn('fixed', 'md:absolute', 'inset-x-0', 'md:left-0', 'md:right-0', 'bottom-0', 'md:top-full', 'md:mt-3', 'z-50', 'mx-auto', 'md:mx-0', 'w-full', 'max-w-md', 'md:max-w-none', 'bg-white/90', 'backdrop-blur-lg', 'rounded-3xl', 'md:rounded-3xl', 'shadow-xl', 'ring-1', 'ring-black/5', 'px-6', 'py-6', 'space-y-6', 'max-h-[65vh]', 'md:max-h-[30vh]', 'overflow-y-auto')}
+                                                        className={cn('fixed', 'md:absolute', 'inset-x-0', 'md:left-0', 'md:right-0', 'bottom-0', 'md:top-full', 'md:mt-3', 'z-50', 'mx-auto', 'md:mx-0', 'w-full', 'max-w-md', 'md:max-w-none', 'bg-white/90', 'backdrop-blur-lg', 'rounded-3xl', 'md:rounded-3xl', 'shadow-xl', 'ring-1', 'ring-black/5', 'space-y-6', 'max-h-[65vh]', 'md:max-h-[30vh]', 'overflow-y-auto')}
                                                     >
                                                         {/* drag‑bar */}
                                                         <div className={cn('mx-auto', 'h-1.5', 'w-12', 'rounded-full', 'bg-gray-300/70', 'md:hidden', 'mb-2')} />
@@ -620,7 +645,7 @@ export default function MobileFlightBooking() {
                                         }}
                                     >
                                         <Button
-                                            className={`w-full h-16 text-lg font-bold rounded-2xl flex items-center gap-3 transition-all duration-300 shadow-xl ${isSearchDisabled
+                                            className={`w-full h-12 text-lg font-bold rounded-xl flex items-center gap-3 transition-all duration-300 shadow-xl ${isSearchDisabled
                                                 ? "bg-blue-600 cursor-not-allowed text-gray-600"
                                                 : serviceType === "helicopter"
                                                     ? "bg-gradient-to-r from-red-600 via-orange-600 to-red-600 hover:from-red-700 hover:via-orange-700 hover:to-red-700 text-white transform hover:scale-[1.02] active:scale-[0.98]"
@@ -644,33 +669,12 @@ export default function MobileFlightBooking() {
                                 </motion.div>
 
                                 {/* Quick Actions */}
-                                <motion.div
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    transition={{ delay: 0.8 }}
-                                    className={cn('grid', 'grid-cols-2', 'gap-3', 'pt-4')}
-                                >
-                                    <Button
-                                        asChild
-                                        className={cn('h-14', 'bg-gradient-to-r', 'from-green-500', 'to-emerald-500', 'text-white', 'font-semibold', 'rounded-2xl', 'flex', 'items-center', 'gap-2', 'hover:from-green-600', 'hover:to-emerald-600', 'transition-all', 'duration-300', 'shadow-lg', 'transform', 'hover:scale-[1.02]', 'active:scale-[0.98]')}
-                                    >
-                                        <a>
-                                            <FaDollarSign className="text-lg" />
-                                            <span className="text-sm">Charter</span>
-                                        </a>
-                                    </Button>
-
-                                    <Button
-                                        asChild
-                                        className={cn('h-14', 'bg-gradient-to-r', 'from-yellow-400', 'via-orange-500', 'to-red-500', 'text-white', 'font-semibold', 'rounded-2xl', 'flex', 'items-center', 'gap-2', 'hover:from-yellow-500', 'hover:via-orange-600', 'hover:to-red-600', 'transition-all', 'duration-300', 'shadow-lg', 'transform', 'hover:scale-[1.02]', 'active:scale-[0.98]')}
-                                    >
-                                        <Link href="/joy-ride">
-                                            <FaPlane className="text-lg" />
-                                            <span className="text-sm">Joy Rides</span>
-                                        </Link>
-                                    </Button>
-                                </motion.div>
+                           
+                                    </>
+                                )}
                             </div>
+
+
                         </CardContent>
                     </Card>
                 </motion.div>

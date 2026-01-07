@@ -16,7 +16,6 @@ const ReschedulePageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   
-  const bookingId = searchParams.get("bookingId");
   const pnr = searchParams.get("pnr");
   const bookingType = searchParams.get("type") || "flight";
 
@@ -34,14 +33,14 @@ const ReschedulePageContent = () => {
   const [reschedulingFee, setReschedulingFee] = useState(0);
 
   useEffect(() => {
-    if (bookingId) {
+    if (pnr) {
       fetchReschedulingDetails();
     }
-  }, [bookingId]);
+  }, [pnr]);
 
   // Refetch schedules when date changes
   useEffect(() => {
-    if (bookingId && selectedDate && bookingDetails) {
+    if (pnr && selectedDate && bookingDetails) {
       fetchSchedulesForDate(selectedDate);
     }
   }, [selectedDate]);
@@ -49,7 +48,7 @@ const ReschedulePageContent = () => {
   const fetchReschedulingDetails = async () => {
     try {
       setLoading(true);
-      const response = await API.rescheduling.getReschedulingDetails(bookingId, bookingType);
+      const response = await API.rescheduling.getReschedulingDetails(pnr, bookingType);
       
       if (response.data.success) {
         setBookingDetails(response.data.booking);
@@ -68,7 +67,7 @@ const ReschedulePageContent = () => {
   const fetchSchedulesForDate = async (date) => {
     try {
       setLoadingSchedules(true);
-      const response = await API.rescheduling.getReschedulingDetails(bookingId, bookingType, date);
+      const response = await API.rescheduling.getReschedulingDetails(pnr, bookingType, date);
       
       if (response.data.success) {
         setAvailableSchedules(response.data.availableSchedules);
@@ -216,7 +215,7 @@ const ReschedulePageContent = () => {
       setRescheduling(true);
 
       // First, create payment order to check if payment is required
-      const orderResponse = await API.rescheduling.createReschedulingOrder(bookingId, {
+      const orderResponse = await API.rescheduling.createReschedulingOrder(pnr, {
         bookingType,
         newScheduleId: selectedSchedule.id
       });
@@ -234,8 +233,8 @@ const ReschedulePageContent = () => {
         };
 
         const response = bookingType === "helicopter"
-          ? await API.rescheduling.rescheduleHelicopterBooking(bookingId, rescheduleData)
-          : await API.rescheduling.rescheduleFlightBooking(bookingId, rescheduleData);
+          ? await API.rescheduling.rescheduleHelicopterBooking(pnr, rescheduleData)
+          : await API.rescheduling.rescheduleFlightBooking(pnr, rescheduleData);
 
         if (response.data.success) {
           toast.success("Booking rescheduled successfully!");
@@ -260,7 +259,7 @@ const ReschedulePageContent = () => {
         handler: async function (response) {
           try {
             // Verify payment and complete rescheduling
-            const verifyResponse = await API.rescheduling.verifyReschedulingPayment(bookingId, {
+            const verifyResponse = await API.rescheduling.verifyReschedulingPayment(pnr, {
               razorpay_order_id: response.razorpay_order_id,
               razorpay_payment_id: response.razorpay_payment_id,
               razorpay_signature: response.razorpay_signature,

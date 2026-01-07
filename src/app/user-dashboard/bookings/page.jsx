@@ -290,7 +290,7 @@ export default function UserBookingsPage() {
                         <>
                           <button 
                             onClick={() => {
-                              router.push(`/reschedule?bookingId=${booking.id}&pnr=${booking.pnr}&type=flight`);
+                              router.push(`/reschedule?pnr=${booking.pnr}&type=flight`);
                             }}
                             className="px-4 py-2 text-orange-600 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-sm font-medium flex items-center gap-2"
                           >
@@ -323,6 +323,7 @@ export default function UserBookingsPage() {
         }}
         booking={selectedBooking}
         onCancellationSuccess={handleCancellationSuccess}
+        bookingType="flight"
       />
     </div>
   );

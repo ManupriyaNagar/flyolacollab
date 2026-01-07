@@ -1,4 +1,5 @@
 "use client";
+import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from 'react';
 import { FaDownload, FaExclamationTriangle, FaEye, FaFilter, FaSearch, FaTrash } from 'react-icons/fa';
@@ -18,7 +19,7 @@ export default function ErrorLogsPage() {
 
   const fetchErrors = async () => {
     try {
-      const response = await fetch('https://api.jetserveaviation.com/logs/errors');
+      const response = await fetch(`${BASE_URL}/logs/errors`);
       const data = await response.json();
       
       if (data.success) {
@@ -82,7 +83,7 @@ export default function ErrorLogsPage() {
 
   const markAsResolved = async (errorId) => {
     try {
-      const response = await fetch(`https://api.jetserveaviation.com/logs/errors/${errorId}/resolve`, {
+      const response = await fetch(`${BASE_URL}/logs/errors/${errorId}/resolve`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

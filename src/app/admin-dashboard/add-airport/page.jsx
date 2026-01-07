@@ -18,6 +18,26 @@ import { debounce } from "lodash";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+};
+
 const AddAirport = () => {
   const [city, setCity] = useState("");
   const [airportCode, setAirportCode] = useState("");
@@ -46,7 +66,7 @@ const AddAirport = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${BASE_URL}/airport`);
+      const response = await authenticatedFetch(`${BASE_URL}/airport`);
       if (!response.ok) throw new Error("Failed to fetch airports");
       const data = await response.json();
       const validAirports = data.filter((airport) => airport.id);
@@ -70,7 +90,7 @@ const AddAirport = () => {
   // Validate airport code uniqueness
   const validateAirportCode = async (code, currentId = null) => {
     try {
-      const response = await fetch(`${BASE_URL}/airport`);
+      const response = await authenticatedFetch(`${BASE_URL}/airport`);
       if (!response.ok) return false;
       const data = await response.json();
       return !data.some(
@@ -113,9 +133,8 @@ const AddAirport = () => {
 
     try {
       if (editMode) {
-        const response = await fetch(`${BASE_URL}/airport/${editId}`, {
+        const response = await authenticatedFetch(`${BASE_URL}/airport/${editId}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(airportData),
         });
         const data = await response.json();
@@ -127,9 +146,8 @@ const AddAirport = () => {
         );
         toast.success("Location updated successfully!");
       } else {
-        const response = await fetch(`${BASE_URL}/airport`, {
+        const response = await authenticatedFetch(`${BASE_URL}/airport`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
           body: JSON.stringify(airportData),
         });
         const data = await response.json();
@@ -168,7 +186,7 @@ const AddAirport = () => {
   const handleDelete = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/airport/${deleteId}`, {
+      const response = await authenticatedFetch(`${BASE_URL}/airport/${deleteId}`, {
         method: "DELETE",
       });
       const data = await response.json();
@@ -194,9 +212,9 @@ const AddAirport = () => {
     try {
       let response;
       if (action === "activate") {
-        response = await fetch(`${BASE_URL}/airport/activate`, { method: "PUT" });
+        response = await authenticatedFetch(`${BASE_URL}/airport/activate`, { method: "PUT" });
       } else if (action === "delete") {
-        response = await fetch(`${BASE_URL}/airport`, { method: "DELETE" });
+        response = await authenticatedFetch(`${BASE_URL}/airport`, { method: "DELETE" });
       }
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || `Failed to ${action} airports`);

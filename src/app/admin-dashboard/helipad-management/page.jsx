@@ -1,22 +1,40 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import BASE_URL from "@/baseUrl/baseUrl";
+import { Dialog, Transition } from "@headlessui/react";
 import {
-    PlusIcon,
-    TrashIcon,
-    PencilIcon,
-    XMarkIcon,
+    ArrowsUpDownIcon,
+    BuildingOfficeIcon,
+    ExclamationTriangleIcon,
     MagnifyingGlassIcon,
     MapPinIcon,
-    BuildingOfficeIcon,
-    ArrowsUpDownIcon,
-    ExclamationTriangleIcon,
-    CheckCircleIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    XMarkIcon
 } from "@heroicons/react/24/outline";
-import { Dialog, Transition } from "@headlessui/react";
-import BASE_URL from "@/baseUrl/baseUrl";
+import React, { useEffect, useMemo, useState } from 'react';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+};
 
 export default function HelipadManagementPage() {
     const [helipads, setHelipads] = useState([]);
@@ -43,7 +61,7 @@ export default function HelipadManagementPage() {
     const fetchHelipads = async () => {
         setLoading(true);
         try {
-            const response = await fetch(`${BASE_URL}/helipads`);
+            const response = await authenticatedFetch(`${BASE_URL}/helipads`);
             if (response.ok) {
                 const data = await response.json();
                 setHelipads(Array.isArray(data) ? data : []);
@@ -68,11 +86,8 @@ export default function HelipadManagementPage() {
 
             const method = editingHelipad ? 'PUT' : 'POST';
 
-            const response = await fetch(url, {
+            const response = await authenticatedFetch(url, {
                 method,
-                headers: {
-                    'Content-Type': 'application/json',
-                },
                 body: JSON.stringify(formData),
             });
 
@@ -91,7 +106,7 @@ export default function HelipadManagementPage() {
 
     const handleDelete = async (id) => {
         try {
-            const response = await fetch(`${BASE_URL}/helipads/${id}`, {
+            const response = await authenticatedFetch(`${BASE_URL}/helipads/${id}`, {
                 method: 'DELETE',
             });
 

@@ -1,29 +1,46 @@
 "use client";
 
+import BASE_URL from "@/baseUrl/baseUrl";
 import API from "@/services/api";
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import {
+    ArrowsUpDownIcon,
+    CalendarDaysIcon,
+    CheckCircleIcon,
+    ExclamationTriangleIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    PaperAirplaneIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    UsersIcon,
+    XCircleIcon,
+    XMarkIcon
+} from "@heroicons/react/24/outline";
+import { debounce } from "lodash";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import {
-  PlusIcon,
-  TrashIcon,
-  PencilIcon,
-  XMarkIcon,
-  MagnifyingGlassIcon,
-  ExclamationTriangleIcon,
-  PaperAirplaneIcon,
-  CalendarDaysIcon,
-  MapPinIcon,
-  UsersIcon,
-  ClockIcon,
-  FunnelIcon,
-  ArrowsUpDownIcon,
-  CheckCircleIcon,
-  XCircleIcon,
-} from "@heroicons/react/24/outline";
-import { Dialog, Transition } from "@headlessui/react";
-import { debounce } from "lodash";
-import BASE_URL from "@/baseUrl/baseUrl";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+};
 
 // Helper functions
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -87,7 +104,7 @@ const FlightsPage = () => {
       setIsLoading(true);
       try {
         const [flightsData, airportsData] = await Promise.all([
-          fetch(`${BASE_URL}/flights`).then(res => res.json()),
+          authenticatedFetch(`${BASE_URL}/flights`).then(res => res.json()),
           API.airports.getAirports(),
         ]);
 
@@ -163,9 +180,8 @@ const FlightsPage = () => {
         airport_stop_ids: normaliseStops(clean.airport_stop_ids),
       };
 
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
 
@@ -184,7 +200,7 @@ const FlightsPage = () => {
         toast.success(isEdit ? "Flight updated!" : "Flight added!");
 
         // Refresh flights
-        const flightsData = await fetch(`${BASE_URL}/flights`).then(res => res.json());
+        const flightsData = await authenticatedFetch(`${BASE_URL}/flights`).then(res => res.json());
         const normalizedFlights = flightsData.map((flight) => ({
           ...flight,
           airport_stop_ids: normaliseStops(flight.airport_stop_ids),

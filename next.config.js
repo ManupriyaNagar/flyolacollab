@@ -4,34 +4,35 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  
+  output: 'export', // DISABLED - incompatible with dynamic routes for admin dashboard
+  // Static export is incompatible with dynamic routes like /edit/[id]
+  // If you need static export for production, consider separating admin and public sites
+
   // Performance optimizations
   reactStrictMode: true,
-  swcMinify: true, // Fast minification
   compress: true,  // Enable gzip compression
-  
+
   images: {
-    unoptimized: true, // Required for static export
+    unoptimized: true, // Re-enabled image optimization
     domains: ['images.unsplash.com', 'flyola.in'],
     formats: ['image/webp'],
   },
-  
+
   env: {
     JWT_SECRET: process.env.JWT_SECRET,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
-  
+
   // Static export optimizations
   trailingSlash: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: false, // Reduce bundle size
-  
+
   // Optimize package imports
   experimental: {
     optimizePackageImports: ['@heroicons/react', 'react-icons', 'lodash'],
   },
-  
+
   // Webpack optimizations for static export
   webpack: (config, { isServer }) => {
     if (!isServer) {
@@ -42,7 +43,7 @@ const nextConfig = {
         net: false,
         tls: false,
       };
-      
+
       // Optimize chunks
       config.optimization = {
         ...config.optimization,

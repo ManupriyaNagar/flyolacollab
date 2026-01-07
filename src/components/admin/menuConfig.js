@@ -1,6 +1,8 @@
 import { ToyBrickIcon } from "lucide-react";
 import {
+    FaBed,
     FaBook,
+    FaBuilding,
     FaCalendarAlt,
     FaChartBar,
     FaClock,
@@ -9,11 +11,15 @@ import {
     FaExclamationTriangle,
     FaFileAlt,
     FaHome,
+    FaHotel,
     FaMapMarkerAlt,
     FaPlane,
+    FaStar,
     FaTicketAlt,
+    FaUmbrellaBeach,
     FaUsers,
-    FaUserShield
+    FaUserShield,
+    FaUtensils
 } from "react-icons/fa";
 
 /**
@@ -111,6 +117,13 @@ export const menuConfig = {
                 iconColor: "text-purple-400",
             },
             {
+                href: "/admin-dashboard/coupon-usage",
+                icon: FaChartBar,
+                label: "Coupon Usage History",
+                iconColor: "text-indigo-400",
+                activeGradient: "from-indigo-600 to-purple-600",
+            },
+            {
                 href: "/admin-dashboard/helicopter-booking",
                 icon: FaPlane,
                 label: "Helicopter Bookings",
@@ -148,6 +161,102 @@ export const menuConfig = {
                 icon: FaCalendarAlt,
                 label: "Helicopter Schedule",
                 iconColor: "text-green-400",
+            },
+        ],
+    },
+
+    hotelManagement: {
+        title: "Hotel Management",
+        items: [
+            {
+                href: "/admin-dashboard/city-management",
+                icon: FaMapMarkerAlt,
+                label: "City Management",
+                iconColor: "text-blue-400",
+                activeGradient: "from-blue-600 to-cyan-600",
+            },
+            {
+                href: "/admin-dashboard/hotel-management",
+                icon: FaHotel,
+                label: "Hotel Properties",
+                iconColor: "text-purple-400",
+                activeGradient: "from-purple-600 to-indigo-600",
+            },
+            {
+                href: "/admin-dashboard/hotel-bookings",
+                icon: FaBed,
+                label: "Hotel Bookings",
+                iconColor: "text-indigo-400",
+                activeGradient: "from-indigo-600 to-purple-600",
+            },
+            {
+                href: "/admin-dashboard/room-management",
+                icon: FaBuilding,
+                label: "Room Management",
+                iconColor: "text-green-400",
+                activeGradient: "from-green-600 to-emerald-600",
+            },
+            {
+                href: "/admin-dashboard/meal-plans",
+                icon: FaUtensils,
+                label: "Meal Plans",
+                iconColor: "text-orange-400",
+                activeGradient: "from-orange-600 to-red-600",
+            },
+            {
+                href: "/admin-dashboard/room-categories",
+                icon: FaBed,
+                label: "Room Categories",
+                iconColor: "text-cyan-400",
+                activeGradient: "from-cyan-600 to-blue-600",
+            },
+            {
+                href: "/admin-dashboard/room-availability",
+                icon: FaCalendarAlt,
+                label: "Room Availability",
+                iconColor: "text-teal-400",
+                activeGradient: "from-teal-600 to-cyan-600",
+            },
+            {
+                href: "/admin-dashboard/hotel-payments",
+                icon: FaDollarSign,
+                label: "Hotel Payments",
+                iconColor: "text-emerald-400",
+                activeGradient: "from-emerald-600 to-teal-600",
+            },
+            {
+                href: "/admin-dashboard/hotel-reviews",
+                icon: FaStar,
+                label: "Hotel Reviews",
+                iconColor: "text-yellow-400",
+                activeGradient: "from-yellow-600 to-orange-600",
+            },
+        ],
+    },
+
+    holidayPackageManagement: {
+        title: "Holiday Packages",
+        items: [
+            {
+                href: "/admin-dashboard/add-holiday-package",
+                icon: FaUmbrellaBeach,
+                label: "Add Package",
+                iconColor: "text-orange-400",
+                activeGradient: "from-orange-600 to-red-600",
+            },
+            {
+                href: "/admin-dashboard/holiday-packages",
+                icon: FaUmbrellaBeach,
+                label: "Manage Packages",
+                iconColor: "text-blue-400",
+                activeGradient: "from-blue-600 to-indigo-600",
+            },
+            {
+                href: "/admin-dashboard/package-bookings",
+                icon: FaBook,
+                label: "Package Bookings",
+                iconColor: "text-green-400",
+                activeGradient: "from-green-600 to-emerald-600",
             },
         ],
     },

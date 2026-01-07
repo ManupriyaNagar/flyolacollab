@@ -1,4 +1,5 @@
 "use client";
+import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from 'react';
 import { FaDownload, FaEye, FaFilter, FaSearch, FaServer, FaTrash } from 'react-icons/fa';
@@ -18,7 +19,7 @@ export default function SystemLogsPage() {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch('https://api.jetserveaviation.com/logs/system');
+      const response = await fetch(`${BASE_URL}/logs/system`);
       const data = await response.json();
       
       if (data.success) {

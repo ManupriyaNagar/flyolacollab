@@ -6,19 +6,19 @@ import { SidebarMenuItem, SidebarSection } from "@/components/admin/SidebarCompo
 import { menuConfig } from "@/components/admin/menuConfig";
 import { cn } from "@/lib/utils";
 import {
-    Bell,
-    Search,
-    Settings,
-    User,
+  Bell,
+  Search,
+  Settings,
+  User,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
-    FaBars,
-    FaPlane,
-    FaSignOutAlt,
-    FaTimes,
-    FaUserShield,
+  FaBars,
+  FaPlane,
+  FaSignOutAlt,
+  FaTimes,
+  FaUserShield,
 } from "react-icons/fa";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
@@ -135,6 +135,36 @@ export default function AdminDashboardLayout({ children }) {
           {/* Helicopter Management */}
           <SidebarSection title={menuConfig.helicopterManagement.title}>
             {menuConfig.helicopterManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
+
+          {/* Hotel Management */}
+          <SidebarSection title={menuConfig.hotelManagement.title}>
+            {menuConfig.hotelManagement.items.map((item) => (
+              <SidebarMenuItem
+                key={item.href}
+                href={item.href}
+                icon={item.icon}
+                label={item.label}
+                isActive={isActive}
+                iconColor={item.iconColor}
+                activeGradient={item.activeGradient}
+              />
+            ))}
+          </SidebarSection>
+
+          {/* Holiday Package Management */}
+          <SidebarSection title={menuConfig.holidayPackageManagement.title}>
+            {menuConfig.holidayPackageManagement.items.map((item) => (
               <SidebarMenuItem
                 key={item.href}
                 href={item.href}

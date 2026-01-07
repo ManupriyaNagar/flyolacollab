@@ -1,15 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import { XMarkIcon, ExclamationTriangleIcon, CurrencyRupeeIcon } from '@heroicons/react/24/outline';
 import BASE_URL from '@/baseUrl/baseUrl';
+import { CurrencyRupeeIcon, ExclamationTriangleIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
-const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) => {
+const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess, bookingType = 'flight' }) => {
   const [cancellationDetails, setCancellationDetails] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelling, setCancelling] = useState(false);
   const [reason, setReason] = useState('');
+
+  // Determine the API endpoint prefix based on booking type
+  const isHelicopter = bookingType === 'helicopter' || booking?.bookingType === 'helicopter';
+  const apiPrefix = isHelicopter ? 'helicopter-cancellation' : 'cancellation';
 
   useEffect(() => {
     if (isOpen && booking) {
@@ -20,7 +24,7 @@ const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) 
   const fetchCancellationDetails = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/cancellation/details/${booking.id}`);
+      const response = await fetch(`${BASE_URL}/${apiPrefix}/details/${booking.id}`);
       const data = await response.json();
       
       if (data.success) {
@@ -44,7 +48,7 @@ const CancellationModal = ({ isOpen, onClose, booking, onCancellationSuccess }) 
     setCancelling(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`${BASE_URL}/cancellation/cancel/${booking.id}`, {
+      const response = await fetch(`${BASE_URL}/${apiPrefix}/cancel/${booking.id}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

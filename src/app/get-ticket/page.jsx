@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import ProfessionalTicket from "../../components/SingleTicket/ProfessionalTicket";
 import BASE_URL from "@/baseUrl/baseUrl";
-import { transformTicketData, buildAirportMap } from "@/utils/ticketDataTransformer";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import ProfessionalTicket from "../../components/SingleTicket/ProfessionalTicket";
 
 // Loading component for Suspense fallback
 const GetTicketLoadingFallback = () => (
@@ -241,14 +240,14 @@ const GetTicketContent = () => {
                       color: "white",
                       margin: 0
                     }}>
-                      Flight Inquiry
+                      Booking Inquiry
                     </h1>
                     <p style={{
                       fontSize: "14px",
                       color: "#94a3b8",
                       margin: "4px 0 0 0"
                     }}>
-                      Check your flight details with ease
+                      Check your flight or helicopter booking details
                     </p>
                   </div>
                 </div>
@@ -553,7 +552,7 @@ const GetTicketContent = () => {
                   color: "#0f172a",
                   margin: 0
                 }}>
-                  Flight Ticket Details
+                  {ticketData.bookingData?.bookingType === 'helicopter' ? 'Helicopter' : 'Flight'} Ticket Details
                 </h2>
                 <button
                   onClick={() => {

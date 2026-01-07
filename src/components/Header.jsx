@@ -3,16 +3,16 @@ import { useAuth } from '@/components/AuthContext';
 import { cn } from "@/lib/utils";
 import { Menu, Transition } from '@headlessui/react';
 import {
-    ArrowRightOnRectangleIcon,
-    Bars3Icon,
-    ChartBarIcon,
-    ChevronDownIcon,
-    Cog6ToothIcon,
-    PaperAirplaneIcon,
-    SparklesIcon,
-    TicketIcon,
-    UserCircleIcon,
-    XMarkIcon,
+  ArrowRightOnRectangleIcon,
+  Bars3Icon,
+  ChartBarIcon,
+  ChevronDownIcon,
+  Cog6ToothIcon,
+  PaperAirplaneIcon,
+  SparklesIcon,
+  TicketIcon,
+  UserCircleIcon,
+  XMarkIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -56,13 +56,13 @@ const Header = () => {
   useEffect(() => {
     const fetchScheduleUrl = async () => {
       try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com'}/api/schedule-file/current`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'NEXT_PUBLIC_API_URL'}/api/schedule-file/current`);
         if (!response.ok) {
           throw new Error('Schedule endpoint not available');
         }
         const data = await response.json();
         if (data.url) {
-          setScheduleUrl(`${process.env.NEXT_PUBLIC_API_URL || 'https://api.jetserveaviation.com'}${data.url}`);
+          setScheduleUrl(`${process.env.NEXT_PUBLIC_API_URL || 'NEXT_PUBLIC_API_URL'}${data.url}`);
         }
       } catch (error) {
         // Silently fail - use default schedule URL

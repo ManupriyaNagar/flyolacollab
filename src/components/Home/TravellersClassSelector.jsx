@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
 export default function TravellersClassSelector({
   passengerData,
@@ -37,15 +38,15 @@ export default function TravellersClassSelector({
       initial={{ opacity: 0, x: -20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ delay }}
-      className="relative flex flex-col"
+      className={cn('relative', 'flex', 'flex-col')}
       ref={dropdownRef}
     >
       <label
         htmlFor={`${serviceType}-passengers`}
-        className="mb-2 text-sm font-semibold text-gray-700 flex items-center gap-1"
+        className={cn('mb-2', 'text-sm', 'font-semibold', 'text-gray-700', 'flex', 'items-center', 'gap-1')}
       >
         Travellers & Class
-        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className={cn('w-4', 'h-4')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
         </svg>
       </label>
@@ -56,15 +57,15 @@ export default function TravellersClassSelector({
           isOpen ? activeBorderColor : "border-gray-200"
         }`}
       >
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-gray-900">
+        <div className={cn('flex', 'items-baseline', 'gap-1')}>
+          <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
             {totalPassengers}
           </span>
-          <span className="text-sm font-semibold text-gray-900">
+          <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
             Traveller{totalPassengers !== 1 ? "s" : ""}
           </span>
         </div>
-        <div className="text-xs text-gray-600">
+        <div className={cn('text-xs', 'text-gray-600')}>
           {travelClass === "Premium Economy" ? "Economy/ Premium Economy" : travelClass}
         </div>
       </div>
@@ -76,15 +77,15 @@ export default function TravellersClassSelector({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.95 }}
             transition={{ duration: 0.2, ease: "easeInOut" }}
-            className="absolute top-full mt-2 left-0 w-full min-w-[330px] max-w-[90vw] bg-white border-2 border-gray-100 rounded-2xl shadow-2xl z-[100] p-6 space-y-4 overflow-y-auto max-h-[60vh]"
+            className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[330px]', 'max-w-[90vw]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-[100]', 'p-6', 'space-y-4', 'overflow-y-auto', 'max-h-[60vh]')}
           >
             {/* Adults */}
-            <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
               <div>
-                <p className="text-gray-800 font-semibold">Adults</p>
-                <p className="text-xs text-gray-500">(12+ years)</p>
+                <p className={cn('text-gray-800', 'font-semibold')}>Adults</p>
+                <p className={cn('text-xs', 'text-gray-500')}>(12+ years)</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className={cn('flex', 'items-center', 'gap-3')}>
                 <Button
                   variant="outline"
                   size="icon"
@@ -98,7 +99,7 @@ export default function TravellersClassSelector({
                 >
                   -
                 </Button>
-                <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                   {passengerData.adults}
                 </span>
                 <Button
@@ -114,12 +115,12 @@ export default function TravellersClassSelector({
             <Separator className="my-2" />
             
             {/* Children */}
-            <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
               <div>
-                <p className="text-gray-800 font-semibold">Children</p>
-                <p className="text-xs text-gray-500">(2-12 years)</p>
+                <p className={cn('text-gray-800', 'font-semibold')}>Children</p>
+                <p className={cn('text-xs', 'text-gray-500')}>(2-12 years)</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className={cn('flex', 'items-center', 'gap-3')}>
                 <Button
                   variant="outline"
                   size="icon"
@@ -129,7 +130,7 @@ export default function TravellersClassSelector({
                 >
                   -
                 </Button>
-                <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                   {passengerData.children}
                 </span>
                 <Button
@@ -146,12 +147,12 @@ export default function TravellersClassSelector({
             <Separator className="my-2" />
             
             {/* Infants */}
-            <div className="flex items-center justify-between py-3 px-2 rounded-lg hover:bg-gray-50 transition-colors">
+            <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2', 'rounded-lg', 'hover:bg-gray-50', 'transition-colors')}>
               <div>
-                <p className="text-gray-800 font-semibold">Infants</p>
-                <p className="text-xs text-gray-500">(0-2 years)</p>
+                <p className={cn('text-gray-800', 'font-semibold')}>Infants</p>
+                <p className={cn('text-xs', 'text-gray-500')}>(0-2 years)</p>
               </div>
-              <div className="flex items-center gap-3">
+              <div className={cn('flex', 'items-center', 'gap-3')}>
                 <Button
                   variant="outline"
                   size="icon"
@@ -161,7 +162,7 @@ export default function TravellersClassSelector({
                 >
                   -
                 </Button>
-                <span className="w-10 text-center font-bold text-gray-800 text-lg">
+                <span className={cn('w-10', 'text-center', 'font-bold', 'text-gray-800', 'text-lg')}>
                   {passengerData.infants}
                 </span>
                 <Button
@@ -178,8 +179,8 @@ export default function TravellersClassSelector({
             
             {passengerData.adults === 0 &&
               (passengerData.children > 0 || passengerData.infants > 0) && (
-                <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-600 font-medium">
+                <div className={cn('mt-4', 'p-3', 'bg-red-50', 'border', 'border-red-200', 'rounded-lg')}>
+                  <p className={cn('text-sm', 'text-red-600', 'font-medium')}>
                     ⚠️ An adult must accompany children and infants.
                   </p>
                 </div>
@@ -187,25 +188,8 @@ export default function TravellersClassSelector({
             
             <Separator className="my-3" />
             
-            {/* Travel Class Selection */}
-            <div className="space-y-3">
-              <p className="text-gray-800 font-semibold text-sm">Choose Travel Class</p>
-              <div className="grid grid-cols-2 gap-2">
-                {["Economy", "Premium Economy", "Business", "First Class"].map((classType) => (
-                  <button
-                    key={classType}
-                    onClick={() => setTravelClass(classType)}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                      travelClass === classType
-                        ? `${activeButtonColor} text-white shadow-md`
-                        : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                    }`}
-                  >
-                    {classType}
-                  </button>
-                ))}
-              </div>
-            </div>
+   
+           
           </motion.div>
         )}
       </AnimatePresence>

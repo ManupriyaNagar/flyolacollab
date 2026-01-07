@@ -4,21 +4,41 @@ import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import { Dialog, Transition } from "@headlessui/react";
 import {
-  ArrowsUpDownIcon,
-  CogIcon,
-  ExclamationTriangleIcon,
-  FunnelIcon,
-  MagnifyingGlassIcon,
-  MapPinIcon,
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-  UsersIcon,
-  XMarkIcon
+    ArrowsUpDownIcon,
+    CogIcon,
+    ExclamationTriangleIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    UsersIcon,
+    XMarkIcon
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useMemo, useState } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+};
+
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function HelicopterManagementPage() {
@@ -53,8 +73,8 @@ export default function HelicopterManagementPage() {
     try {
       // Fetch helicopters and helipads
       const [helicoptersRes, helipadsRes] = await Promise.all([
-        fetch(`${BASE_URL}/helicopters`),
-        fetch(`${BASE_URL}/helipads`)
+        authenticatedFetch(`${BASE_URL}/helicopters`),
+        authenticatedFetch(`${BASE_URL}/helipads`)
       ]);
 
       if (helicoptersRes.ok) {
@@ -89,11 +109,8 @@ export default function HelicopterManagementPage() {
       
       const method = editingHelicopter ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData),
       });
 
@@ -112,7 +129,7 @@ export default function HelicopterManagementPage() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/helicopters/${id}`, {
+      const response = await authenticatedFetch(`${BASE_URL}/helicopters/${id}`, {
         method: 'DELETE',
       });
 

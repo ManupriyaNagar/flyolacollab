@@ -49,10 +49,19 @@ const BookingPageContent = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     
+    // Toast notification state
+    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
+    
     // Seat hold state
     const [seatHoldExpiry, setSeatHoldExpiry] = useState(null);
     const [timeRemaining, setTimeRemaining] = useState(null);
     const [isHoldingSeats, setIsHoldingSeats] = useState(false);
+
+    // Toast notification helper
+    const showToast = useCallback((message, type = 'info') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 4000);
+    }, []);
 
     // Memoized constants to prevent recalculation
     const basePrice = useMemo(() => parseFloat(price || 2000), [price]);
@@ -135,7 +144,7 @@ const BookingPageContent = () => {
 
     // Hold seats API call
     const holdSeats = useCallback(async (seats) => {
-        if (!seats || seats.length === 0) return;
+        if (!seats || seats.length === 0) return { success: true };
         
         setIsHoldingSeats(true);
         try {
@@ -158,21 +167,40 @@ const BookingPageContent = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.error || 'Failed to hold seats');
+                const errorMessage = errorData.error || 'Failed to hold seats';
+                
+                // Check if it's a seat availability error
+                if (errorMessage.toLowerCase().includes('not available') || 
+                    errorMessage.toLowerCase().includes('already booked') ||
+                    errorMessage.toLowerCase().includes('occupied')) {
+                    // Extract seat name from error message if possible
+                    const seatMatch = errorMessage.match(/Seat (\w+)/);
+                    const unavailableSeat = seatMatch ? seatMatch[1] : 'selected seat';
+                    
+                    showToast(`Sorry, ${unavailableSeat} is no longer available. Please select another seat.`, 'warning');
+                    
+                    // Refresh available seats
+                    await fetchAvailableSeats();
+                    return { success: false, unavailableSeat };
+                } else {
+                    showToast(`Unable to reserve seats: ${errorMessage}`, 'error');
+                    return { success: false };
+                }
             }
 
             const data = await response.json();
             setSeatHoldExpiry(new Date(data.expiresAt));
             console.log('[Seat Hold] Seats held successfully until:', data.expiresAt);
+            showToast(`Seats reserved successfully! Complete booking within ${Math.floor((new Date(data.expiresAt) - new Date()) / 60000)} minutes.`, 'success');
+            return { success: true };
         } catch (err) {
             console.error('[Seat Hold] Failed to hold seats:', err);
-            setError(`Failed to reserve seats: ${err.message}`);
-            // Revert seat selection on failure
-            setSelectedSeats([]);
+            showToast('Network error. Please check your connection and try again.', 'error');
+            return { success: false };
         } finally {
             setIsHoldingSeats(false);
         }
-    }, [scheduleId, formattedDate]);
+    }, [scheduleId, formattedDate, showToast, fetchAvailableSeats]);
 
     // Release seats API call
     const releaseSeats = useCallback(async (seats) => {
@@ -213,10 +241,17 @@ const BookingPageContent = () => {
                 setSelectedSeats(newSeats);
                 
                 // Hold the new seat selection
-                await holdSeats(newSeats);
+                const result = await holdSeats(newSeats);
+                
+                // If hold failed, revert the selection
+                if (!result.success) {
+                    setSelectedSeats(selectedSeats);
+                }
+            } else {
+                showToast(`You can only select ${totalPassengers} seat(s). Deselect a seat first.`, 'info');
             }
         }
-    }, [selectedSeats, totalPassengers, holdSeats]);
+    }, [selectedSeats, totalPassengers, holdSeats, showToast]);
 
     // Countdown timer for seat hold
     useEffect(() => {
@@ -301,7 +336,7 @@ const BookingPageContent = () => {
         
         return (
             <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center', 'p-4')}>
-                <div className={cn('bg-white', 'rounded-2xl', 'shadow-xl', 'p-8', 'max-w-lg', 'w-full', 'text-center')}>
+                <div className={cn('bg-white', 'rounded-2xl',  'p-8', 'max-w-lg', 'w-full', 'text-center')}>
                     <div className={cn('text-red-500', 'text-6xl', 'mb-4')}>⚠️</div>
                     <h1 className={cn('text-2xl', 'font-bold', 'text-gray-800', 'mb-4')}>Missing Booking Information</h1>
                     <p className={cn('text-gray-600', 'mb-6')}>
@@ -329,9 +364,9 @@ const BookingPageContent = () => {
 
     return (
         <div className={cn('min-h-screen', 'bg-gray-50', 'py-8', 'px-4')}>
-            <div className={cn('max-w-7xl', 'mx-auto')}>
+            <div className={cn('px-10', 'mx-auto' )}>
                 {/* Header */}
-                <div className={cn('bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white', 'p-6', 'rounded-t-3xl')}>
+                <div className={cn('bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white', 'p-6' , 'rounded-t-sm')}>
                     <div className={cn('flex', 'items-center', 'justify-between')}>
                         <div>
                             <h1 className={cn('text-3xl', 'font-bold', 'flex', 'items-center', 'gap-3')}>
@@ -343,17 +378,11 @@ const BookingPageContent = () => {
                             </h1>
                             <p className={cn('text-blue-100', 'mt-2')}>Secure your seats in just a few clicks</p>
                         </div>
-                        <Link
-                            href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
-                            className={cn('text-white/80', 'hover:text-white', 'hover:bg-white/20', 'p-3', 'rounded-full', 'transition-all', 'flex', 'items-center', 'gap-2')}
-                        >
-                            <FaArrowLeft />
-                            <span className={cn('hidden', 'sm:inline')}>Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}</span>
-                        </Link>
+                     
                     </div>
                 </div>
 
-                <div className={cn('bg-white', 'rounded-b-3xl', 'shadow-xl', 'p-6', 'space-y-6')}>
+                <div className={cn('bg-white',   'p-6', 'space-y-6')}>
                     {/* Flight/Helicopter Details */}
                     <div className={`bg-gradient-to-br ${bookingType === 'helicopter' ? 'from-red-50 to-pink-50 border-red-200' : 'from-blue-50 to-indigo-50 border-blue-200'} p-6 rounded-2xl border`}>
                         <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
@@ -543,7 +572,7 @@ const BookingPageContent = () => {
                         </Link>
                         <button
                             onClick={handleConfirmBooking}
-                            className={cn('flex-1', 'py-4', 'px-6', 'bg-gradient-to-r', 'from-green-600', 'to-blue-600', 'text-white', 'rounded-2xl', 'text-lg', 'font-bold', 'hover:from-green-700', 'hover:to-blue-700', 'transition-all', 'duration-200', 'shadow-lg', 'hover:shadow-xl', 'disabled:from-gray-400', 'disabled:to-gray-500', 'disabled:cursor-not-allowed')}
+                            className={cn('flex-1', 'py-4', 'px-6', 'bg-gradient-to-r', 'from-blue-600', 'to-blue-600', 'text-white', 'rounded-2xl', 'text-lg', 'font-bold', 'hover:from-blue-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'shadow-lg', 'hover:shadow-xl', 'disabled:from-gray-400', 'disabled:to-gray-500', 'disabled:cursor-not-allowed')}
                             disabled={loading || (error && availableSeats.length === 0) || selectedSeats.length !== totalPassengers}
                         >
                             {loading ? (
@@ -560,6 +589,71 @@ const BookingPageContent = () => {
                     </div>
                 </div>
             </div>
+
+            {/* Toast Notification */}
+            {toast.show && (
+                <div className={cn(
+                    'fixed', 'top-6', 'right-6', 'z-50',
+                    'max-w-md', 'w-full', 'sm:w-auto',
+                    'animate-slide-in-right',
+                    'shadow-2xl', 'rounded-xl', 'overflow-hidden',
+                    'transform', 'transition-all', 'duration-300'
+                )}>
+                    <div className={cn(
+                        'p-4', 'flex', 'items-start', 'gap-3',
+                        toast.type === 'success' && 'bg-green-50 border-l-4 border-green-500',
+                        toast.type === 'error' && 'bg-red-50 border-l-4 border-red-500',
+                        toast.type === 'warning' && 'bg-yellow-50 border-l-4 border-yellow-500',
+                        toast.type === 'info' && 'bg-blue-50 border-l-4 border-blue-500'
+                    )}>
+                        <div className="flex-shrink-0">
+                            {toast.type === 'success' && (
+                                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            )}
+                            {toast.type === 'error' && (
+                                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            )}
+                            {toast.type === 'warning' && (
+                                <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                            )}
+                            {toast.type === 'info' && (
+                                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            )}
+                        </div>
+                        <div className="flex-1">
+                            <p className={cn(
+                                'text-sm', 'font-medium',
+                                toast.type === 'success' && 'text-green-800',
+                                toast.type === 'error' && 'text-red-800',
+                                toast.type === 'warning' && 'text-yellow-800',
+                                toast.type === 'info' && 'text-blue-800'
+                            )}>
+                                {toast.message}
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => setToast({ show: false, message: '', type: 'info' })}
+                            className={cn(
+                                'flex-shrink-0', 'ml-2',
+                                'text-gray-400', 'hover:text-gray-600',
+                                'transition-colors'
+                            )}
+                        >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
@@ -580,7 +674,7 @@ const BookingPage = () => {
                         </div>
                     </div>
                     
-                    <div className={cn('bg-white', 'rounded-b-3xl', 'shadow-xl', 'p-6', 'space-y-6')}>
+                    <div className={cn('bg-white', 'rounded-b-3xl', 'p-6', 'space-y-6')}>
                         {/* Flight Details Skeleton */}
                         <div className={cn('bg-gray-50', 'p-6', 'rounded-2xl')}>
                             <div className={cn('h-6', 'w-32', 'bg-gray-200', 'rounded', 'mb-4', 'animate-pulse')}></div>

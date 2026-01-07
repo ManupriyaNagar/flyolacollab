@@ -4,22 +4,42 @@ import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import { Dialog, Transition } from "@headlessui/react";
 import {
-  ArrowsUpDownIcon,
-  CalendarDaysIcon,
-  ClockIcon,
-  CurrencyDollarIcon,
-  ExclamationTriangleIcon,
-  FunnelIcon,
-  MagnifyingGlassIcon,
-  MapPinIcon,
-  PencilIcon,
-  PlusIcon,
-  TrashIcon,
-  XMarkIcon
+    ArrowsUpDownIcon,
+    CalendarDaysIcon,
+    ClockIcon,
+    CurrencyDollarIcon,
+    ExclamationTriangleIcon,
+    FunnelIcon,
+    MagnifyingGlassIcon,
+    MapPinIcon,
+    PencilIcon,
+    PlusIcon,
+    TrashIcon,
+    XMarkIcon
 } from "@heroicons/react/24/outline";
 import React, { useEffect, useMemo, useState } from 'react';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include',
+  });
+};
+
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 export default function HelicopterSchedulePage() {
@@ -56,9 +76,9 @@ export default function HelicopterSchedulePage() {
     try {
       // Fetch schedules, helicopters, and helipads in parallel
       const [schedulesRes, helicoptersRes, helipadsRes] = await Promise.all([
-        fetch(`${BASE_URL}/helicopter-schedules`),
-        fetch(`${BASE_URL}/helicopters`),
-        fetch(`${BASE_URL}/helipads`)
+        authenticatedFetch(`${BASE_URL}/helicopter-schedules`),
+        authenticatedFetch(`${BASE_URL}/helicopters`),
+        authenticatedFetch(`${BASE_URL}/helipads`)
       ]);
 
       if (schedulesRes.ok) {
@@ -92,11 +112,8 @@ export default function HelicopterSchedulePage() {
       
       const method = editingSchedule ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
-        headers: {
-          'Content-Type': 'application/json',
-        },
         body: JSON.stringify(formData),
       });
 
@@ -115,7 +132,7 @@ export default function HelicopterSchedulePage() {
 
   const handleDelete = async (id) => {
     try {
-      const response = await fetch(`${BASE_URL}/helicopter-schedules/${id}`, {
+      const response = await authenticatedFetch(`${BASE_URL}/helicopter-schedules/${id}`, {
         method: 'DELETE',
       });
 

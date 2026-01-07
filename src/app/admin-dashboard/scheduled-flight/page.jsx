@@ -1,27 +1,47 @@
 "use client";
 
 import BASE_URL from "@/baseUrl/baseUrl";
+import { cn } from "@/lib/utils";
 import { Dialog, Transition } from "@headlessui/react";
 import {
-    ArrowsUpDownIcon,
-    CalendarDaysIcon,
-    CheckCircleIcon,
-    ClockIcon,
-    CurrencyDollarIcon,
-    ExclamationTriangleIcon,
-    MagnifyingGlassIcon,
-    MapPinIcon,
-    PaperAirplaneIcon,
-    PencilIcon,
-    PlusIcon,
-    TrashIcon,
-    XCircleIcon,
-    XMarkIcon,
+  ArrowsUpDownIcon,
+  CalendarDaysIcon,
+  CheckCircleIcon,
+  ClockIcon,
+  CurrencyDollarIcon,
+  ExclamationTriangleIcon,
+  MagnifyingGlassIcon,
+  MapPinIcon,
+  PaperAirplaneIcon,
+  PencilIcon,
+  PlusIcon,
+  TrashIcon,
+  XCircleIcon,
+  XMarkIcon,
 } from "@heroicons/react/24/outline";
 import { debounce } from "lodash";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+
+// Authentication helper function
+const getAuthHeaders = () => {
+  const token = localStorage.getItem('token') || sessionStorage.getItem('token');
+  return token ? { 'Authorization': `Bearer ${token}` } : {};
+};
+
+// Enhanced fetch with authentication
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      ...getAuthHeaders(),
+      ...options.headers,
+    },
+    credentials: 'include', // Include cookies for additional auth support
+  });
+};
 
 const ENTRIES_PER_PAGE = [10, 25, 50, 100];
 const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
@@ -68,9 +88,9 @@ const FlightSchedulePage = () => {
       const currentMonth = `${year}-${month}`;
       
       const [flightsRes, schedulesRes, airportsRes] = await Promise.all([
-        fetch(`${BASE_URL}/flights`),
-        fetch(`${BASE_URL}/flight-schedules?month=${currentMonth}`),
-        fetch(`${BASE_URL}/airport`),
+        authenticatedFetch(`${BASE_URL}/flights`),
+        authenticatedFetch(`${BASE_URL}/flight-schedules?month=${currentMonth}`),
+        authenticatedFetch(`${BASE_URL}/airport`),
       ]);
       
       if (!flightsRes.ok || !schedulesRes.ok || !airportsRes.ok) {
@@ -182,9 +202,8 @@ const FlightSchedulePage = () => {
     const url = isEdit ? `${BASE_URL}/flight-schedules/${formData.id}` : `${BASE_URL}/flight-schedules`;
     
     try {
-      const response = await fetch(url, {
+      const response = await authenticatedFetch(url, {
         method,
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...formData,
           via_stop_id: formData.via_stop_id,
@@ -238,7 +257,7 @@ const FlightSchedulePage = () => {
     if (!showDeleteConfirm) return;
     setLoading(true);
     try {
-      const response = await fetch(`${BASE_URL}/flight-schedules/${showDeleteConfirm}`, {
+      const response = await authenticatedFetch(`${BASE_URL}/flight-schedules/${showDeleteConfirm}`, {
         method: "DELETE",
       });
       if (!response.ok) throw new Error("Error deleting schedule");
@@ -257,9 +276,8 @@ const FlightSchedulePage = () => {
     setLoading(true);
     const newStatus = schedule.status === "Active" ? 0 : 1;
     try {
-      const response = await fetch(`${BASE_URL}/flight-schedules/${schedule.id}`, {
+      const response = await authenticatedFetch(`${BASE_URL}/flight-schedules/${schedule.id}`, {
         method: "PUT",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           flight_id: schedule.flight_id,
           departure_airport_id: schedule.departure_airport_id,
@@ -347,11 +365,11 @@ const FlightSchedulePage = () => {
 
   const getSortIcon = (columnKey) => {
     if (sortConfig.key !== columnKey) {
-      return <ArrowsUpDownIcon className="w-4 h-4 text-slate-400" />;
+      return <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-slate-400')} />;
     }
     return sortConfig.direction === 'asc' ? 
-      <ArrowsUpDownIcon className="w-4 h-4 text-blue-500 rotate-180" /> :
-      <ArrowsUpDownIcon className="w-4 h-4 text-blue-500" />;
+      <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-blue-500', 'rotate-180')} /> :
+      <ArrowsUpDownIcon className={cn('w-4', 'h-4', 'text-blue-500')} />;
   };
 
   return (
@@ -359,19 +377,19 @@ const FlightSchedulePage = () => {
       <ToastContainer position="top-right" autoClose={3000} />
       
       {/* Header */}
-      <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-r from-purple-500 to-indigo-500 rounded-xl">
-              <ClockIcon className="w-8 h-8 text-white" />
+          <h1 className={cn('text-3xl', 'font-bold', 'text-slate-800', 'flex', 'items-center', 'gap-3')}>
+            <div className={cn('p-2', 'bg-gradient-to-r', 'from-purple-500', 'to-indigo-500', 'rounded-xl')}>
+              <ClockIcon className={cn('w-8', 'h-8', 'text-white')} />
             </div>
             Flight Schedule Management
           </h1>
-          <p className="text-slate-600 mt-2">Manage flight schedules, timings, and pricing</p>
+          <p className={cn('text-slate-600', 'mt-2')}>Manage flight schedules, timings, and pricing</p>
         </div>
         
         <button
-          className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 text-white rounded-xl hover:from-emerald-600 hover:to-teal-600 transition-all duration-200 shadow-lg font-semibold"
+          className={cn('flex', 'items-center', 'gap-2', 'px-6', 'py-3', 'bg-gradient-to-r', 'from-emerald-500', 'to-teal-500', 'text-white', 'rounded-xl', 'hover:from-emerald-600', 'hover:to-teal-600', 'transition-all', 'duration-200', 'shadow-lg', 'font-semibold')}
           onClick={() => {
             setIsEdit(false);
             setFormData({
@@ -390,13 +408,13 @@ const FlightSchedulePage = () => {
           }}
           disabled={loading}
         >
-          <PlusIcon className="w-5 h-5" />
+          <PlusIcon className={cn('w-5', 'h-5')} />
           Add Schedule
         </button>
       </div>
 
       {/* Tab Filters */}
-      <div className="flex items-center gap-2 bg-white rounded-xl shadow-sm border border-slate-200 p-1.5">
+      <div className={cn('flex', 'items-center', 'gap-2', 'bg-white', 'rounded-xl', 'shadow-sm', 'border', 'border-slate-200', 'p-1.5')}>
         {SCHEDULE_TYPES.map((type) => (
           <button
             key={type}
@@ -416,15 +434,15 @@ const FlightSchedulePage = () => {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-          <div className="flex flex-col sm:flex-row gap-4 flex-1">
-            <div className="relative flex-1 max-w-md">
-              <MagnifyingGlassIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+      <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'p-6')}>
+        <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'lg:justify-between', 'gap-4')}>
+          <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4', 'flex-1')}>
+            <div className={cn('relative', 'flex-1', 'max-w-md')}>
+              <MagnifyingGlassIcon className={cn('absolute', 'left-3', 'top-1/2', '-translate-y-1/2', 'w-5', 'h-5', 'text-slate-400')} />
               <input
                 type="text"
                 onChange={(e) => debouncedSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                className={cn('w-full', 'pl-10', 'pr-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                 placeholder="Search schedules..."
               />
             </div>
@@ -435,7 +453,7 @@ const FlightSchedulePage = () => {
                 setFilterDay(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className={cn('px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
             >
               <option>All Days</option>
               {WEEK_DAYS.map((day) => (
@@ -449,7 +467,7 @@ const FlightSchedulePage = () => {
                 setFilterStatus(e.target.value);
                 setCurrentPage(1);
               }}
-              className="px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              className={cn('px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
             >
               <option>All</option>
               <option>Active</option>
@@ -457,37 +475,37 @@ const FlightSchedulePage = () => {
             </select>
           </div>
           
-          <div className="flex items-center gap-3">
-            <span className="text-sm text-slate-600">Show</span>
+          <div className={cn('flex', 'items-center', 'gap-3')}>
+            <span className={cn('text-sm', 'text-slate-600')}>Show</span>
             <select
               value={entriesPerPage}
               onChange={(e) => {
                 setEntriesPerPage(Number(e.target.value));
                 setCurrentPage(1);
               }}
-              className="px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className={cn('px-3', 'py-2', 'border', 'border-slate-300', 'rounded-lg', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent')}
             >
               {ENTRIES_PER_PAGE.map((num) => (
                 <option key={num}>{num}</option>
               ))}
             </select>
-            <span className="text-sm text-slate-600">entries</span>
+            <span className={cn('text-sm', 'text-slate-600')}>entries</span>
           </div>
         </div>
       </div>
 
       {/* Schedule List */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-50 to-purple-50 px-6 py-4 border-b border-slate-200">
-          <h3 className="text-xl font-semibold text-slate-800 flex items-center gap-2">
-            <CalendarDaysIcon className="w-6 h-6 text-purple-600" />
+      <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-slate-200', 'overflow-hidden')}>
+        <div className={cn('bg-gradient-to-r', 'from-slate-50', 'to-purple-50', 'px-6', 'py-4', 'border-b', 'border-slate-200')}>
+          <h3 className={cn('text-xl', 'font-semibold', 'text-slate-800', 'flex', 'items-center', 'gap-2')}>
+            <CalendarDaysIcon className={cn('w-6', 'h-6', 'text-purple-600')} />
             Flight Schedules ({filteredSchedules.length})
           </h3>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className={cn('bg-slate-50', 'border-b', 'border-slate-200')}>
               <tr>
                 {[
                   { key: 'flight_number', label: 'Flight' },
@@ -500,55 +518,55 @@ const FlightSchedulePage = () => {
                 ].map((column) => (
                   <th
                     key={column.key}
-                    className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider cursor-pointer hover:bg-slate-100 transition-colors"
+                    className={cn('px-6', 'py-4', 'text-left', 'text-xs', 'font-semibold', 'text-slate-600', 'uppercase', 'tracking-wider', 'cursor-pointer', 'hover:bg-slate-100', 'transition-colors')}
                     onClick={() => handleSort(column.key)}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className={cn('flex', 'items-center', 'gap-2')}>
                       {column.label}
                       {getSortIcon(column.key)}
                     </div>
                   </th>
                 ))}
-                <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">
+                <th className={cn('px-6', 'py-4', 'text-left', 'text-xs', 'font-semibold', 'text-slate-600', 'uppercase', 'tracking-wider')}>
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className={cn('divide-y', 'divide-slate-200')}>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <div className="w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                  <td colSpan={8} className={cn('px-6', 'py-12', 'text-center')}>
+                    <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                      <div className={cn('w-8', 'h-8', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                       <span className="text-slate-500">Loading schedules...</span>
                     </div>
                   </td>
                 </tr>
               ) : paginatedSchedules.length ? (
                 paginatedSchedules.map((schedule) => (
-                  <tr key={`${schedule.id}-${schedule.departure_date || schedule.updated_at}`} className="hover:bg-slate-50 transition-colors">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <PaperAirplaneIcon className="w-4 h-4 text-slate-400" />
-                        <span className="font-semibold text-slate-900">{schedule.flight_number}</span>
+                  <tr key={`${schedule.id}-${schedule.departure_date || schedule.updated_at}`} className={cn('hover:bg-slate-50', 'transition-colors')}>
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-2')}>
+                        <PaperAirplaneIcon className={cn('w-4', 'h-4', 'text-slate-400')} />
+                        <span className={cn('font-semibold', 'text-slate-900')}>{schedule.flight_number}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 max-w-[300px]">
-                        <MapPinIcon className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                        <span className="text-slate-900 truncate" title={schedule.startAirport}>
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-2', 'max-w-[300px]')}>
+                        <MapPinIcon className={cn('w-4', 'h-4', 'text-emerald-500', 'flex-shrink-0')} />
+                        <span className={cn('text-slate-900', 'truncate')} title={schedule.startAirport}>
                           {schedule.startAirport}
                         </span>
-                        <span className="text-slate-400 flex-shrink-0">→</span>
-                        <MapPinIcon className="w-4 h-4 text-red-500 flex-shrink-0" />
-                        <span className="text-slate-900 truncate" title={schedule.endAirport}>
+                        <span className={cn('text-slate-400', 'flex-shrink-0')}>→</span>
+                        <MapPinIcon className={cn('w-4', 'h-4', 'text-red-500', 'flex-shrink-0')} />
+                        <span className={cn('text-slate-900', 'truncate')} title={schedule.endAirport}>
                           {schedule.endAirport}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <ClockIcon className="w-4 h-4 text-slate-400" />
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-2')}>
+                        <ClockIcon className={cn('w-4', 'h-4', 'text-slate-400')} />
                         <span className="text-slate-700">
                           {new Date(`1970-01-01T${schedule.departure_time}`).toLocaleTimeString([], {
                             hour: "2-digit",
@@ -560,13 +578,13 @@ const FlightSchedulePage = () => {
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
-                        <CurrencyDollarIcon className="w-4 h-4 text-slate-400" />
-                        <span className="font-semibold text-slate-900">₹{schedule.price}</span>
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-2')}>
+                        <CurrencyDollarIcon className={cn('w-4', 'h-4', 'text-slate-400')} />
+                        <span className={cn('font-semibold', 'text-slate-900')}>₹{schedule.price}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
                       <span 
                         className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium max-w-[150px] truncate ${
                           schedule.stops === "Direct" 
@@ -578,8 +596,8 @@ const FlightSchedulePage = () => {
                         {schedule.stops}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'flex-col', 'gap-1')}>
                         <span 
                           className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             schedule.recurring_type === "Recurring" 
@@ -590,13 +608,13 @@ const FlightSchedulePage = () => {
                           {schedule.recurring_type === "Recurring" ? "🔁 Weekly" : "📅 One-Time"}
                         </span>
                         {schedule.specific_date_display && (
-                          <span className="text-xs text-slate-600">
+                          <span className={cn('text-xs', 'text-slate-600')}>
                             {schedule.specific_date_display}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
                       <button
                         onClick={() => handleStatusToggle(schedule)}
                         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -607,30 +625,30 @@ const FlightSchedulePage = () => {
                         disabled={loading}
                       >
                         {schedule.status === "Active" ? (
-                          <CheckCircleIcon className="w-3 h-3" />
+                          <CheckCircleIcon className={cn('w-3', 'h-3')} />
                         ) : (
-                          <XCircleIcon className="w-3 h-3" />
+                          <XCircleIcon className={cn('w-3', 'h-3')} />
                         )}
                         {schedule.status}
                       </button>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2">
+                    <td className={cn('px-6', 'py-4', 'whitespace-nowrap')}>
+                      <div className={cn('flex', 'items-center', 'gap-2')}>
                         <button
                           onClick={() => handleEdit(schedule)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className={cn('p-2', 'text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition-colors')}
                           disabled={loading}
                           title="Edit schedule"
                         >
-                          <PencilIcon className="w-4 h-4" />
+                          <PencilIcon className={cn('w-4', 'h-4')} />
                         </button>
                         <button
                           onClick={() => setShowDeleteConfirm(schedule.id)}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className={cn('p-2', 'text-red-600', 'hover:bg-red-50', 'rounded-lg', 'transition-colors')}
                           disabled={loading}
                           title="Delete schedule"
                         >
-                          <TrashIcon className="w-4 h-4" />
+                          <TrashIcon className={cn('w-4', 'h-4')} />
                         </button>
                       </div>
                     </td>
@@ -638,12 +656,12 @@ const FlightSchedulePage = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={8} className="px-6 py-12 text-center">
-                    <div className="flex flex-col items-center gap-3">
-                      <ClockIcon className="w-12 h-12 text-slate-300" />
+                  <td colSpan={8} className={cn('px-6', 'py-12', 'text-center')}>
+                    <div className={cn('flex', 'flex-col', 'items-center', 'gap-3')}>
+                      <ClockIcon className={cn('w-12', 'h-12', 'text-slate-300')} />
                       <div>
-                        <p className="text-slate-500 font-medium">No schedules found</p>
-                        <p className="text-slate-400 text-sm">
+                        <p className={cn('text-slate-500', 'font-medium')}>No schedules found</p>
+                        <p className={cn('text-slate-400', 'text-sm')}>
                           {searchTerm ? "Try adjusting your search terms" : "Add your first schedule to get started"}
                         </p>
                       </div>
@@ -657,16 +675,16 @@ const FlightSchedulePage = () => {
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div className="flex justify-center items-center gap-2 p-6 border-t border-slate-200">
+          <div className={cn('flex', 'justify-center', 'items-center', 'gap-2', 'p-6', 'border-t', 'border-slate-200')}>
             <button
               onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               disabled={currentPage === 1 || loading}
-              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+              className={cn('px-4', 'py-2', 'rounded-lg', 'bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'disabled:opacity-50', 'transition-colors')}
             >
               Previous
             </button>
             
-            <div className="flex items-center gap-1">
+            <div className={cn('flex', 'items-center', 'gap-1')}>
               {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
                 const page = i + 1;
                 return (
@@ -689,7 +707,7 @@ const FlightSchedulePage = () => {
             <button
               onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages || loading}
-              className="px-4 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 disabled:opacity-50 transition-colors"
+              className={cn('px-4', 'py-2', 'rounded-lg', 'bg-slate-100', 'text-slate-700', 'hover:bg-slate-200', 'disabled:opacity-50', 'transition-colors')}
             >
               Next
             </button>
@@ -699,7 +717,7 @@ const FlightSchedulePage = () => {
 
       {/* Add/Edit Modal */}
       <Transition show={showModal} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowModal(false)}>
+        <Dialog as="div" className={cn('relative', 'z-50')} onClose={() => setShowModal(false)}>
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -709,10 +727,10 @@ const FlightSchedulePage = () => {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className={cn('fixed', 'inset-0', 'bg-black/50', 'backdrop-blur-sm')} />
           </Transition.Child>
 
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <div className={cn('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'p-4')}>
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
@@ -722,36 +740,36 @@ const FlightSchedulePage = () => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="bg-white rounded-2xl p-6 w-full max-w-2xl shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 bg-purple-100 rounded-lg">
-                      <ClockIcon className="w-6 h-6 text-purple-600" />
+              <Dialog.Panel className={cn('bg-white', 'rounded-2xl', 'p-6', 'w-full', 'max-w-2xl', 'shadow-2xl', 'border', 'border-slate-200', 'max-h-[90vh]', 'overflow-y-auto')}>
+                <div className={cn('flex', 'items-center', 'justify-between', 'mb-6')}>
+                  <div className={cn('flex', 'items-center', 'gap-3')}>
+                    <div className={cn('p-2', 'bg-purple-100', 'rounded-lg')}>
+                      <ClockIcon className={cn('w-6', 'h-6', 'text-purple-600')} />
                     </div>
-                    <Dialog.Title className="text-xl font-semibold text-slate-900">
+                    <Dialog.Title className={cn('text-xl', 'font-semibold', 'text-slate-900')}>
                       {isEdit ? "Edit Schedule" : "Add New Schedule"}
                     </Dialog.Title>
                   </div>
                   <button
-                    className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                    className={cn('p-2', 'text-slate-400', 'hover:text-slate-600', 'hover:bg-slate-100', 'rounded-lg', 'transition-colors')}
                     onClick={() => setShowModal(false)}
                     disabled={loading}
                   >
-                    <XMarkIcon className="w-6 h-6" />
+                    <XMarkIcon className={cn('w-6', 'h-6')} />
                   </button>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-6')}>
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
-                        Flight <span className="text-xs text-slate-500">({flights.filter(f => f.status === 1).length} active flights available)</span>
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
+                        Flight <span className={cn('text-xs', 'text-slate-500')}>({flights.filter(f => f.status === 1).length} active flights available)</span>
                       </label>
                       <select
                         name="flight_id"
                         value={formData.flight_id}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         disabled={loading}
                       >
@@ -771,7 +789,7 @@ const FlightSchedulePage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                         Price (INR)
                       </label>
                       <input
@@ -779,7 +797,7 @@ const FlightSchedulePage = () => {
                         name="price"
                         value={formData.price}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         min="0"
                         step="0.01"
@@ -788,14 +806,14 @@ const FlightSchedulePage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                         Departure Airport
                       </label>
                       <select
                         name="departure_airport_id"
                         value={formData.departure_airport_id}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         disabled={loading}
                       >
@@ -809,14 +827,14 @@ const FlightSchedulePage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                         Arrival Airport
                       </label>
                       <select
                         name="arrival_airport_id"
                         value={formData.arrival_airport_id}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         disabled={loading}
                       >
@@ -830,7 +848,7 @@ const FlightSchedulePage = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                         Departure Time
                       </label>
                       <input
@@ -838,14 +856,14 @@ const FlightSchedulePage = () => {
                         name="departure_time"
                         value={formData.departure_time}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         disabled={loading}
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-semibold text-slate-700 mb-2">
+                      <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                         Arrival Time
                       </label>
                       <input
@@ -853,7 +871,7 @@ const FlightSchedulePage = () => {
                         name="arrival_time"
                         value={formData.arrival_time}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                        className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                         required
                         disabled={loading}
                       />
@@ -861,21 +879,21 @@ const FlightSchedulePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-3">
+                    <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-3')}>
                       Stop Airports (Optional)
                     </label>
-                    <div className="max-h-40 overflow-y-auto border border-slate-300 rounded-xl p-4 bg-slate-50">
+                    <div className={cn('max-h-40', 'overflow-y-auto', 'border', 'border-slate-300', 'rounded-xl', 'p-4', 'bg-slate-50')}>
                       {airports.length > 0 ? (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className={cn('grid', 'grid-cols-1', 'sm:grid-cols-2', 'gap-2')}>
                           {airports.map((airport) => (
-                            <div key={airport.id} className="flex items-center">
+                            <div key={airport.id} className={cn('flex', 'items-center')}>
                               <input
                                 type="checkbox"
                                 id={`stop-airport-${airport.id}`}
                                 value={airport.id}
                                 checked={JSON.parse(formData.via_stop_id || "[]").includes(airport.id)}
                                 onChange={handleStopsChange}
-                                className="w-4 h-4 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                                className={cn('w-4', 'h-4', 'text-blue-600', 'border-slate-300', 'rounded', 'focus:ring-blue-500')}
                                 disabled={
                                   loading ||
                                   airport.id === formData.departure_airport_id ||
@@ -898,14 +916,14 @@ const FlightSchedulePage = () => {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-slate-500">No airports available</p>
+                        <p className={cn('text-sm', 'text-slate-500')}>No airports available</p>
                       )}
                     </div>
                   </div>
 
                   {/* One-Time Flight Option */}
-                  <div className="border-t border-slate-200 pt-6">
-                    <div className="flex items-center gap-3 mb-4">
+                  <div className={cn('border-t', 'border-slate-200', 'pt-6')}>
+                    <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
                       <input
                         type="checkbox"
                         id="is_one_time"
@@ -917,17 +935,17 @@ const FlightSchedulePage = () => {
                             specific_date: e.target.checked ? formData.specific_date : "",
                           });
                         }}
-                        className="w-5 h-5 text-blue-600 border-slate-300 rounded focus:ring-blue-500"
+                        className={cn('w-5', 'h-5', 'text-blue-600', 'border-slate-300', 'rounded', 'focus:ring-blue-500')}
                         disabled={loading}
                       />
-                      <label htmlFor="is_one_time" className="text-sm font-semibold text-slate-700 cursor-pointer">
+                      <label htmlFor="is_one_time" className={cn('text-sm', 'font-semibold', 'text-slate-700', 'cursor-pointer')}>
                         📅 One-Time Flight (Specific Date)
                       </label>
                     </div>
                     
                     {formData.is_one_time === 1 && (
                       <div>
-                        <label className="block text-sm font-semibold text-slate-700 mb-2">
+                        <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                           Specific Date <span className="text-red-500">*</span>
                         </label>
                         <input
@@ -936,11 +954,11 @@ const FlightSchedulePage = () => {
                           value={formData.specific_date}
                           onChange={handleInputChange}
                           min={new Date().toISOString().split('T')[0]}
-                          className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                          className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                           required={formData.is_one_time === 1}
                           disabled={loading}
                         />
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className={cn('text-xs', 'text-slate-500', 'mt-1')}>
                           This schedule will only run on the selected date
                         </p>
                       </div>
@@ -948,14 +966,14 @@ const FlightSchedulePage = () => {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-semibold text-slate-700 mb-2">
+                    <label className={cn('block', 'text-sm', 'font-semibold', 'text-slate-700', 'mb-2')}>
                       Status
                     </label>
                     <select
                       name="status"
                       value={formData.status}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                      className={cn('w-full', 'px-4', 'py-3', 'border', 'border-slate-300', 'rounded-xl', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all')}
                       disabled={loading}
                     >
                       <option value={1}>Active</option>
@@ -963,10 +981,10 @@ const FlightSchedulePage = () => {
                     </select>
                   </div>
 
-                  <div className="flex gap-4 pt-4">
+                  <div className={cn('flex', 'gap-4', 'pt-4')}>
                     <button
                       type="button"
-                      className="flex-1 px-6 py-3 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-semibold"
+                      className={cn('flex-1', 'px-6', 'py-3', 'bg-slate-100', 'text-slate-700', 'rounded-xl', 'hover:bg-slate-200', 'transition-colors', 'font-semibold')}
                       onClick={() => setShowModal(false)}
                       disabled={loading}
                     >
@@ -982,9 +1000,9 @@ const FlightSchedulePage = () => {
                       disabled={loading}
                     >
                       {loading ? (
-                        <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <div className={cn('w-5', 'h-5', 'border-2', 'border-white', 'border-t-transparent', 'rounded-full', 'animate-spin')} />
                       ) : (
-                        <PlusIcon className="w-5 h-5" />
+                        <PlusIcon className={cn('w-5', 'h-5')} />
                       )}
                       {isEdit ? "Update Schedule" : "Add Schedule"}
                     </button>
@@ -998,7 +1016,7 @@ const FlightSchedulePage = () => {
 
       {/* Delete Confirmation Modal */}
       <Transition show={!!showDeleteConfirm} as={React.Fragment}>
-        <Dialog as="div" className="relative z-50" onClose={() => setShowDeleteConfirm(null)}>
+        <Dialog as="div" className={cn('relative', 'z-50')} onClose={() => setShowDeleteConfirm(null)}>
           <Transition.Child
             as={React.Fragment}
             enter="ease-out duration-300"
@@ -1008,10 +1026,10 @@ const FlightSchedulePage = () => {
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
           >
-            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm" />
+            <div className={cn('fixed', 'inset-0', 'bg-black/50', 'backdrop-blur-sm')} />
           </Transition.Child>
 
-          <div className="fixed inset-0 flex items-center justify-center p-4">
+          <div className={cn('fixed', 'inset-0', 'flex', 'items-center', 'justify-center', 'p-4')}>
             <Transition.Child
               as={React.Fragment}
               enter="ease-out duration-300"
@@ -1021,35 +1039,35 @@ const FlightSchedulePage = () => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="bg-white rounded-2xl p-6 w-full max-w-md shadow-2xl border border-slate-200">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <ExclamationTriangleIcon className="w-6 h-6 text-red-600" />
+              <Dialog.Panel className={cn('bg-white', 'rounded-2xl', 'p-6', 'w-full', 'max-w-md', 'shadow-2xl', 'border', 'border-slate-200')}>
+                <div className={cn('flex', 'items-center', 'gap-3', 'mb-4')}>
+                  <div className={cn('p-2', 'bg-red-100', 'rounded-lg')}>
+                    <ExclamationTriangleIcon className={cn('w-6', 'h-6', 'text-red-600')} />
                   </div>
-                  <Dialog.Title className="text-lg font-semibold text-slate-900">
+                  <Dialog.Title className={cn('text-lg', 'font-semibold', 'text-slate-900')}>
                     Confirm Delete
                   </Dialog.Title>
                 </div>
                 
-                <p className="text-slate-600 mb-6">
+                <p className={cn('text-slate-600', 'mb-6')}>
                   Are you sure you want to delete this schedule? This action cannot be undone.
                 </p>
                 
-                <div className="flex gap-3">
+                <div className={cn('flex', 'gap-3')}>
                   <button
-                    className="flex-1 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-medium"
+                    className={cn('flex-1', 'px-4', 'py-2', 'bg-slate-100', 'text-slate-700', 'rounded-xl', 'hover:bg-slate-200', 'transition-colors', 'font-medium')}
                     onClick={() => setShowDeleteConfirm(null)}
                     disabled={loading}
                   >
                     Cancel
                   </button>
                   <button
-                    className="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition-colors font-medium disabled:opacity-50"
+                    className={cn('flex-1', 'px-4', 'py-2', 'bg-red-600', 'text-white', 'rounded-xl', 'hover:bg-red-700', 'transition-colors', 'font-medium', 'disabled:opacity-50')}
                     onClick={handleDelete}
                     disabled={loading}
                   >
                     {loading ? (
-                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto" />
+                      <div className={cn('w-4', 'h-4', 'border-2', 'border-white', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto')} />
                     ) : (
                       "Delete"
                     )}

@@ -45,8 +45,8 @@ export default function RootLayout({ children }) {
     <html lang="en" className={inter.variable}>
       <head>
         {/* Performance optimizations - Font now loaded via Next.js optimization */}
-        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com"} />
-        <link rel="prefetch" href={`${process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com"}/airport`} />
+        <link rel="dns-prefetch" href={process.env.NEXT_PUBLIC_API_URL || "NEXT_PUBLIC_API_URL"} />
+        <link rel="prefetch" href={`${process.env.NEXT_PUBLIC_API_URL || "NEXT_PUBLIC_API_URL"}/airport`} />
         <link rel="preload" href="/pp.svg" as="image" />
         <link rel="preload" href="/logoo-04.png" as="image" />
         <link rel="preload" href="/1.png" as="image" />

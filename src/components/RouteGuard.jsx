@@ -28,6 +28,7 @@ const ROUTE_ACCESS = {
   "/accounts-admin-dashboard": [ROLES.ACCOUNTS_ADMIN],
   "/mp-tourism-portal": [ROLES.MP_TOURISM],
   "/scheduled-flight": [ROLES.USER, ROLES.AGENT],
+
   "/combined-booking-page": [ROLES.USER, ROLES.AGENT],
   "/get-ticket": [ROLES.USER, ROLES.AGENT],
   "/ticket-page": [ROLES.USER, ROLES.AGENT],

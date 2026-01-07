@@ -1,4 +1,5 @@
 "use client";
+import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from 'react';
 import { FaEye, FaFilter, FaSearch, FaUser, FaUsers } from 'react-icons/fa';
@@ -18,7 +19,7 @@ export default function UserActivityPage() {
 
   const fetchActivities = async () => {
     try {
-      const response = await fetch('https://api.jetserveaviation.com/logs/activity');
+      const response = await fetch(`${BASE_URL}/logs/activity`);
       const data = await response.json();
       
       if (data.success) {
@@ -35,18 +36,30 @@ export default function UserActivityPage() {
   };
 
   const filteredActivities = activities.filter(activity => {
-    const matchesSearch = activity.userEmail.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.userName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         activity.description.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (activity.userEmail?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+                         (activity.userName?.toLowerCase() ?? '').includes(searchTerm.toLowerCase()) ||
+                         (activity.description?.toLowerCase() ?? '').includes(searchTerm.toLowerCase());
     
-    const matchesAction = filterAction === 'all' || activity.action === filterAction;
+    let matchesAction = true;
+    if (filterAction === 'admin') {
+      matchesAction = activity.action?.startsWith('ADMIN_');
+    } else if (filterAction === 'user') {
+      matchesAction = !activity.action?.startsWith('ADMIN_');
+    } else if (filterAction !== 'all') {
+      matchesAction = activity.action === filterAction;
+    }
     
-    const matchesDate = !filterDate || activity.timestamp.startsWith(filterDate);
+    const matchesDate = !filterDate || activity.timestamp?.startsWith(filterDate);
     
     return matchesSearch && matchesAction && matchesDate;
   });
 
   const getActionColor = (action) => {
+    // Admin actions
+    if (action.startsWith('ADMIN_')) {
+      return 'text-purple-600 bg-purple-50 border-purple-200';
+    }
+    
     switch (action) {
       case 'LOGIN': return 'text-green-600 bg-green-50 border-green-200';
       case 'LOGIN_FAILED': return 'text-red-600 bg-red-50 border-red-200';
@@ -142,13 +155,13 @@ export default function UserActivityPage() {
         <div className={cn('bg-white', 'p-6', 'rounded-xl', 'shadow-sm', 'border', 'border-gray-200')}>
           <div className={cn('flex', 'items-center', 'justify-between')}>
             <div>
-              <p className={cn('text-sm', 'font-medium', 'text-gray-600')}>Unique Users</p>
+              <p className={cn('text-sm', 'font-medium', 'text-gray-600')}>Admin Activities</p>
               <p className={cn('text-2xl', 'font-bold', 'text-purple-600')}>
-                {new Set(activities.map(a => a.userId)).size}
+                {activities.filter(a => a.action?.startsWith('ADMIN_')).length}
               </p>
             </div>
             <div className={cn('w-12', 'h-12', 'bg-purple-100', 'rounded-lg', 'flex', 'items-center', 'justify-center')}>
-              <FaUsers className="text-purple-600" />
+              <FaUser className="text-purple-600" />
             </div>
           </div>
         </div>
@@ -178,6 +191,8 @@ export default function UserActivityPage() {
               className={cn('w-full', 'pl-10', 'pr-4', 'py-2', 'border', 'border-gray-300', 'rounded-lg', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'appearance-none')}
             >
               <option value="all">All Actions</option>
+              <option value="admin">Admin Actions Only</option>
+              <option value="user">User Actions Only</option>
               {uniqueActions.map(action => (
                 <option key={action} value={action}>{action.replace('_', ' ')}</option>
               ))}

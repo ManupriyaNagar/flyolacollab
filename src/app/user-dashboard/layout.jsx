@@ -1,36 +1,32 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
 import {
-  FaBars,
-  FaHome,
-  FaClock,
-  FaDollarSign,
-  FaHeadset,
-  FaCreditCard,
-  FaUser,
-  FaTimes,
-  FaBell,
-  FaCog,
-  FaTicketAlt,
-  FaChartLine,
-  FaPlane,
-  FaSignOutAlt,
-  FaUserCircle,
-  FaSearch,
-} from "react-icons/fa";
-import {
-  Home,
-  Bell,
-  Settings,
-  Search,
-  User,
-  LogOut
+    Bell,
+    Home,
+    Search,
+    Settings,
+    User
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import {
+    FaBars,
+    FaClock,
+    FaCreditCard,
+    FaDollarSign,
+    FaHeadset,
+    FaHome,
+    FaHotel,
+    FaPlane,
+    FaSignOutAlt,
+    FaTicketAlt,
+    FaTimes,
+    FaUser,
+    FaUserCircle
+} from "react-icons/fa";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
 
@@ -151,6 +147,21 @@ export default function UserDashboardLayout({ children }) {
                   <FaClock className={`text-lg ${isActive("/user-dashboard/helicopter-bookings") ? "text-white" : "text-purple-400"}`} />
                   <span className="font-medium">Helicopter Bookings</span>
                   {isActive("/user-dashboard/helicopter-bookings") && (
+                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
+                  )}
+                </Link>
+
+                <Link
+                  href="/user-dashboard/hotel-bookings"
+                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/hotel-bookings")
+                      ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
+                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    }`}
+                  onClick={() => setSidebarVisible(false)}
+                >
+                  <FaHotel className={`text-lg ${isActive("/user-dashboard/hotel-bookings") ? "text-white" : "text-amber-400"}`} />
+                  <span className="font-medium">Hotel Bookings</span>
+                  {isActive("/user-dashboard/hotel-bookings") && (
                     <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
                   )}
                 </Link>
