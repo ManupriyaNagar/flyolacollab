@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/components/AuthContext';
+import { usePathname, useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 const ROLES = {
   ADMIN: 1,
@@ -15,9 +15,9 @@ const ROUTE_ACCESS = {
   '/agent-dashboard': [ROLES.AGENT],
   '/user-dashboard': [ROLES.USER],
   '/booking-agent-dashboard': [ROLES.AGENT],
-  // Allow admins + users + agents on booking flows (admins can test/book)
-  '/booking': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT],
-  '/combined-booking-page': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT]
+  // REMOVED: Booking pages now support guest booking (no auth required)
+  // '/booking': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT],
+  // '/combined-booking-page': [ROLES.ADMIN, ROLES.USER, ROLES.AGENT]
   // Note: /ticket-page and /get-ticket are public - no role restrictions
 };
 
@@ -26,8 +26,9 @@ const PROTECTED_ROUTES = [
   '/agent-dashboard', 
   '/user-dashboard',
   '/booking-agent-dashboard',
-  '/booking',
-  '/combined-booking-page'
+  // REMOVED: Allow guest booking
+  // '/booking',
+  // '/combined-booking-page'
   // Note: /ticket-page is NOT protected - anyone with a PNR can view their ticket
   // Note: /get-ticket is NOT protected - public ticket search page
 ];

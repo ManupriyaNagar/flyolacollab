@@ -219,10 +219,9 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
   }, [schedule.departure_time, selectedDate, cutoffTime, advanceBookingDays, authState?.userRole]);
 
   const handleBookNowClick = useCallback(() => {
-    if (!authState?.isLoggedIn) {
-      setShowAuthModal(true);
-      return;
-    }
+    // REMOVED: Authentication check - now supports guest booking
+    // Users can book without login (guest booking)
+    
     if (isSoldOut) {
       alert("This helicopter flight is sold out. Please select another flight.");
       return;
@@ -268,7 +267,7 @@ const HelicopterFlightCard = ({ schedule, helicopter, departureHelipad, arrivalH
     });
     
     router.push(`/booking?${bookingParams.toString()}`);
-  }, [authState?.isLoggedIn, isSoldOut, availableSeats, passengers, isBookingDisabled, isDeparted, departureHelipadData.city, arrivalHelipadData.city, schedule, selectedDate, router]);
+  }, [authState?.userRole, isSoldOut, availableSeats, passengers, isBookingDisabled, isDeparted, departureHelipadData, arrivalHelipadData, schedule, selectedDate, router, helicopterData.helicopter_number, cutoffTime, advanceBookingDays]);
 
   const handleAuthSuccess = useCallback(() => {
     // After successful login, automatically proceed with booking using same booking page

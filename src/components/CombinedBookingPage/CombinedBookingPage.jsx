@@ -16,6 +16,7 @@ import WeatherInfo from "./WeatherInfo";
 import FlightRecommendations from "./FlightRecommendations";
 
 
+import { cn } from "@/lib/utils";
 import { useAuth } from "../AuthContext";
 
 const PaymentStep = dynamic(() => import("./PaymentStep"), { ssr: false });
@@ -50,7 +51,7 @@ useEffect(() => {
   
   // Skip auth check if still loading
   if (authState.isLoading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className={cn('min-h-screen', 'flex', 'items-center', 'justify-center')}>Loading...</div>;
   }
   
   // For demo purposes, allow access without login
@@ -168,7 +169,7 @@ useEffect(() => {
         },
       },
     };
-    
+     
     console.log('Saving ticket data to localStorage:', ticketData);
     localStorage.setItem("ticketData", JSON.stringify(ticketData));
     
@@ -184,16 +185,16 @@ useEffect(() => {
 
   if (!bookingData) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-xl shadow-lg max-w-md">
-          <div className="text-red-600 text-6xl mb-4">⚠️</div>
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">No Booking Data Found</h2>
-          <p className="text-gray-600 mb-6">
-            Please select a flight first to continue with your booking.
+      <div className={cn('min-h-screen', 'bg-gradient-to-br', 'from-blue-50', 'via-white', 'to-indigo-50', 'flex', 'items-center', 'justify-center')}>
+        <div className={cn('text-center', 'p-8', 'bg-white', 'rounded-xl', 'shadow-lg', 'max-w-md')}>
+          <div className={cn('text-red-600', 'text-6xl', 'mb-4')}>⚠️</div>
+          <h2 className={cn('text-2xl', 'font-bold', 'text-gray-800', 'mb-4')}>No Booking Data Found</h2>
+          <p className={cn('text-gray-600', 'mb-6')}>
+       to continue with your booking.
           </p>
           <button
             onClick={() => router.push("/scheduled-flight")}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className={cn('px-6', 'py-3', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition-colors')}
           >
             Select Flight
           </button>
@@ -203,8 +204,8 @@ useEffect(() => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50">
-      <div className="container mx-auto py-8 px-4 max-w-7xl">
+    <div className={cn('min-h-screen', 'bg-gradient-to-br', 'from-blue-50', 'via-white', 'to-indigo-50')}>
+      <div className={cn('container', 'mx-auto', 'py-8', 'px-4', 'max-w-7xl')}>
         {/* Enhanced Header */}
         <BookingHeader bookingData={bookingData} currentStep={step} />
 
@@ -213,9 +214,9 @@ useEffect(() => {
 
         {/* Enhanced Flight Information Section */}
         {step === 1 && (
-          <div className="mb-8 space-y-6">
+          <div className={cn('mb-8', 'space-y-6')}>
             {/* Flight Status & Insights */}
-            <div className="grid gap-6">
+            <div className={cn('grid', 'gap-6')}>
 
               <TourReviewStep
                   bookingData={bookingData}
@@ -227,13 +228,13 @@ useEffect(() => {
             </div>
             
             {/* Travel Services */}
-            {/* <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-6')}>
               <FlightComparison bookingData={bookingData} />
               <TravelInsurance bookingData={bookingData} />
             </div>
              */}
             {/* Safety & Documentation */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-2', 'gap-6')}>
               <FlightSafetyInfo />
               <TravelDocuments bookingData={bookingData} />
             </div>
@@ -249,9 +250,9 @@ useEffect(() => {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-8 mt-8">
+        <div className={cn('flex', 'flex-col', 'lg:flex-row', 'gap-8', 'mt-8')}>
           {/* Main Content */}
-          <div className="flex-1 space-y-6">
+          <div className={cn('flex-1', 'space-y-6')}>
             {step === 1 && (
               <>
                       <FlightInsights bookingData={bookingData} />

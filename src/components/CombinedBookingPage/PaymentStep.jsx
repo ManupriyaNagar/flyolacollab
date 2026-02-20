@@ -1,17 +1,18 @@
 "use client";
 
 import BASE_URL from "@/baseUrl/baseUrl";
+import { cn } from "@/lib/utils";
 import API from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-    FaClock,
-    FaCreditCard,
-    FaExclamationTriangle,
-    FaPlane,
-    FaShieldAlt,
-    FaSpinner,
-    FaUserFriends
+  FaClock,
+  FaCreditCard,
+  FaExclamationTriangle,
+  FaPlane,
+  FaShieldAlt,
+  FaSpinner,
+  FaUserFriends
 } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 
@@ -330,25 +331,10 @@ export default function PaymentStep({
   }
 
   // Handle booking and payment
-async function validateAgentId(userId) {
-  try {
-    const response = await fetch(`${BASE_URL}/agents/${userId}`, { headers });
-    if (!response.ok) {
-      return null;
-    }
-    return userId;
-  } catch (err) {
-    return null;
-  }
-}
-
 async function handleBooking() {
+  // Validation
   if (selectedSeats.length !== totalPassengers) {
     alert(`Please select exactly ${totalPassengers} seat(s).`);
-    return;
-  }
-  if (availableSeats.length < totalPassengers) {
-    alert("Not enough seats available. Please select another flight.");
     return;
   }
 
@@ -370,398 +356,300 @@ async function handleBooking() {
     return;
   }
 
-  // CRITICAL: Validate and REFRESH token before initiating payment
-  // This prevents the scenario where payment succeeds but booking fails due to expired token
-  try {
-    console.log('[PaymentStep] Validating and refreshing authentication token...');
-    
-    // First validate current token
-    await API.users.getProfile();
-    console.log('[PaymentStep] Token validation successful');
-    
-    // Then refresh to get a fresh token for the booking process
-    const refreshResponse = await fetch(`${BASE_URL}/users/refresh-token`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
-    });
-    
-    if (refreshResponse.ok) {
-      const refreshData = await refreshResponse.json();
-      const newToken = refreshData.token;
-      
-      // Update token in localStorage
-      localStorage.setItem('token', newToken);
-      
-      // Update headers with new token for all subsequent requests
-      headers.Authorization = `Bearer ${newToken}`;
-      
-      console.log('[PaymentStep] Token refreshed successfully, valid for 24 hours');
-    } else {
-      const errorText = await refreshResponse.text();
-      console.warn('[PaymentStep] Token refresh failed:', errorText);
-      // Continue with old token, but log warning
-      setError("Warning: Unable to refresh session. Proceeding with current token.");
-    }
-    
-  } catch (tokenError) {
-    console.error('[PaymentStep] Token validation/refresh failed:', tokenError);
-    
-    // Check if it's an authentication error
-    const isAuthError = tokenError?.status === 401 || 
-                       tokenError?.status === 403 ||
-                       tokenError?.message?.toLowerCase().includes('unauthorized') ||
-                       tokenError?.message?.toLowerCase().includes('invalid token');
-    
-    if (isAuthError) {
-      // Clear auth state
-      localStorage.removeItem("token");
-      localStorage.removeItem("authState");
-      
-      // Show user-friendly error
-      alert(
-        "Your session has expired. Please log in again to complete your booking.\n\n" +
-        "Don't worry - your booking details have been saved and will be restored after you log in."
-      );
-      
-      // Redirect to login with return URL
-      const currentPath = window.location.pathname + window.location.search;
-      router.push(`/sign-in?returnUrl=${encodeURIComponent(currentPath)}`);
-      return;
-    } else {
-      // Network or other error - show warning but allow to continue
-      console.warn('[PaymentStep] Non-auth error during token validation, proceeding with caution');
-      setError("Warning: Unable to verify session. If payment fails, please try logging in again.");
-      // Continue with booking attempt
-    }
-  }
-
   setIsProcessing(true);
+  setError(null);
+
   try {
-    const amountInPaise = Math.round(totalPrice * 1); // Convert to paise
-    if (!Number.isInteger(amountInPaise) || amountInPaise <= 0) {
-      throw new Error("Invalid payment amount");
+    console.log('[PaymentStep] Starting booking-first flow...');
+    
+    // Determine if guest booking
+    const isGuest = !authState.isLoggedIn;
+    const userId = authState.user?.id || null;
+
+    // STEP 1: Create pending booking (NO AUTH REQUIRED)
+    console.log('[PaymentStep] Step 1: Creating pending booking...');
+    const pendingBookingResponse = await fetch(`${BASE_URL}/bookings/create-pending-booking`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        bookedSeat: {
+          bookDate: bookingData.selectedDate,
+          schedule_id: Number(bookingData.id),
+          seat_labels: selectedSeats,
+        },
+        booking: {
+          contact_no: travelerDetails[0].phone,
+          email_id: travelerDetails[0].email,
+          noOfPassengers: totalPassengers,
+          bookDate: bookingData.selectedDate,
+          schedule_id: Number(bookingData.id),
+          totalFare: totalPrice.toString(),
+          guestBooking: isGuest,
+          bookedUserId: userId,
+          agentId: isAgent && userId ? userId : null,
+        },
+        billing: {
+          billing_name: `${travelerDetails[0].title} ${travelerDetails[0].fullName}`,
+          billing_email: travelerDetails[0].email,
+          billing_number: travelerDetails[0].phone,
+          billing_address: travelerDetails[0].address || '',
+          billing_country: 'India',
+          billing_state: travelerDetails[0].state || '',
+          billing_pin_code: travelerDetails[0].pinCode || '',
+          GST_Number: travelerDetails[0].gstNumber || null,
+        },
+        passengers: travelerDetails.map((t, i) => ({
+          title: t.title,
+          name: t.fullName,
+          type: i < bookingData.passengers.adults ? 'Adult' : 
+                i < bookingData.passengers.adults + bookingData.passengers.children ? 'Child' : 'Infant',
+          dob: t.dateOfBirth || null,
+          age: t.dateOfBirth ? 
+            Math.floor((Date.now() - new Date(t.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0,
+          weight: t.weight ? parseFloat(t.weight) : null,
+        })),
+      }),
+    });
+
+    if (!pendingBookingResponse.ok) {
+      const errorData = await pendingBookingResponse.json();
+      throw new Error(errorData.error || 'Failed to create booking');
     }
 
-    // Fetch PNR
-    async function fetchPNR() {
-      try {
-        const response = await fetch(`${BASE_URL}/bookings/generate-pnr`, { headers });
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`Failed to generate PNR: ${response.status} ${errorText}`);
-        }
-        const { pnr } = await response.json();
-        if (!pnr) {
-          throw new Error("PNR not returned from server");
-        }
-        return pnr;
-      } catch (err) {
-        throw err;
-      }
-    }
+    const pendingBooking = await pendingBookingResponse.json();
+    console.log('[PaymentStep] Pending booking created:', pendingBooking);
 
-    // Prepare payload for booking
-    const payload = {
-      bookedSeat: {
-        bookDate: bookingData.selectedDate,
-        schedule_id: Number(bookingData.id),
-        booked_seat: totalPassengers,
-        seat_labels: selectedSeats,
-      },
-      booking: {
-        pnr: await fetchPNR(),
-        bookingNo: `BOOK${Date.now()}`,
-        contact_no: travelerDetails[0].phone,
-        email_id: travelerDetails[0].email,
-        noOfPassengers: totalPassengers,
-        bookDate: bookingData.selectedDate,
-        schedule_id: Number(bookingData.id),
-        totalFare: totalPrice.toString(),
-        bookedUserId: userId,
-        paymentStatus: isAdmin ? "SUCCESS" : "PENDING",
-        bookingStatus: isAdmin ? "CONFIRMED" : "PENDING",
-        agentId: isAgent ? await validateAgentId(userId) : null,
-      },
-      billing: {
-        billing_name: `${travelerDetails[0].title} ${travelerDetails[0].fullName}`,
-        billing_email: travelerDetails[0].email,
-        billing_number: travelerDetails[0].phone,
-        billing_address: travelerDetails[0].address || "",
-        billing_country: "India",
-        billing_state: travelerDetails[0].state || "",
-        billing_pin_code: travelerDetails[0].pinCode || "",
-        GST_Number: travelerDetails[0].gstNumber || null,
-        user_id: userId,
-      },
-      payment: {
-        transaction_id: `TXN${Date.now()}`,
-        payment_id: isAdmin ? `ADMIN_${Date.now()}` : null,
-        order_id: isAdmin ? `ADMIN_${Date.now()}` : null,
-        razorpay_signature: null,
-        payment_status: isAdmin ? "SUCCESS" : "PENDING",
-        payment_mode: isAdmin ? "ADMIN" : "RAZORPAY",
-        payment_amount: totalPrice.toString(),
-        message: isAdmin ? "Admin booking (no payment required)" : "Initiating payment",
-        user_id: userId,
-      },
-      passengers: travelerDetails.map((t, i) => ({
-        title: t.title,
-        name: t.fullName,
-        type: i < bookingData.passengers.adults ? "Adult" : i < bookingData.passengers.adults + bookingData.passengers.children ? "Child" : "Infant",
-        dob: t.dateOfBirth || null,
-        age: t.dateOfBirth
-          ? Math.floor((Date.now() - new Date(t.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
-          : 0,
-        weight: t.weight ? parseFloat(t.weight) : null,
-      })),
-    };
-
-
+    // ADMIN FLOW: Skip payment for admin
     if (isAdmin) {
-      // Admin booking: Skip payment
-      const response = await fetch(`${BASE_URL}/bookings/complete-booking`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(payload),
+      console.log('[PaymentStep] Admin booking - completing without payment...');
+      
+      const adminCompleteResponse = await fetch(`${BASE_URL}/bookings/complete-booking-after-payment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          bookingId: pendingBooking.booking.id,
+          payment_id: `ADMIN_${Date.now()}`,
+          order_id: `ADMIN_${Date.now()}`,
+          razorpay_signature: 'ADMIN_BOOKING',
+          bookingType: pendingBooking.booking.bookingType,
+        }),
       });
-      if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`Failed to create admin booking: ${response.status} ${errorText}`);
+
+      if (!adminCompleteResponse.ok) {
+        throw new Error('Failed to complete admin booking');
       }
-      const result = await response.json();
+
+      const result = await adminCompleteResponse.json();
       setIsProcessing(false);
       onConfirm(result);
-    } else {
-      // Load Razorpay SDK
-      const razorpayLoaded = await loadRazorpay();
-      if (!razorpayLoaded) {
-        throw new Error("Failed to load Razorpay SDK");
-      }
-
-      // Create Razorpay order
-      const orderResponse = await fetch(`${BASE_URL}/payments/create-order`, {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ amount: amountInPaise, payment_mode: "RAZORPAY" }),
-      });
-      if (!orderResponse.ok) {
-        const errorText = await orderResponse.text();
-        throw new Error(`Failed to create payment order: ${orderResponse.status} ${errorText}`);
-      }
-      const { order_id } = await orderResponse.json();
-      payload.payment.order_id = order_id;
-
-      // Razorpay payment options
-      const options = {
-        key: RAZORPAY_KEY,
-        amount: amountInPaise,
-        currency: "INR",
-        order_id,
-        name: "Flight Booking",
-        description: `Flight from ${bookingData.departure} to ${bookingData.arrival}`,
-        prefill: {
-          name: travelerDetails[0].fullName,
-          email: travelerDetails[0].email,
-          contact: travelerDetails[0].phone,
-        },
-        handler: async (response) => {
-          try {
-            payload.payment.payment_id = response.razorpay_payment_id;
-            payload.payment.razorpay_signature = response.razorpay_signature;
-            payload.payment.payment_status = "SUCCESS";
-            payload.payment.message = "Payment successful";
-            payload.booking.paymentStatus = "SUCCESS";
-            payload.booking.bookingStatus = "CONFIRMED";
-
-
-            const bookingResponse = await fetch(`${BASE_URL}/bookings/complete-booking`, {
-              method: "POST",
-              headers,
-              body: JSON.stringify(payload),
-            });
-            if (!bookingResponse.ok) {
-              const errorText = await bookingResponse.text();
-              console.error('[PaymentStep] Booking failed after payment:', errorText);
-              
-              // Show user that refund is being processed
-              setError("Booking failed. Initiating automatic refund...");
-              
-              // Initiate refund with proper amount calculation
-              try {
-                const refundAmount = parseFloat(payload.payment.payment_amount);
-                const refundAmountInPaise = Math.round(refundAmount * 100);
-                
-                console.log('[PaymentStep] Initiating refund:', {
-                  payment_id: response.razorpay_payment_id,
-                  amount: refundAmount,
-                  amountInPaise: refundAmountInPaise
-                });
-                
-                const refundResponse = await fetch(`${BASE_URL}/payments/refund`, {
-                  method: "POST",
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}` // Use fresh token from localStorage
-                  },
-                  body: JSON.stringify({
-                    payment_id: response.razorpay_payment_id,
-                    amount: refundAmountInPaise, // Correct amount in paise
-                    reason: 'Booking creation failed',
-                    notes: {
-                      booking_error: errorText,
-                      schedule_id: bookingData.id,
-                      booking_date: bookingData.selectedDate
-                    }
-                  }),
-                });
-                
-                if (refundResponse.ok) {
-                  const refundData = await refundResponse.json();
-                  console.log('[PaymentStep] Refund initiated successfully:', refundData);
-                  
-                  setError(null);
-                  alert(
-                    "⚠️ Booking Failed\n\n" +
-                    "Your payment was successful but booking creation failed.\n\n" +
-                    "✅ Refund has been initiated automatically.\n" +
-                    `Refund ID: ${refundData.refundId || 'Processing'}\n\n` +
-                    "The amount will be credited to your account within 5-7 business days.\n\n" +
-                    "Please contact support if you have any questions."
-                  );
-                } else {
-                  const refundError = await refundResponse.text();
-                  console.error('[PaymentStep] Refund failed:', refundError);
-                  
-                  setError(null);
-                  alert(
-                    "⚠️ URGENT: Payment Successful but Booking Failed\n\n" +
-                    "Your payment was processed but we couldn't complete your booking.\n\n" +
-                    "❌ Automatic refund also failed.\n\n" +
-                    `Payment ID: ${response.razorpay_payment_id}\n` +
-                    `Amount: ₹${payload.payment.payment_amount}\n\n` +
-                    "Please contact our support team immediately with this Payment ID.\n" +
-                    "We will process your refund manually within 24 hours."
-                  );
-                }
-              } catch (refundError) {
-                console.error('[PaymentStep] Refund exception:', refundError);
-                
-                setError(null);
-                alert(
-                  "⚠️ URGENT: Payment Successful but Booking Failed\n\n" +
-                  `Payment ID: ${response.razorpay_payment_id}\n` +
-                  `Amount: ₹${payload.payment.payment_amount}\n\n` +
-                  "Please save this Payment ID and contact support immediately.\n" +
-                  "We will process your refund within 24 hours."
-                );
-              }
-              
-              throw new Error(`Booking failed: ${bookingResponse.status} ${errorText}`);
-            }
-            const result = await bookingResponse.json();
-            setIsProcessing(false);
-            onConfirm(result);
-          } catch (err) {
-            setError(`Booking failed: ${err.message}`);
-            setIsProcessing(false);
-          }
-        },
-        modal: {
-          ondismiss: () => {
-            setIsProcessing(false);
-            setError("Payment cancelled by user");
-          },
-        },
-        theme: { color: "#1E3A8A" },
-      };
-
-      const rzp = new window.Razorpay(options);
-      rzp.open();
-      rzp.on("payment.failed", (response) => {
-        setError(`Payment failed: ${response.error.description}`);
-        setIsProcessing(false);
-      });
+      return;
     }
+
+    // STEP 2: Create Razorpay order
+    console.log('[PaymentStep] Step 2: Creating Razorpay order...');
+    const amountInPaise = Math.round(totalPrice * 1);
+    
+    const orderResponse = await fetch(`${BASE_URL}/payments/create-order`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        amount: amountInPaise,
+        payment_mode: 'RAZORPAY',
+        bookingId: pendingBooking.booking.id,
+      }),
+    });
+
+    if (!orderResponse.ok) {
+      console.error('[PaymentStep] Order creation failed, cancelling booking...');
+      await fetch(`${BASE_URL}/bookings/cancel-pending/${pendingBooking.booking.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingType: pendingBooking.booking.bookingType }),
+      });
+      throw new Error('Failed to create payment order');
+    }
+
+    const { order_id } = await orderResponse.json();
+    console.log('[PaymentStep] Razorpay order created:', order_id);
+
+    // STEP 3: Load and open Razorpay
+    console.log('[PaymentStep] Step 3: Opening Razorpay...');
+    const razorpayLoaded = await loadRazorpay();
+    if (!razorpayLoaded) {
+      await fetch(`${BASE_URL}/bookings/cancel-pending/${pendingBooking.booking.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ bookingType: pendingBooking.booking.bookingType }),
+      });
+      throw new Error('Failed to load Razorpay SDK');
+    }
+
+    const options = {
+      key: RAZORPAY_KEY,
+      amount: amountInPaise,
+      currency: 'INR',
+      order_id,
+      name: bookingData.bookingType === 'helicopter' ? 'Helicopter Booking' : 'Flight Booking',
+      description: `${bookingData.departure} to ${bookingData.arrival} | PNR: ${pendingBooking.booking.pnr}`,
+      prefill: {
+        name: travelerDetails[0].fullName,
+        email: travelerDetails[0].email,
+        contact: travelerDetails[0].phone,
+      },
+      handler: async (response) => {
+        try {
+          console.log('[PaymentStep] Step 4: Payment successful, completing booking...');
+          
+          const completeResponse = await fetch(`${BASE_URL}/bookings/complete-booking-after-payment`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              bookingId: pendingBooking.booking.id,
+              payment_id: response.razorpay_payment_id,
+              order_id: response.razorpay_order_id,
+              razorpay_signature: response.razorpay_signature,
+              bookingType: pendingBooking.booking.bookingType,
+            }),
+          });
+
+          if (!completeResponse.ok) {
+            const errorText = await completeResponse.text();
+            console.error('[PaymentStep] Booking completion failed:', errorText);
+            throw new Error('Failed to complete booking after payment');
+          }
+
+          const result = await completeResponse.json();
+          console.log('[PaymentStep] Booking completed successfully:', result);
+          
+          setIsProcessing(false);
+          setError(null);
+          onConfirm(result);
+          
+        } catch (err) {
+          console.error('[PaymentStep] Error in payment handler:', err);
+          setError(`Booking completion failed: ${err.message}. Please contact support with PNR: ${pendingBooking.booking.pnr}`);
+          setIsProcessing(false);
+        }
+      },
+      modal: {
+        ondismiss: async () => {
+          console.log('[PaymentStep] Payment modal dismissed, cancelling booking...');
+          
+          try {
+            await fetch(`${BASE_URL}/bookings/cancel-pending/${pendingBooking.booking.id}`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ bookingType: pendingBooking.booking.bookingType }),
+            });
+          } catch (cancelError) {
+            console.error('[PaymentStep] Failed to cancel booking:', cancelError);
+          }
+          
+          setIsProcessing(false);
+          setError('Payment cancelled. Booking has been released.');
+        },
+      },
+      theme: { color: '#1E3A8A' },
+    };
+
+    const rzp = new window.Razorpay(options);
+    rzp.open();
+
+    rzp.on('payment.failed', async (response) => {
+      console.error('[PaymentStep] Payment failed:', response.error);
+      
+      try {
+        await fetch(`${BASE_URL}/bookings/cancel-pending/${pendingBooking.booking.id}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ bookingType: pendingBooking.booking.bookingType }),
+        });
+      } catch (cancelError) {
+        console.error('[PaymentStep] Failed to cancel booking:', cancelError);
+      }
+      
+      setError(`Payment failed: ${response.error.description}`);
+      setIsProcessing(false);
+    });
+
   } catch (err) {
+    console.error('[PaymentStep] Booking error:', err);
     setError(`Booking error: ${err.message}`);
     setIsProcessing(false);
   }
 }
   return (
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-      <div className="flex items-center mb-6">
-        <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mr-4">
-          <FaCreditCard className="text-green-600 text-xl" />
+    <div className={cn('bg-white', 'rounded-xl', 'shadow-lg', 'p-6', 'border', 'border-gray-100')}>
+      <div className={cn('flex', 'items-center', 'mb-6')}>
+        <div className={cn('w-12', 'h-12', 'bg-green-100', 'rounded-full', 'flex', 'items-center', 'justify-center', 'mr-4')}>
+          <FaCreditCard className={cn('text-green-600', 'text-xl')} />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-800">Complete Payment</h2>
+          <h2 className={cn('text-2xl', 'font-bold', 'text-gray-800')}>Complete Payment</h2>
           <p className="text-gray-600">Secure your booking with our encrypted payment system</p>
         </div>
       </div>
 
       {/* Error and Processing States */}
       {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center">
-            <FaExclamationTriangle className="text-red-600 mr-3" />
+        <div className={cn('bg-red-50', 'border', 'border-red-200', 'rounded-lg', 'p-4', 'mb-6')}>
+          <div className={cn('flex', 'items-center')}>
+            <FaExclamationTriangle className={cn('text-red-600', 'mr-3')} />
             <div className="text-red-800">{error}</div>
           </div>
         </div>
       )}
 
       {isProcessing && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center">
-            <div className="h-5 w-5 bg-blue-300 rounded animate-pulse mr-3"></div>
+        <div className={cn('bg-blue-50', 'border', 'border-blue-200', 'rounded-lg', 'p-4', 'mb-6')}>
+          <div className={cn('flex', 'items-center')}>
+            <div className={cn('h-5', 'w-5', 'bg-blue-300', 'rounded', 'animate-pulse', 'mr-3')}></div>
             <div className="text-blue-800">Processing your booking...</div>
           </div>
         </div>
       )}
 
       {/* Seat Selection */}
-      <div className="bg-gray-50 rounded-xl p-6 mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center">
-          <FaChair className="mr-2 text-blue-600" />
+      <div className={cn('bg-gray-50', 'rounded-xl', 'p-6', 'mb-6')}>
+        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center')}>
+          <FaChair className={cn('mr-2', 'text-blue-600')} />
           Select Your Seats ({selectedSeats.length}/{totalPassengers})
         </h3>
         
         {allSeats.length === 0 ? (
-          <div className="text-center py-8 text-gray-500">
-            <FaSpinner className="animate-spin mx-auto mb-2 text-2xl" />
+          <div className={cn('text-center', 'py-8', 'text-gray-500')}>
+            <FaSpinner className={cn('animate-spin', 'mx-auto', 'mb-2', 'text-2xl')} />
             Loading available seats...
           </div>
         ) : (
           <>
-            <div className="mb-4 text-sm text-gray-600">
-              <div className="flex items-center space-x-4 flex-wrap gap-2">
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-white border-2 border-gray-300 rounded mr-2"></div>
+            <div className={cn('mb-4', 'text-sm', 'text-gray-600')}>
+              <div className={cn('flex', 'items-center', 'space-x-4', 'flex-wrap', 'gap-2')}>
+                <div className={cn('flex', 'items-center')}>
+                  <div className={cn('w-4', 'h-4', 'bg-white', 'border-2', 'border-gray-300', 'rounded', 'mr-2')}></div>
                   Available
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-blue-600 rounded mr-2"></div>
+                <div className={cn('flex', 'items-center')}>
+                  <div className={cn('w-4', 'h-4', 'bg-blue-600', 'rounded', 'mr-2')}></div>
                   Selected
                 </div>
-                <div className="flex items-center">
-                  <div className="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                <div className={cn('flex', 'items-center')}>
+                  <div className={cn('w-4', 'h-4', 'bg-red-500', 'rounded', 'mr-2')}></div>
                   Booked
                 </div>
               </div>
             </div>
             
             {bookedSeats.length > 0 && (
-              <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <p className="text-sm text-yellow-800">
-                  <FaExclamationTriangle className="inline mr-2" />
+              <div className={cn('mb-4', 'p-3', 'bg-yellow-50', 'border', 'border-yellow-200', 'rounded-lg')}>
+                <p className={cn('text-sm', 'text-yellow-800')}>
+                  <FaExclamationTriangle className={cn('inline', 'mr-2')} />
                   <strong>Note:</strong> Seats marked in red are already booked and cannot be selected.
                 </p>
               </div>
             )}
             
-            <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-10 gap-2">
+            <div className={cn('grid', 'grid-cols-6', 'sm:grid-cols-8', 'md:grid-cols-10', 'gap-2')}>
               {allSeats.map((seat) => {
                 const isBooked = bookedSeats.includes(seat);
                 const isSelected = selectedSeats.includes(seat);
@@ -796,7 +684,7 @@ async function handleBooking() {
               })}
             </div>
             
-            <div className="mt-4 text-sm text-gray-600">
+            <div className={cn('mt-4', 'text-sm', 'text-gray-600')}>
               <p>Available seats: <strong className="text-green-600">{availableSeats.length}</strong></p>
               <p>Booked seats: <strong className="text-red-600">{bookedSeats.length}</strong></p>
             </div>
@@ -805,45 +693,45 @@ async function handleBooking() {
       </div>
 
       {/* Booking Summary */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-6 mb-6 border border-blue-100">
-        <h3 className="text-lg font-semibold text-gray-800 mb-4">Booking Summary</h3>
+      <div className={cn('bg-gradient-to-r', 'from-blue-50', 'to-indigo-50', 'rounded-xl', 'p-6', 'mb-6', 'border', 'border-blue-100')}>
+        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4')}>Booking Summary</h3>
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center text-gray-700">
-              <FaPlane className="mr-2 text-blue-600" />
+          <div className={cn('flex', 'items-center', 'justify-between')}>
+            <span className={cn('flex', 'items-center', 'text-gray-700')}>
+              <FaPlane className={cn('mr-2', 'text-blue-600')} />
               Route
             </span>
             <span className="font-medium">{bookingData.departure} → {bookingData.arrival}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center text-gray-700">
-              <FaClock className="mr-2 text-green-600" />
+          <div className={cn('flex', 'items-center', 'justify-between')}>
+            <span className={cn('flex', 'items-center', 'text-gray-700')}>
+              <FaClock className={cn('mr-2', 'text-green-600')} />
               Date & Time
             </span>
             <span className="font-medium">{bookingData.selectedDate}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center text-gray-700">
-              <FaUserFriends className="mr-2 text-purple-600" />
+          <div className={cn('flex', 'items-center', 'justify-between')}>
+            <span className={cn('flex', 'items-center', 'text-gray-700')}>
+              <FaUserFriends className={cn('mr-2', 'text-purple-600')} />
               Passengers
             </span>
             <span className="font-medium">{totalPassengers}</span>
           </div>
-          <div className="flex items-center justify-between">
-            <span className="flex items-center text-gray-700">
-              <FaChair className="mr-2 text-orange-600" />
+          <div className={cn('flex', 'items-center', 'justify-between')}>
+            <span className={cn('flex', 'items-center', 'text-gray-700')}>
+              <FaChair className={cn('mr-2', 'text-orange-600')} />
               Selected Seats
             </span>
             <span className="font-medium">{selectedSeats.join(", ") || "None selected"}</span>
           </div>
           {bookingData?.bookingType === 'helicopter' && weightCharges > 0 && (
             <>
-              <div className="flex items-center justify-between text-gray-700">
+              <div className={cn('flex', 'items-center', 'justify-between', 'text-gray-700')}>
                 <span>Base Fare</span>
                 <span className="font-medium">₹{baseFare.toLocaleString()}</span>
               </div>
-              <div className="flex items-center justify-between text-orange-700">
-                <span className="flex items-center">
+              <div className={cn('flex', 'items-center', 'justify-between', 'text-orange-700')}>
+                <span className={cn('flex', 'items-center')}>
                   <FaExclamationTriangle className="mr-2" />
                   Weight Charges
                 </span>
@@ -851,29 +739,29 @@ async function handleBooking() {
               </div>
             </>
           )}
-          <div className="border-t pt-3 flex items-center justify-between">
-            <span className="text-lg font-semibold text-gray-800">Total Amount</span>
-            <span className="text-2xl font-bold text-blue-600">₹{finalTotalPrice.toLocaleString()}</span>
+          <div className={cn('border-t', 'pt-3', 'flex', 'items-center', 'justify-between')}>
+            <span className={cn('text-lg', 'font-semibold', 'text-gray-800')}>Total Amount</span>
+            <span className={cn('text-2xl', 'font-bold', 'text-blue-600')}>₹{finalTotalPrice.toLocaleString()}</span>
           </div>
         </div>
       </div>
 
       {/* Payment Security */}
-      <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-        <div className="flex items-center">
-          <FaShieldAlt className="text-green-600 mr-3" />
+      <div className={cn('bg-green-50', 'border', 'border-green-200', 'rounded-lg', 'p-4', 'mb-6')}>
+        <div className={cn('flex', 'items-center')}>
+          <FaShieldAlt className={cn('text-green-600', 'mr-3')} />
           <div>
-            <div className="font-semibold text-green-800">Secure Payment</div>
-            <div className="text-sm text-green-700">Your payment is protected by 256-bit SSL encryption</div>
+            <div className={cn('font-semibold', 'text-green-800')}>Secure Payment</div>
+            <div className={cn('text-sm', 'text-green-700')}>Your payment is protected by 256-bit SSL encryption</div>
           </div>
         </div>
       </div>
 
       {/* Action Buttons */}
-      <div className="flex flex-col sm:flex-row justify-between gap-4">
+      <div className={cn('flex', 'flex-col', 'sm:flex-row', 'justify-between', 'gap-4')}>
         <button
           onClick={handlePreviousStep}
-          className="px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50"
+          className={cn('px-6', 'py-3', 'bg-gray-500', 'text-white', 'rounded-lg', 'hover:bg-gray-600', 'transition-colors', 'duration-200', 'disabled:opacity-50')}
           disabled={isProcessing}
         >
           ← Back to Traveler Info
@@ -890,8 +778,8 @@ async function handleBooking() {
           disabled={isProcessing || selectedSeats.length !== totalPassengers}
         >
           {isProcessing ? (
-            <div className="flex items-center">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+            <div className={cn('flex', 'items-center')}>
+              <div className={cn('animate-spin', 'rounded-full', 'h-5', 'w-5', 'border-b-2', 'border-white', 'mr-2')}></div>
               Processing...
             </div>
           ) : (

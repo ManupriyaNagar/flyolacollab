@@ -1,14 +1,13 @@
 "use client";
 
-import React from 'react';
 import Link from 'next/link';
+
+import { cn } from "@/lib/utils";
 import {
-  PaperAirplaneIcon,
-  SparklesIcon,
-  MapPinIcon,
-  PhoneIcon,
   EnvelopeIcon,
   GlobeAltIcon,
+  MapPinIcon,
+  PhoneIcon
 } from '@heroicons/react/24/outline';
 // Social media icons using simple SVG components
 const FacebookIcon = ({ className }) => (
@@ -108,26 +107,26 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-white">
+    <footer className={cn('bg-gradient-to-br', 'from-slate-900', 'via-slate-800', 'to-slate-900', 'text-white')}>
       {/* Main Footer Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8', 'py-16')}>
+        <div className={cn('grid', 'grid-cols-1', 'lg:grid-cols-12', 'gap-8')}>
           {/* Brand Section */}
-          <div className="lg:col-span-4">
-            <div className="flex items-center mb-6">
+          <div className="lg:col-span-3">
+            <div className={cn('flex', 'items-center', 'mb-6')}>
               <img
-                src="/logoo-04.png"
+                src="/log.png"
                 alt="Flyola Logo"
-                className="h-16 w-60"
+                className={cn('h-16', 'w-60')}
               />
             </div>
             
-            <p className="text-slate-300 mb-6 leading-relaxed">
+            <p className={cn('text-slate-300', 'mb-6', 'leading-relaxed')}>
               Jet Serve Aviation is a premier provider of private jet services, catering to travelers seeking luxury, comfort, and convenience.
             </p>
             
             {/* Social Links */}
-            <div className="flex space-x-4">
+            <div className={cn('flex', 'space-x-4')}>
               {socialLinks.map((social) => (
                 <a
                   key={social.name}
@@ -135,18 +134,18 @@ const Footer = () => {
                   className={`p-2 bg-slate-800 rounded-lg text-slate-400 ${social.color} transition-all duration-200 hover:bg-slate-700 hover:scale-110`}
                   aria-label={social.name}
                 >
-                  <social.icon className="w-5 h-5" />
+                  <social.icon className={cn('w-5', 'h-5')} />
                 </a>
               ))}
             </div>
           </div>
 
           {/* Links Sections */}
-          <div className="lg:col-span-6">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className={cn('lg:col-span-6', 'flex', 'justify-center')}>
+<div className={cn('grid', 'grid-cols-2', 'md:grid-cols-3', 'gap-8', )}>
               {footerSections.map((section) => (
                 <div key={section.title}>
-                  <h3 className="text-lg font-semibold text-white mb-4">
+                  <h3 className={cn('text-lg', 'font-semibold', 'text-white', 'mb-4')}>
                     {section.title}
                   </h3>
                   <ul className="space-y-3">
@@ -154,7 +153,7 @@ const Footer = () => {
                       <li key={link.name}>
                         <Link
                           href={link.href}
-                          className="text-slate-400 hover:text-white transition-colors duration-200 text-sm"
+                          className={cn('text-slate-400', 'hover:text-white', 'transition-colors', 'duration-200', 'text-sm')}
                         >
                           {link.name}
                         </Link>
@@ -167,19 +166,19 @@ const Footer = () => {
           </div>
 
           {/* Contact Info */}
-          <div className="lg:col-span-2">
-            <h3 className="text-lg font-semibold text-white mb-4">
+          <div className="lg:col-span-3">
+            <h3 className={cn('text-lg', 'font-semibold', 'text-white', 'mb-4')}>
               Get in Touch
             </h3>
             <div className="space-y-4">
               {contactInfo.map((info) => (
-                <div key={info.title} className="flex items-start space-x-3">
-                  <div className="p-2 bg-slate-800 rounded-lg">
-                    <info.icon className="w-4 h-4 text-blue-400" />
+                <div key={info.title} className={cn('flex', 'items-start', 'space-x-3')}>
+                  <div className={cn('p-2', 'bg-slate-800', 'rounded-lg')}>
+                    <info.icon className={cn('w-4', 'h-4', 'text-blue-400')} />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-300">{info.title}</p>
-                    <p className="text-sm text-slate-400">{info.content}</p>
+                    <p className={cn('text-sm', 'font-medium', 'text-slate-300')}>{info.title}</p>
+                    <p className={cn('text-sm', 'text-slate-400')}>{info.content}</p>
                   </div>
                 </div>
               ))}
@@ -189,24 +188,24 @@ const Footer = () => {
       </div>
 
       {/* Newsletter Section */}
-      <div className="border-t border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div className={cn('border-t', 'border-slate-700')}>
+        <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8', 'py-8')}>
+          <div className={cn('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'gap-6')}>
             <div>
-              <h3 className="text-xl font-semibold text-white mb-2">
+              <h3 className={cn('text-xl', 'font-semibold', 'text-white', 'mb-2')}>
                 Stay Updated with Flyola
               </h3>
               <p className="text-slate-400">
                 Get the latest flight deals, joy ride offers, and aviation news delivered to your inbox.
               </p>
             </div>
-            <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+            <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-3', 'w-full', 'md:w-auto')}>
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="px-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 min-w-[280px]"
+                className={cn('px-4', 'py-3', 'bg-slate-800', 'border', 'border-slate-600', 'rounded-lg', 'text-white', 'placeholder-slate-400', 'focus:outline-none', 'focus:ring-2', 'focus:ring-blue-500', 'focus:border-transparent', 'transition-all', 'duration-200', 'min-w-[280px]')}
               />
-              <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 whitespace-nowrap">
+              <button className={cn('px-6', 'py-3', 'bg-gradient-to-r', 'from-blue-600', 'to-indigo-600', 'text-white', 'font-medium', 'rounded-lg', 'hover:from-blue-700', 'hover:to-indigo-700', 'transition-all', 'duration-200', 'shadow-lg', 'hover:shadow-xl', 'transform', 'hover:-translate-y-0.5', 'whitespace-nowrap')}>
                 Subscribe Now
               </button>
             </div>
@@ -215,28 +214,28 @@ const Footer = () => {
       </div>
 
       {/* Bottom Bar */}
-      <div className="border-t border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-slate-400">
+      <div className={cn('border-t', 'border-slate-700')}>
+        <div className={cn('max-w-7xl', 'mx-auto', 'px-4', 'sm:px-6', 'lg:px-8', 'py-6')}>
+          <div className={cn('flex', 'flex-col', 'md:flex-row', 'items-center', 'justify-between', 'gap-4')}>
+            <div className={cn('flex', 'flex-col', 'md:flex-row', 'items-center', 'gap-4', 'text-sm', 'text-slate-400')}>
               <p>Jet Serve Aviation Pvt. Ltd © {currentYear}. All Rights Reserved</p>
-              <div className="flex items-center gap-4">
-                <span className="hidden md:block">|</span>
-                <Link href="/privacy" className="hover:text-white transition-colors duration-200">
+              <div className={cn('flex', 'items-center', 'gap-4')}>
+                <span className={cn('hidden', 'md:block')}>|</span>
+                <Link href="/privacy" className={cn('hover:text-white', 'transition-colors', 'duration-200')}>
                   Privacy
                 </Link>
                 <span>•</span>
-                <Link href="/terms" className="hover:text-white transition-colors duration-200">
+                <Link href="/terms" className={cn('hover:text-white', 'transition-colors', 'duration-200')}>
                   Terms
                 </Link>
                 <span>•</span>
-                <Link href="/refund" className="hover:text-white transition-colors duration-200">
+                <Link href="/refund" className={cn('hover:text-white', 'transition-colors', 'duration-200')}>
                   Refund Policy
                 </Link>
               </div>
             </div>
             
-            <div className="flex items-center gap-2 text-sm text-slate-400">
+            <div className={cn('flex', 'items-center', 'gap-2', 'text-sm', 'text-slate-400')}>
   <a 
     href="https://rbshstudio.com/" 
     target="_blank" 
@@ -271,32 +270,32 @@ export default Footer;
 
 // const Footer = () => {
 //   return (
-//     <footer className="bg-[#0B2045] text-white z-10">
+//     <footer className={cn('bg-[#0B2045]', 'text-white', 'z-10')}>
 //       {/* Special Discount Section */}
       
 
 //       {/* Main Footer */}
-//       <div className="container mx-auto px-6 py-10">
-//         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+//       <div className={cn('container', 'mx-auto', 'px-6', 'py-10')}>
+//         <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-4', 'gap-6')}>
 //           {/* Logo & About */}
 //           <div>
 //             <img src="/logo-04.png" alt="Flyola Logo" className="h-12" />
-//             <p className="text-sm mt-4">
+//             <p className={cn('text-sm', 'mt-4')}>
 //               Jet Serve Aviation is a premier provider of private jet services, catering to travelers seeking luxury, comfort, and convenience.
 //             </p>
 //             {/* Social Media Icons */}
-//             {/* <div className="flex space-x-4 mt-4">
-//               <FaFacebookF className="cursor-pointer hover:text-gray-400" />
-//               <FaLinkedinIn className="cursor-pointer hover:text-gray-400" />
-//               <FaInstagram className="cursor-pointer hover:text-gray-400" />
-//               <FaTwitter className="cursor-pointer hover:text-gray-400" />
-//               <FaGlobe className="cursor-pointer hover:text-gray-400" />
+//             {/* <div className={cn('flex', 'space-x-4', 'mt-4')}>
+//               <FaFacebookF className={cn('cursor-pointer', 'hover:text-gray-400')} />
+//               <FaLinkedinIn className={cn('cursor-pointer', 'hover:text-gray-400')} />
+//               <FaInstagram className={cn('cursor-pointer', 'hover:text-gray-400')} />
+//               <FaTwitter className={cn('cursor-pointer', 'hover:text-gray-400')} />
+//               <FaGlobe className={cn('cursor-pointer', 'hover:text-gray-400')} />
 //             </div> */}
 //           </div>
 
 //           {/* Useful Links */}
 //           {/* <div>
-//             <h3 className="font-semibold text-lg mb-3">Useful Links</h3>
+//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Useful Links</h3>
 //             <ul className="space-y-2">
 //               <li><a href="#" className="hover:text-gray-400">Home</a></li>
 //               <li><a href="#" className="hover:text-gray-400">About Us</a></li>
@@ -308,7 +307,7 @@ export default Footer;
 
 //           {/* Legal */}
 //           {/* <div>
-//             <h3 className="font-semibold text-lg mb-3">Legal</h3>
+//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Legal</h3>
 //             <ul className="space-y-2">
 //               <li><a href="#" className="hover:text-gray-400">Privacy Policy</a></li>
 //               <li><a href="#" className="hover:text-gray-400">Refund Policy</a></li>
@@ -319,7 +318,7 @@ export default Footer;
 
 //           {/* Services */}
 //           {/* <div>
-//             <h3 className="font-semibold text-lg mb-3">Services</h3>
+//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Services</h3>
 //             <ul className="space-y-2">
 //               <li><a href="#" className="hover:text-gray-400">Personal Charter</a></li>
 //               <li><a href="#" className="hover:text-gray-400">Hire Charter</a></li>
@@ -332,8 +331,8 @@ export default Footer;
 
 //         {/* Payment Methods */}
 //         {/* <div className="mt-8">
-//           <h3 className="font-semibold text-lg mb-3">Payment Methods</h3>
-//           <div className="flex space-x-4">
+//           <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Payment Methods</h3>
+//           <div className={cn('flex', 'space-x-4')}>
 //             <img src="/1.png" alt="Amex" className="h-6" />
 //             <img src="/2.png" alt="Google Pay" className="h-6" />
 //             <img src="/3.png" alt="Apple Pay" className="h-6" />
@@ -344,12 +343,12 @@ export default Footer;
       
 //       </div>
 
-// <div className="flex justify-between items-center bg-[#09182C] text-sm py-4 px-6">
+// <div className={cn('flex', 'justify-between', 'items-center', 'bg-[#09182C]', 'text-sm', 'py-4', 'px-6')}>
 //       {/* Bottom Footer */}
-//       <div className="bg-[#09182C] text-center text-sm py-4">
+//       <div className={cn('bg-[#09182C]', 'text-center', 'text-sm', 'py-4')}>
 //         Jet Serve Aviation Pvt. Ltd © 2025. All Rights Reserved 
 //       </div>
-//       <div className="bg-[#09182C] text-center text-sm py-4">
+//       <div className={cn('bg-[#09182C]', 'text-center', 'text-sm', 'py-4')}>
 //         Powered By RBSH Studio
 //       </div>
 //       </div>

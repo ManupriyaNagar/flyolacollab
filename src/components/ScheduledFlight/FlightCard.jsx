@@ -1,5 +1,6 @@
 "use client";
 import AuthModal from "@/components/AuthModal";
+import { cn } from "@/lib/utils";
 import API from "@/services/api";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -195,10 +196,9 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
   }, [flightSchedule.departure_time, selectedDate, cutoffTime, advanceBookingDays, authState?.userRole]);
 
   const handleBookNowClick = useCallback(() => {
-    if (!authState.isLoggedIn) {
-      setShowAuthModal(true);
-      return;
-    }
+    // REMOVED: Authentication check - now supports guest booking
+    // Users can book without login (guest booking)
+    
     if (isSoldOut) {
       alert("This flight is sold out. Please select another flight.");
       return;
@@ -241,7 +241,7 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
     
     const bookingUrl = `/booking?${bookingParams.toString()}`;
     router.push(bookingUrl);
-  }, [authState.isLoggedIn, isSoldOut, availableSeats, passengers, isBookingDisabled, isDeparted, departureAirport.city, arrivalAirport.city, flightSchedule, selectedDate, router]);
+  }, [authState?.userRole, isSoldOut, availableSeats, passengers, isBookingDisabled, isDeparted, departureAirport.city, arrivalAirport.city, flightSchedule, selectedDate, router, cutoffTime, advanceBookingDays]);
 
   const handleAuthSuccess = useCallback(() => {
     // After successful login, automatically proceed with booking
@@ -279,23 +279,23 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
         }`} />
 
       <div className="p-6">
-        <div className="flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:gap-8">
+        <div className={cn('flex', 'flex-col', 'lg:flex-row', 'lg:items-center', 'space-y-6', 'lg:space-y-0', 'lg:gap-8')}>
           {/* Airline Info */}
-          <div className="flex items-center gap-4 lg:min-w-[200px]">
+          <div className={cn('flex', 'items-center', 'gap-4', 'lg:min-w-[200px]')}>
             <div className="relative">
               <img
                 src="/pp.svg"
                 alt="Flyola Logo"
-                className="w-16 h-16 object-contain rounded-full bg-blue-50 p-2"
+                className={cn('w-16', 'h-16', 'object-contain', 'rounded-full', 'bg-blue-50', 'p-2')}
               />
               {!isSoldOut && !isDeparted && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse" />
+                <div className={cn('absolute', '-top-1', '-right-1', 'w-4', 'h-4', 'bg-green-500', 'rounded-full', 'animate-pulse')} />
               )}
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
+              <div className={cn('flex', 'items-center', 'gap-2', 'mb-1')}>
                 <FaPlane className="text-blue-600" size={16} />
-                <span className="text-lg font-bold text-gray-800">{flight.flight_number}</span>
+                <span className={cn('text-lg', 'font-bold', 'text-gray-800')}>{flight.flight_number}</span>
                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${isDeparted ? "bg-red-100 text-red-700" :
                   isSoldOut ? "bg-gray-100 text-gray-700" :
                     "bg-green-100 text-green-700"
@@ -303,37 +303,37 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
                   {isDeparted ? "Departed" : isSoldOut ? "Sold Out" : "Available"}
                 </span>
               </div>
-              <p className="text-sm text-gray-600">
-                <span className="font-medium text-blue-700">{fmtDateLong(selectedDate)}</span>
+              <p className={cn('text-sm', 'text-gray-600')}>
+                <span className={cn('font-medium', 'text-blue-700')}>{fmtDateLong(selectedDate)}</span>
               </p>
             </div>
           </div>
 
           {/* Flight Route & Time */}
-          <div className="flex-1 space-y-4">
+          <div className={cn('flex-1', 'space-y-4')}>
             {/* Time Display */}
-            <div className="flex items-center justify-center gap-4 bg-gradient-to-r from-blue-50 to-indigo-50 px-6 py-4 rounded-xl">
+            <div className={cn('flex', 'items-center', 'justify-center', 'gap-4', 'bg-gradient-to-r', 'from-blue-50', 'to-indigo-50', 'px-6', 'py-4', 'rounded-xl')}>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{fmtTime(flightSchedule.departure_time)}</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Departure</div>
+                <div className={cn('text-2xl', 'font-bold', 'text-gray-800')}>{fmtTime(flightSchedule.departure_time)}</div>
+                <div className={cn('text-xs', 'text-gray-500', 'uppercase', 'tracking-wide')}>Departure</div>
               </div>
-              <div className="flex-1 flex items-center justify-center relative">
-                <div className="w-full h-0.5 bg-gradient-to-r from-blue-300 to-indigo-300"></div>
-                <FaPlane className="absolute text-blue-600 bg-white p-1 rounded-full" size={20} />
+              <div className={cn('flex-1', 'flex', 'items-center', 'justify-center', 'relative')}>
+                <div className={cn('w-full', 'h-0.5', 'bg-gradient-to-r', 'from-blue-300', 'to-indigo-300')}></div>
+                <FaPlane className={cn('absolute', 'text-blue-600', 'bg-white', 'p-1', 'rounded-full')} size={20} />
               </div>
               <div className="text-center">
-                <div className="text-2xl font-bold text-gray-800">{fmtTime(flightSchedule.arrival_time)}</div>
-                <div className="text-xs text-gray-500 uppercase tracking-wide">Arrival</div>
+                <div className={cn('text-2xl', 'font-bold', 'text-gray-800')}>{fmtTime(flightSchedule.arrival_time)}</div>
+                <div className={cn('text-xs', 'text-gray-500', 'uppercase', 'tracking-wide')}>Arrival</div>
               </div>
             </div>
 
             {/* Route Information */}
-            <div className="text-center space-y-2">
-              <div className="flex items-center justify-center gap-3 text-gray-700">
-                <span className="font-semibold text-base bg-blue-100 px-3 py-1 rounded-full">
+            <div className={cn('text-center', 'space-y-2')}>
+              <div className={cn('flex', 'items-center', 'justify-center', 'gap-3', 'text-gray-700')}>
+                <span className={cn('font-semibold', 'text-base', 'bg-blue-100', 'px-3', 'py-1', 'rounded-full')}>
                   {departureAirport.city} ({departureAirport.airport_code})
                 </span>
-                <div className="flex items-center gap-1">
+                <div className={cn('flex', 'items-center', 'gap-1')}>
                   <span className="text-gray-400">→</span>
                   <span className={`text-xs font-medium px-2 py-1 rounded-full ${isNonStop ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
                     }`}>
@@ -341,13 +341,13 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
                   </span>
                   <span className="text-gray-400">→</span>
                 </div>
-                <span className="font-semibold text-base bg-green-100 px-3 py-1 rounded-full">
+                <span className={cn('font-semibold', 'text-base', 'bg-green-100', 'px-3', 'py-1', 'rounded-full')}>
                   {arrivalAirport.city} ({arrivalAirport.airport_code})
                 </span>
               </div>
 
               {flightSchedule.isMultiStop && (
-                <div className="text-sm text-gray-600 bg-yellow-50 px-3 py-2 rounded-lg border border-yellow-200">
+                <div className={cn('text-sm', 'text-gray-600', 'bg-yellow-50', 'px-3', 'py-2', 'rounded-lg', 'border', 'border-yellow-200')}>
                   <span className="font-medium">Route:</span> {flightSchedule.routeCities.join(" → ")}
                 </div>
               )}
@@ -355,9 +355,9 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
           </div>
 
           {/* Pricing & Booking */}
-          <div className="lg:min-w-[220px] space-y-4">
-            <div className="bg-gradient-to-br from-green-50 to-blue-50 p-4 rounded-xl border border-green-200">
-              <div className="flex items-center justify-between mb-2">
+          <div className={cn('lg:min-w-[220px]', 'space-y-4')}>
+            <div className={cn('bg-gradient-to-br', 'from-green-50', 'to-blue-50', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
+              <div className={cn('flex', 'items-center', 'justify-between', 'mb-2')}>
                 <FaUserFriends className="text-gray-500" size={16} />
                 <span className={`text-sm font-medium ${isSoldOut ? "text-red-600" : "text-green-600"
                   }`}>
@@ -366,10 +366,10 @@ const FlightCard = ({ flightSchedule, flights, airports, authState, dates, selec
               </div>
 
               <div className="text-right">
-                <div className="text-3xl font-bold text-gray-900">
+                <div className={cn('text-3xl', 'font-bold', 'text-gray-900')}>
                   ₹{parseFloat(flightSchedule.price || 0).toLocaleString('en-IN')}
                 </div>
-                <div className="text-sm text-gray-500 flex items-center justify-end gap-1">
+                <div className={cn('text-sm', 'text-gray-500', 'flex', 'items-center', 'justify-end', 'gap-1')}>
                   <FaCheckCircle className="text-green-500" size={12} />
                   Refundable
                 </div>
