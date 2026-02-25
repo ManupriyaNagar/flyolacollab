@@ -4,8 +4,8 @@ const withBundleAnalyzer = require('@next/bundle-analyzer')({
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export', // DISABLED - incompatible with dynamic routes for admin dashboard
-  // Static export is incompatible with dynamic routes like /edit/[id]
+  // output: 'export', // DISABLED - incompatible with middleware and dynamic routes
+  // Static export is incompatible with dynamic routes like /edit/[id] and middleware
   // If you need static export for production, consider separating admin and public sites
 
   // Performance optimizations
@@ -23,8 +23,8 @@ const nextConfig = {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
   },
 
-  // Static export optimizations
-  trailingSlash: true,
+  // Remove static export optimizations since we're not using output: 'export'
+  // trailingSlash: true,
   poweredByHeader: false,
   productionBrowserSourceMaps: false, // Reduce bundle size
 
@@ -33,7 +33,7 @@ const nextConfig = {
     optimizePackageImports: ['@heroicons/react', 'react-icons', 'lodash'],
   },
 
-  // Webpack optimizations for static export
+  // Webpack optimizations
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Reduce bundle size

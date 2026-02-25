@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import FilterSidebar from "@/components/ScheduledFlight/FilterSidebar";
-import FlightCard from "@/components/ScheduledFlight/FlightCard";
-import Header2 from "@/components/ScheduledFlight/Header";
 import { useAuth } from "@/components/AuthContext";
+import FilterSidebar from "@/components/booking/core/FilterSidebar";
+import VehicleCard from "@/components/booking/core/VehicleCard";
+import Header2 from "@/components/ScheduledFlight/Header";
+import { cn } from "@/lib/utils";
 import API from "@/services/api";
+import { useEffect, useState } from "react";
 
 const tz = "Asia/Kolkata";
 const fmtIso = (d) =>
@@ -57,15 +58,24 @@ const ScheduledFlightsPage = () => {
     try {
       const [schedulesRes, flightsRes, airportsRes] = await Promise.all([
         API.flights.getFlightSchedules({ user: true, month: `${year}-${month}` }).catch((err) => {
+          console.error('[ScheduledFlight] Error fetching schedules:', err);
           return [];
         }),
         API.flights.getFlights({ user: true }).catch((err) => {
+          console.error('[ScheduledFlight] Error fetching flights:', err);
           return [];
         }),
         API.airports.getAirports().catch((err) => {
+          console.error('[ScheduledFlight] Error fetching airports:', err);
           return [];
         }),
       ]);
+
+      console.log('[ScheduledFlight] API Response:', {
+        schedules: schedulesRes?.length || 0,
+        flights: flightsRes?.length || 0,
+        airports: airportsRes?.length || 0
+      });
 
       const normalized = Array.isArray(schedulesRes)
         ? schedulesRes.map((schedule) => ({
@@ -86,10 +96,13 @@ const ScheduledFlightsPage = () => {
           }))
         : [];
 
+      console.log('[ScheduledFlight] Normalized schedules:', normalized.length);
+
       setFlightSchedules(normalized);
       setFlights(Array.isArray(flightsRes) ? flightsRes : []);
       setAirports(Array.isArray(airportsRes) ? airportsRes : []);
     } catch (err) {
+      console.error('[ScheduledFlight] Fatal error:', err);
       setFlightSchedules([]);
       setFlights([]);
       setAirports([]);
@@ -154,8 +167,27 @@ const ScheduledFlightsPage = () => {
 
   const getFilteredAndSortedFlightSchedules = () => {
     if (!Array.isArray(flightSchedules) || !Array.isArray(flights) || !Array.isArray(airports)) {
+      console.log('[ScheduledFlight] Missing data:', {
+        hasSchedules: Array.isArray(flightSchedules),
+        hasFlights: Array.isArray(flights),
+        hasAirports: Array.isArray(airports)
+      });
       return [];
     }
+
+    console.log('[ScheduledFlight] Filtering data:', {
+      schedules: flightSchedules.length,
+      flights: flights.length,
+      airports: airports.length,
+      filters: { 
+        filterDepartureCity, 
+        filterArrivalCity, 
+        filterStatus, 
+        filterMinSeats, 
+        filterStops,
+        searchCriteria 
+      }
+    });
 
     const mapped = flightSchedules
       .map((fs) => {
@@ -210,18 +242,20 @@ const ScheduledFlightsPage = () => {
           (filterStatus === "Departed" && status === 1);
         const matchesSeats = filterMinSeats === 0 || availableSeats >= filterMinSeats;
         const matchesStops = filterStops === "All" || stops.length === parseInt(filterStops);
+        
+        // Case-insensitive city matching
         const matchesDeparture =
-          (!filterDepartureCity || departureCity === filterDepartureCity) ||
-          (isMultiStop && routeCities.includes(filterDepartureCity));
+          (!filterDepartureCity || departureCity.toLowerCase() === filterDepartureCity.toLowerCase()) ||
+          (isMultiStop && routeCities.some(city => city.toLowerCase() === filterDepartureCity.toLowerCase()));
         const matchesArrival =
-          (!filterArrivalCity || arrivalCity === filterArrivalCity) ||
-          (isMultiStop && routeCities.includes(filterArrivalCity));
+          (!filterArrivalCity || arrivalCity.toLowerCase() === filterArrivalCity.toLowerCase()) ||
+          (isMultiStop && routeCities.some(city => city.toLowerCase() === filterArrivalCity.toLowerCase()));
         const matchesSearch =
-          (!searchCriteria.departure || departureCity === searchCriteria.departure) &&
-          (!searchCriteria.arrival || arrivalCity === searchCriteria.arrival) &&
+          (!searchCriteria.departure || departureCity.toLowerCase() === searchCriteria.departure.toLowerCase()) &&
+          (!searchCriteria.arrival || arrivalCity.toLowerCase() === searchCriteria.arrival.toLowerCase()) &&
           (!searchCriteria.date || departure_date === searchCriteria.date);
 
-        return (
+        const passes = (
           matchesStatus &&
           matchesSeats &&
           matchesStops &&
@@ -229,6 +263,18 @@ const ScheduledFlightsPage = () => {
           matchesArrival &&
           matchesSearch
         );
+
+        // Debug first item that fails
+        if (!passes && flightSchedules.indexOf(fs) === 0) {
+          console.log('[ScheduledFlight] First item filtered out:', {
+            schedule: { id: fs.id, departureCity, arrivalCity, departure_date, status, availableSeats, stops },
+            matches: { matchesStatus, matchesSeats, matchesStops, matchesDeparture, matchesArrival, matchesSearch },
+            filters: { filterStatus, filterMinSeats, filterStops, filterDepartureCity, filterArrivalCity },
+            searchCriteria
+          });
+        }
+
+        return passes;
       })
       .sort((a, b) => {
         if (sortOption === "Price: Low to High") return parseFloat(a.price) - parseFloat(b.price);
@@ -239,6 +285,7 @@ const ScheduledFlightsPage = () => {
         return 0;
       });
 
+    console.log('[ScheduledFlight] Filtered result:', mapped.length);
     return mapped;
   };
 
@@ -247,48 +294,67 @@ const ScheduledFlightsPage = () => {
   // Filter airports to only show locations with airport_code (exclude helipad-only locations)
   const flightAirports = airports.filter(airport => airport.airport_code);
 
+  // Prepare filters object for new FilterSidebar API
+  const filters = {
+    departure: filterDepartureCity,
+    arrival: filterArrivalCity,
+    date: searchCriteria.date,
+    passengers: filterMinSeats,
+    status: filterStatus,
+    stops: filterStops,
+    sortOption: sortOption
+  };
+
+  // Handle filter changes from new FilterSidebar
+  const handleFilterChange = (newFilters) => {
+    if (newFilters.departure !== undefined) setFilterDepartureCity(newFilters.departure);
+    if (newFilters.arrival !== undefined) setFilterArrivalCity(newFilters.arrival);
+    if (newFilters.status !== undefined) setFilterStatus(newFilters.status);
+    if (newFilters.passengers !== undefined) setFilterMinSeats(newFilters.passengers);
+    if (newFilters.stops !== undefined) setFilterStops(newFilters.stops);
+    if (newFilters.sortOption !== undefined) setSortOption(newFilters.sortOption);
+    if (newFilters.date !== undefined) {
+      setSearchCriteria(prev => ({ ...prev, date: newFilters.date }));
+    }
+    
+    // If filters are cleared (departure and arrival are empty), clear search criteria too
+    if (newFilters.departure === '' && newFilters.arrival === '') {
+      setSearchCriteria(prev => ({ 
+        ...prev, 
+        departure: '', 
+        arrival: '' 
+      }));
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row">
-      <div className="w-full md:w-72 md:flex-shrink-0 overflow-y-auto h-auto md:h-screen bg-white shadow-lg md:sticky top-20">
+    <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'flex-col', 'md:flex-row')}>
+      <div className={cn('w-full', 'md:w-72', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'bg-white', 'shadow-lg', 'md:sticky', 'top-20')}>
         <FilterSidebar
-          airports={flightAirports}
-          sortOption={sortOption}
-          setSortOption={setSortOption}
-          filterDepartureCity={filterDepartureCity}
-          setFilterDepartureCity={setFilterDepartureCity}
-          filterArrivalCity={filterArrivalCity}
-          setFilterArrivalCity={setFilterArrivalCity}
-          filterStatus={filterStatus}
-          setFilterStatus={setFilterStatus}
-          filterMinSeats={filterMinSeats}
-          setFilterMinSeats={setFilterMinSeats}
-          filterStops={filterStops}
-          setFilterStops={setFilterStops}
-          isFilterOpen={isFilterOpen}
-          setIsFilterOpen={setIsFilterOpen}
-          authState={authState}
-          setAuthState={setAuthState}
-          dates={dates}
-          selectedDate={searchCriteria.date}
-          setSearchCriteria={setSearchCriteria}
+          type="flight"
+          locations={flightAirports}
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          isOpen={isFilterOpen}
+          onClose={() => setIsFilterOpen(false)}
         />
       </div>
 
-      <div className="flex-1 overflow-y-auto h-auto">
-        <div className="px-4 sm:px-6 lg:px-8">
+      <div className={cn('flex-1', 'overflow-y-auto', 'h-auto')}>
+        <div className={cn('px-4', 'sm:px-6', 'lg:px-8')}>
           <Header2 />
         </div>
 
-        <main className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-6">
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-4 md:mb-0">
+        <main className={cn('py-6', 'px-4', 'sm:px-6', 'lg:px-8', 'max-w-7xl', 'mx-auto')}>
+          <div className={cn('flex', 'flex-col', 'md:flex-row', 'justify-between', 'items-center', 'mb-6')}>
+            <h2 className={cn('text-xl', 'sm:text-2xl', 'md:text-3xl', 'font-bold', 'text-gray-800', 'mb-4', 'md:mb-0')}>
               Available Flights ({filteredAndSortedFlightSchedules.length})
             </h2>
             <button
-              className="md:hidden w-full sm:w-auto px-4 py-2 bg-gradient-to-r from-indigo-500 to-blue-600 text-white rounded-lg text-sm font-semibold hover:from-indigo-600 hover:to-blue-700 transition-all duration-200 flex items-center gap-2"
+              className={cn('md:hidden', 'w-full', 'sm:w-auto', 'px-4', 'py-2', 'bg-gradient-to-r', 'from-indigo-500', 'to-blue-600', 'text-white', 'rounded-lg', 'text-sm', 'font-semibold', 'hover:from-indigo-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'flex', 'items-center', 'gap-2')}
               onClick={() => setIsFilterOpen(true)}
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className={cn('w-5', 'h-5')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path
                   strokeLinecap="round"
                   strokeLinejoin="round"
@@ -302,25 +368,44 @@ const ScheduledFlightsPage = () => {
 
           {filteredAndSortedFlightSchedules.length > 0 ? (
             <div className="space-y-6">
-              {filteredAndSortedFlightSchedules.map((fs) => (
-                <FlightCard
-                  key={`${fs.id}-${fs.departure_date}`}
-                  flightSchedule={fs}
-                  flights={flights}
-                  airports={airports}
-                  authState={authState}
-                  dates={dates.map((d) => d.date)}
-                  selectedDate={searchCriteria.date}
-                  passengers={searchCriteria.passengers}
-                />
-              ))}
+              {filteredAndSortedFlightSchedules.map((fs) => {
+                const flight = flights.find((f) => f.id === fs.flight_id) || {};
+                const depAirport = airports.find((a) => a.id === fs.departure_airport_id) || { city: "Unknown", airport_code: "UNK" };
+                const arrAirport = airports.find((a) => a.id === fs.arrival_airport_id) || { city: "Unknown", airport_code: "UNK" };
+                
+                console.log('[ScheduledFlight] Rendering card:', {
+                  scheduleId: fs.id,
+                  flightNumber: flight.flight_number,
+                  departure: depAirport.city,
+                  arrival: arrAirport.city,
+                  stops: fs.stops
+                });
+                
+                return (
+                  <VehicleCard
+                    key={`${fs.id}-${fs.departure_date}`}
+                    type="flight"
+                    schedule={fs}
+                    vehicle={{
+                      flight_number: flight.flight_number || "Unknown",
+                      seat_limit: flight.seat_limit || 6
+                    }}
+                    departureLocation={depAirport}
+                    arrivalLocation={arrAirport}
+                    stops={fs.stops || []}
+                    passengers={searchCriteria.passengers}
+                    selectedDate={searchCriteria.date}
+                    authState={authState}
+                  />
+                );
+              })}
             </div>
           ) : (
-            <div className="text-center py-6 sm:py-12">
-              <p className="text-gray-500 text-base sm:text-lg">
+            <div className={cn('text-center', 'py-6', 'sm:py-12')}>
+              <p className={cn('text-gray-500', 'text-base', 'sm:text-lg')}>
                 No active flights available matching your criteria.
               </p>
-              <p className="text-gray-400 text-sm mt-2">
+              <p className={cn('text-gray-400', 'text-sm', 'mt-2')}>
                 Try adjusting your filters or search criteria.
               </p>
             </div>

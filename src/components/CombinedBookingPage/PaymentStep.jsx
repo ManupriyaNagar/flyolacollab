@@ -6,13 +6,13 @@ import API from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
-  FaClock,
-  FaCreditCard,
-  FaExclamationTriangle,
-  FaPlane,
-  FaShieldAlt,
-  FaSpinner,
-  FaUserFriends
+    FaClock,
+    FaCreditCard,
+    FaExclamationTriangle,
+    FaPlane,
+    FaShieldAlt,
+    FaSpinner,
+    FaUserFriends
 } from "react-icons/fa";
 import { useAuth } from "../AuthContext";
 
@@ -360,11 +360,102 @@ async function handleBooking() {
   setError(null);
 
   try {
+    const totalPrice = finalTotalPrice;
+    const userId = authState.user?.id || null;
+    
+    // ADMIN FLOW: Use OLD complete-booking endpoint directly
+    if (isAdmin) {
+      console.log('[PaymentStep] Admin booking - using old flow...');
+      
+      // Generate PNR
+      const pnrResponse = await fetch(`${BASE_URL}/bookings/generate-pnr`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+      const { pnr } = await pnrResponse.json();
+      
+      const payload = {
+        bookedSeat: {
+          bookDate: bookingData.selectedDate,
+          schedule_id: Number(bookingData.id),
+          booked_seat: totalPassengers,
+          seat_labels: selectedSeats,
+        },
+        booking: {
+          pnr,
+          bookingNo: `BOOK${Date.now()}`,
+          contact_no: travelerDetails[0].phone,
+          email_id: travelerDetails[0].email,
+          noOfPassengers: totalPassengers,
+          bookDate: bookingData.selectedDate,
+          schedule_id: Number(bookingData.id),
+          totalFare: totalPrice.toString(),
+          bookedUserId: userId,
+          paymentStatus: "SUCCESS",
+          bookingStatus: "CONFIRMED",
+          agentId: isAgent ? userId : null,
+        },
+        billing: {
+          billing_name: `${travelerDetails[0].title} ${travelerDetails[0].fullName}`,
+          billing_email: travelerDetails[0].email,
+          billing_number: travelerDetails[0].phone,
+          billing_address: travelerDetails[0].address || "",
+          billing_country: "India",
+          billing_state: travelerDetails[0].state || "",
+          billing_pin_code: travelerDetails[0].pinCode || "",
+          GST_Number: travelerDetails[0].gstNumber || null,
+          user_id: userId,
+        },
+        payment: {
+          transaction_id: `TXN${Date.now()}`,
+          payment_id: `ADMIN_${Date.now()}`,
+          order_id: `ADMIN_${Date.now()}`,
+          razorpay_signature: null,
+          payment_status: "SUCCESS",
+          payment_mode: "ADMIN",
+          payment_amount: totalPrice.toString(),
+          message: "Admin booking (no payment required)",
+          user_id: userId,
+        },
+        passengers: travelerDetails.map((t, i) => ({
+          title: t.title,
+          name: t.fullName,
+          type: i < bookingData.passengers.adults ? "Adult" : 
+                i < bookingData.passengers.adults + bookingData.passengers.children ? "Child" : "Infant",
+          dob: t.dateOfBirth || null,
+          age: t.dateOfBirth ? 
+            Math.floor((Date.now() - new Date(t.dateOfBirth).getTime()) / (1000 * 60 * 60 * 24 * 365.25)) : 0,
+          weight: t.weight ? parseFloat(t.weight) : null,
+        })),
+      };
+
+      const response = await fetch(`${BASE_URL}/bookings/complete-booking`, {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify(payload),
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create admin booking: ${response.status} ${errorText}`);
+      }
+      
+      const result = await response.json();
+      setIsProcessing(false);
+      onConfirm(result);
+      return;
+    }
+
+    // GUEST/USER FLOW: Use NEW booking-first flow
     console.log('[PaymentStep] Starting booking-first flow...');
     
     // Determine if guest booking
     const isGuest = !authState.isLoggedIn;
-    const userId = authState.user?.id || null;
 
     // STEP 1: Create pending booking (NO AUTH REQUIRED)
     console.log('[PaymentStep] Step 1: Creating pending booking...');
@@ -418,32 +509,6 @@ async function handleBooking() {
 
     const pendingBooking = await pendingBookingResponse.json();
     console.log('[PaymentStep] Pending booking created:', pendingBooking);
-
-    // ADMIN FLOW: Skip payment for admin
-    if (isAdmin) {
-      console.log('[PaymentStep] Admin booking - completing without payment...');
-      
-      const adminCompleteResponse = await fetch(`${BASE_URL}/bookings/complete-booking-after-payment`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          bookingId: pendingBooking.booking.id,
-          payment_id: `ADMIN_${Date.now()}`,
-          order_id: `ADMIN_${Date.now()}`,
-          razorpay_signature: 'ADMIN_BOOKING',
-          bookingType: pendingBooking.booking.bookingType,
-        }),
-      });
-
-      if (!adminCompleteResponse.ok) {
-        throw new Error('Failed to complete admin booking');
-      }
-
-      const result = await adminCompleteResponse.json();
-      setIsProcessing(false);
-      onConfirm(result);
-      return;
-    }
 
     // STEP 2: Create Razorpay order
     console.log('[PaymentStep] Step 2: Creating Razorpay order...');

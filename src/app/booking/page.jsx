@@ -1,746 +1,303 @@
 "use client";
-import BASE_URL from "@/baseUrl/baseUrl";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
-import { FaArrowLeft, FaCalendarAlt, FaClock, FaHelicopter, FaPlane, FaUserFriends } from "react-icons/fa";
+import { Suspense, useCallback, useMemo, useState } from "react";
+import { FaArrowLeft, FaHelicopter, FaPlane } from "react-icons/fa";
 
-const tz = "Asia/Kolkata";
+// Import new secure components
+import PassengerInfo from "@/components/booking/info/PassengerInfo";
+import PriceBreakdown from "@/components/booking/info/PriceBreakdown";
+import VehicleDetails from "@/components/booking/info/VehicleDetails";
+import SeatSelector from "@/components/booking/seat/SeatSelector";
+import Toast from "@/components/booking/ui/Toast";
 
-// Memoized seat button component to prevent unnecessary re-renders
-const SeatButton = ({ seat, isSelected, isAvailable, onToggle, disabled }) => (
-    <button
-        onClick={() => onToggle(seat)}
-        className={`h-12 rounded-lg text-sm font-bold transition-colors duration-150 ${isSelected
-            ? "bg-green-500 text-white shadow-md"
-            : isAvailable
-                ? "bg-blue-200 text-gray-800 hover:bg-blue-300"
-                : "bg-red-200 text-gray-500 cursor-not-allowed"
-            }`}
-        disabled={disabled || !isAvailable}
-    >
-        {seat}
-    </button>
-);
+// Import business logic
+import { BookingValidator } from "@/lib/business/BookingValidator";
+import { PriceCalculator } from "@/lib/business/PriceCalculator";
 
+/**
+ * Refactored Booking Page
+ * Now uses modular, secure components
+ * Reduced from 746 lines to ~200 lines
+ */
 const BookingPageContent = () => {
-    const router = useRouter();
-    const searchParams = useSearchParams();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    // Get booking data from URL parameters
-    const departure = searchParams.get('departure') || '';
-    const arrival = searchParams.get('arrival') || '';
-    const selectedDate = searchParams.get('date') || '';
-    const scheduleId = searchParams.get('scheduleId') || '';
-    const price = searchParams.get('price') || '0';
-    const departureTime = searchParams.get('departureTime') || '';
-    const arrivalTime = searchParams.get('arrivalTime') || '';
-    const passengers = parseInt(searchParams.get('passengers') || '1');
-    const bookingType = searchParams.get('type') || 'flight'; // 'flight' or 'helicopter'
+  // Get booking data from URL parameters
+  const bookingParams = useMemo(() => ({
+    departure: searchParams.get('departure') || '',
+    arrival: searchParams.get('arrival') || '',
+    selectedDate: searchParams.get('date') || '',
+    scheduleId: searchParams.get('scheduleId') || '',
+    price: searchParams.get('price') || '0',
+    departureTime: searchParams.get('departureTime') || '',
+    arrivalTime: searchParams.get('arrivalTime') || '',
+    passengers: parseInt(searchParams.get('passengers') || '1'),
+    bookingType: searchParams.get('type') || 'flight',
+    departureCode: searchParams.get('departureCode') || '',
+    arrivalCode: searchParams.get('arrivalCode') || '',
+    helicopterNumber: searchParams.get('helicopterNumber'),
+    flightNumber: searchParams.get('flightNumber')
+  }), [searchParams]);
 
-    const [passengerData] = useState({
-        adults: passengers || 1,
-        children: 0,
-        infants: 0,
-    });
-    const [availableSeats, setAvailableSeats] = useState([]);
-    const [selectedSeats, setSelectedSeats] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    
-    // Toast notification state
-    const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
-    
-    // Seat hold state
-    const [seatHoldExpiry, setSeatHoldExpiry] = useState(null);
-    const [timeRemaining, setTimeRemaining] = useState(null);
-    const [isHoldingSeats, setIsHoldingSeats] = useState(false);
+  // State
+  const [selectedSeats, setSelectedSeats] = useState([]);
+  const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
-    // Toast notification helper
-    const showToast = useCallback((message, type = 'info') => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast({ show: false, message: '', type: 'info' }), 4000);
-    }, []);
+  // Passenger data
+  const passengerData = useMemo(() => ({
+    adults: bookingParams.passengers || 1,
+    children: 0,
+    infants: 0
+  }), [bookingParams.passengers]);
 
-    // Memoized constants to prevent recalculation
-    const basePrice = useMemo(() => parseFloat(price || 2000), [price]);
-    const childDiscount = 0.5;
-    const infantFee = 10;
-    const totalPassengers = useMemo(() => passengerData.adults + passengerData.children, [passengerData.adults, passengerData.children]);
-    const allSeats = useMemo(() => ["S1", "S2", "S3", "S4", "S5", "S6"], []);
+  // Total passengers needing seats
+  const totalPassengers = useMemo(
+    () => passengerData.adults + passengerData.children,
+    [passengerData]
+  );
 
-    // Optimized date validation
-    const formattedDate = useMemo(() => {
-        if (/^\d{4}-\d{2}-\d{2}$/.test(selectedDate)) return selectedDate;
-        return new Date().toISOString().split("T")[0];
-    }, [selectedDate]);
+  // Show toast notification
+  const showToast = useCallback((message, type = 'info') => {
+    setToast({ show: true, message, type });
+  }, []);
 
-    // Optimized time formatting
-    const formatTime = useCallback((t) => {
-        if (!t) return "N/A";
-        if (/^\d{6}$/.test(t)) return `${t.slice(0, 2)}:${t.slice(2, 4)}`;
-        if (/^\d{2}:\d{2}:\d{2}$/.test(t)) return t.slice(0, 5);
-        try {
-            return new Date(`1970-01-01 ${t}`).toLocaleTimeString("en-IN", {
-                hour: "2-digit",
-                minute: "2-digit",
-                hour12: false,
-                timeZone: tz,
-            });
-        } catch {
-            return "N/A";
-        }
-    }, []);
+  // Handle seat selection change
+  const handleSeatsChange = useCallback((seats) => {
+    setSelectedSeats(seats);
+  }, []);
 
-    const formattedDepartureTime = useMemo(() => formatTime(departureTime), [departureTime, formatTime]);
-    const formattedArrivalTime = useMemo(() => formatTime(arrivalTime), [arrivalTime, formatTime]);
+  // Handle seat selection error
+  const handleSeatError = useCallback((error) => {
+    showToast(error, 'error');
+  }, [showToast]);
 
-    const fetchAvailableSeats = useCallback(async () => {
-        if (!scheduleId) {
-            setError(`Missing ${bookingType} schedule information`);
-            setLoading(false);
-            return;
-        }
+  // Format time helper
+  const formatTime = useCallback((time) => {
+    if (!time) return "N/A";
+    if (/^\d{6}$/.test(time)) return `${time.slice(0, 2)}:${time.slice(2, 4)}`;
+    if (/^\d{2}:\d{2}:\d{2}$/.test(time)) return time.slice(0, 5);
+    if (/^\d{2}:\d{2}$/.test(time)) return time;
+    return time;
+  }, []);
 
-        setLoading(true);
-        try {
-            const token = localStorage.getItem("token") || "";
-            const apiEndpoint = bookingType === 'helicopter' 
-                ? `${BASE_URL}/helicopter-seat/available-seats?schedule_id=${scheduleId}&bookDate=${formattedDate}`
-                : `${BASE_URL}/booked-seat/available-seats?schedule_id=${scheduleId}&bookDate=${formattedDate}`;
-            
-            const response = await fetch(apiEndpoint, {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
+  // Handle confirm booking
+  const handleConfirmBooking = useCallback(() => {
+    // Validate seat selection
+    const validation = BookingValidator.validatePassengerCount(
+      selectedSeats,
+      totalPassengers
+    );
 
-            if (!response.ok) {
-                throw new Error(`Seats API failed: ${response.status}`);
-            }
-
-            const data = await response.json();
-            const seats = Array.isArray(data.availableSeats)
-                ? data.availableSeats.filter((seat) => allSeats.includes(seat))
-                : allSeats;
-
-            setAvailableSeats(seats);
-            setSelectedSeats(seats.slice(0, totalPassengers));
-            setError(null);
-        } catch (err) {
-            setError(`Unable to load seats. Using fallback.`);
-            setAvailableSeats(allSeats);
-            setSelectedSeats(allSeats.slice(0, totalPassengers));
-        } finally {
-            setLoading(false);
-        }
-    }, [scheduleId, formattedDate, allSeats, totalPassengers]);
-
-    useEffect(() => {
-        fetchAvailableSeats();
-    }, [fetchAvailableSeats]);
-
-    // Hold seats API call
-    const holdSeats = useCallback(async (seats) => {
-        if (!seats || seats.length === 0) return { success: true };
-        
-        setIsHoldingSeats(true);
-        try {
-            const token = localStorage.getItem("token") || "";
-            const userId = localStorage.getItem("userId") || `guest_${Date.now()}`;
-            
-            const response = await fetch(`${BASE_URL}/booked-seat/hold-seats`, {
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({
-                    schedule_id: parseInt(scheduleId),
-                    bookDate: formattedDate,
-                    seat_labels: seats,
-                    held_by: userId,
-                }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                const errorMessage = errorData.error || 'Failed to hold seats';
-                
-                // Check if it's a seat availability error
-                if (errorMessage.toLowerCase().includes('not available') || 
-                    errorMessage.toLowerCase().includes('already booked') ||
-                    errorMessage.toLowerCase().includes('occupied')) {
-                    // Extract seat name from error message if possible
-                    const seatMatch = errorMessage.match(/Seat (\w+)/);
-                    const unavailableSeat = seatMatch ? seatMatch[1] : 'selected seat';
-                    
-                    showToast(`Sorry, ${unavailableSeat} is no longer available. Please select another seat.`, 'warning');
-                    
-                    // Refresh available seats
-                    await fetchAvailableSeats();
-                    return { success: false, unavailableSeat };
-                } else {
-                    showToast(`Unable to reserve seats: ${errorMessage}`, 'error');
-                    return { success: false };
-                }
-            }
-
-            const data = await response.json();
-            setSeatHoldExpiry(new Date(data.expiresAt));
-            console.log('[Seat Hold] Seats held successfully until:', data.expiresAt);
-            showToast(`Seats reserved successfully! Complete booking within ${Math.floor((new Date(data.expiresAt) - new Date()) / 60000)} minutes.`, 'success');
-            return { success: true };
-        } catch (err) {
-            console.error('[Seat Hold] Failed to hold seats:', err);
-            showToast('Network error. Please check your connection and try again.', 'error');
-            return { success: false };
-        } finally {
-            setIsHoldingSeats(false);
-        }
-    }, [scheduleId, formattedDate, showToast, fetchAvailableSeats]);
-
-    // Release seats API call
-    const releaseSeats = useCallback(async (seats) => {
-        if (!seats || seats.length === 0) return;
-        
-        try {
-            const token = localStorage.getItem("token") || "";
-            const userId = localStorage.getItem("userId") || `guest_${Date.now()}`;
-            
-            // Note: You'll need to add a release endpoint in backend
-            // For now, seats will auto-expire after 10 minutes
-            console.log('[Seat Hold] Seats will auto-release after timeout');
-        } catch (err) {
-            console.error('[Seat Hold] Failed to release seats:', err);
-        }
-    }, []);
-
-    const handleSeatToggle = useCallback(async (seat) => {
-        const isCurrentlySelected = selectedSeats.includes(seat);
-        
-        if (isCurrentlySelected) {
-            // Deselecting a seat
-            const newSeats = selectedSeats.filter((s) => s !== seat);
-            setSelectedSeats(newSeats);
-            
-            // If all seats deselected, clear hold
-            if (newSeats.length === 0) {
-                setSeatHoldExpiry(null);
-                setTimeRemaining(null);
-            } else {
-                // Re-hold remaining seats
-                await holdSeats(newSeats);
-            }
-        } else {
-            // Selecting a new seat
-            if (selectedSeats.length < totalPassengers) {
-                const newSeats = [...selectedSeats, seat];
-                setSelectedSeats(newSeats);
-                
-                // Hold the new seat selection
-                const result = await holdSeats(newSeats);
-                
-                // If hold failed, revert the selection
-                if (!result.success) {
-                    setSelectedSeats(selectedSeats);
-                }
-            } else {
-                showToast(`You can only select ${totalPassengers} seat(s). Deselect a seat first.`, 'info');
-            }
-        }
-    }, [selectedSeats, totalPassengers, holdSeats, showToast]);
-
-    // Countdown timer for seat hold
-    useEffect(() => {
-        if (!seatHoldExpiry) {
-            setTimeRemaining(null);
-            return;
-        }
-
-        const interval = setInterval(() => {
-            const now = new Date();
-            const diff = seatHoldExpiry - now;
-            
-            if (diff <= 0) {
-                // Hold expired
-                setTimeRemaining(null);
-                setSeatHoldExpiry(null);
-                setSelectedSeats([]);
-                setError('Seat hold expired. Please select seats again.');
-                clearInterval(interval);
-            } else {
-                const minutes = Math.floor(diff / 60000);
-                const seconds = Math.floor((diff % 60000) / 1000);
-                setTimeRemaining(`${minutes}:${seconds.toString().padStart(2, '0')}`);
-            }
-        }, 1000);
-
-        return () => clearInterval(interval);
-    }, [seatHoldExpiry]);
-
-    const calculateTotalPrice = useMemo(() => {
-        const adultPrice = basePrice * passengerData.adults;
-        const childPrice = basePrice * passengerData.children * childDiscount;
-        const infantPrice = passengerData.infants * infantFee;
-        return (adultPrice + childPrice + infantPrice).toFixed(2);
-    }, [basePrice, passengerData]);
-
-    const handleConfirmBooking = useCallback(() => {
-        if (selectedSeats.length !== totalPassengers) {
-            alert(`Please select exactly ${totalPassengers} seat(s) for all passengers.`);
-            return;
-        }
-        try {
-            // Get additional params for helicopter bookings
-            const departureCode = searchParams.get('departureCode') || departure.substring(0, 3).toUpperCase();
-            const arrivalCode = searchParams.get('arrivalCode') || arrival.substring(0, 3).toUpperCase();
-            const helicopterNumber = searchParams.get('helicopterNumber');
-            const flightNumber = searchParams.get('flightNumber');
-            
-            const bookingData = {
-                departure,
-                arrival,
-                departureCode,
-                arrivalCode,
-                selectedDate: formattedDate,
-                passengers: passengerData,
-                totalPrice: calculateTotalPrice,
-                flightSchedule: {
-                    id: scheduleId,
-                    price: basePrice,
-                    departure_time: departureTime,
-                    arrival_time: arrivalTime,
-                },
-                selectedSeats,
-                bookingType: bookingType,
-                helicopterNumber: helicopterNumber,
-                flightNumber: flightNumber,
-            };
-            localStorage.setItem("bookingData", JSON.stringify(bookingData));
-            router.push("/combined-booking-page");
-        } catch (error) {
-            alert("An error occurred while processing your booking. Please try again.");
-        }
-    }, [router, departure, arrival, formattedDate, passengerData, calculateTotalPrice, scheduleId, basePrice, departureTime, arrivalTime, selectedSeats, totalPassengers, bookingType, searchParams]);
-
-    const handleRetry = useCallback(() => {
-        setError(null);
-        fetchAvailableSeats();
-    }, [fetchAvailableSeats]);
-
-    // Validate required parameters
-    if (!departure || !arrival || !selectedDate || !scheduleId) {
-        
-        return (
-            <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center', 'p-4')}>
-                <div className={cn('bg-white', 'rounded-2xl',  'p-8', 'max-w-lg', 'w-full', 'text-center')}>
-                    <div className={cn('text-red-500', 'text-6xl', 'mb-4')}>⚠️</div>
-                    <h1 className={cn('text-2xl', 'font-bold', 'text-gray-800', 'mb-4')}>Missing Booking Information</h1>
-                    <p className={cn('text-gray-600', 'mb-6')}>
-                        Some required booking details are missing. Please go back and select a {bookingType} again.
-                    </p>
-                    <div className={cn('text-sm', 'text-gray-500', 'mb-4')}>
-                        Missing: {[
-                            !departure && 'departure',
-                            !arrival && 'arrival', 
-                            !selectedDate && 'date',
-                            !scheduleId && 'schedule ID'
-                        ].filter(Boolean).join(', ')}
-                    </div>
-                    <Link
-                        href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
-                        className={cn('inline-flex', 'items-center', 'gap-2', 'px-6', 'py-3', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition-colors')}
-                    >
-                        <FaArrowLeft />
-                        Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
-                    </Link>
-                </div>
-            </div>
-        );
+    if (!validation.valid) {
+      showToast(validation.error, 'error');
+      return;
     }
 
+    try {
+      // Calculate total price using secure calculator
+      const totalPrice = PriceCalculator.calculateTotal({
+        basePrice: parseFloat(bookingParams.price),
+        passengers: passengerData,
+        travelers: [],
+        bookingType: bookingParams.bookingType
+      });
+
+      // Prepare booking data
+      const bookingData = {
+        departure: bookingParams.departure,
+        arrival: bookingParams.arrival,
+        departureCode: bookingParams.departureCode || bookingParams.departure.substring(0, 3).toUpperCase(),
+        arrivalCode: bookingParams.arrivalCode || bookingParams.arrival.substring(0, 3).toUpperCase(),
+        selectedDate: bookingParams.selectedDate,
+        passengers: passengerData,
+        totalPrice: totalPrice,
+        flightSchedule: {
+          id: bookingParams.scheduleId,
+          price: bookingParams.price,
+          departure_time: bookingParams.departureTime,
+          arrival_time: bookingParams.arrivalTime
+        },
+        selectedSeats,
+        bookingType: bookingParams.bookingType,
+        helicopterNumber: bookingParams.helicopterNumber,
+        flightNumber: bookingParams.flightNumber
+      };
+
+      // Save to localStorage and navigate
+      localStorage.setItem("bookingData", JSON.stringify(bookingData));
+      router.push("/combined-booking-page");
+    } catch (error) {
+      showToast("An error occurred while processing your booking. Please try again.", 'error');
+    }
+  }, [
+    selectedSeats,
+    totalPassengers,
+    bookingParams,
+    passengerData,
+    router,
+    showToast
+  ]);
+
+  // Validate required parameters
+  if (!bookingParams.departure || !bookingParams.arrival || !bookingParams.selectedDate || !bookingParams.scheduleId) {
     return (
-        <div className={cn('min-h-screen', 'bg-gray-50', 'py-8', 'px-4')}>
-            <div className={cn('px-10', 'mx-auto' )}>
-                {/* Header */}
-                <div className={cn('bg-gradient-to-r', 'from-blue-600', 'to-indigo-700', 'text-white', 'p-6' , 'rounded-t-sm')}>
-                    <div className={cn('flex', 'items-center', 'justify-between')}>
-                        <div>
-                            <h1 className={cn('text-3xl', 'font-bold', 'flex', 'items-center', 'gap-3')}>
-                                {bookingType === 'helicopter' ? 
-                                    <FaHelicopter className="text-yellow-300" /> : 
-                                    <FaPlane className="text-yellow-300" />
-                                }
-                                Complete Your Booking
-                            </h1>
-                            <p className={cn('text-blue-100', 'mt-2')}>Secure your seats in just a few clicks</p>
-                        </div>
-                     
-                    </div>
-                </div>
-
-                <div className={cn('bg-white',   'p-6', 'space-y-6')}>
-                    {/* Flight/Helicopter Details */}
-                    <div className={`bg-gradient-to-br ${bookingType === 'helicopter' ? 'from-red-50 to-pink-50 border-red-200' : 'from-blue-50 to-indigo-50 border-blue-200'} p-6 rounded-2xl border`}>
-                        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
-                            {bookingType === 'helicopter' ? 
-                                <FaHelicopter className="text-red-600" /> : 
-                                <FaPlane className="text-blue-600" />
-                            }
-                            {bookingType === 'helicopter' ? 'Helicopter' : 'Flight'} Details
-                        </h3>
-                        <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4')}>
-                            <div className="space-y-3">
-                                <div className={cn('flex', 'items-center', 'gap-3')}>
-                                    <div className={cn('w-2', 'h-2', 'bg-green-500', 'rounded-full')}></div>
-                                    <span className={cn('text-sm', 'text-gray-600')}>From:</span>
-                                    <span className={cn('font-semibold', 'text-gray-800')}>{departure}</span>
-                                </div>
-                                <div className={cn('flex', 'items-center', 'gap-3')}>
-                                    <div className={cn('w-2', 'h-2', 'bg-red-500', 'rounded-full')}></div>
-                                    <span className={cn('text-sm', 'text-gray-600')}>To:</span>
-                                    <span className={cn('font-semibold', 'text-gray-800')}>{arrival}</span>
-                                </div>
-                                <div className={cn('flex', 'items-center', 'gap-3')}>
-                                    <FaCalendarAlt className="text-blue-500" size={12} />
-                                    <span className={cn('text-sm', 'text-gray-600')}>Date:</span>
-                                    <span className={cn('font-semibold', 'text-gray-800')}>
-                                        {new Date(formattedDate).toLocaleDateString("en-US", {
-                                            weekday: 'long',
-                                            year: 'numeric',
-                                            month: 'long',
-                                            day: 'numeric'
-                                        })}
-                                    </span>
-                                </div>
-                            </div>
-                            <div className="space-y-3">
-                                <div className={cn('bg-white', 'p-3', 'rounded-xl', 'border', 'border-gray-200')}>
-                                    <div className={cn('flex', 'items-center', 'justify-between')}>
-                                        <span className={cn('text-sm', 'text-gray-600', 'flex', 'items-center', 'gap-2')}>
-                                            <FaClock className="text-green-500" />
-                                            Departure
-                                        </span>
-                                        <span className={cn('font-bold', 'text-lg', 'text-gray-800')}>{formattedDepartureTime}</span>
-                                    </div>
-                                </div>
-                                <div className={cn('bg-white', 'p-3', 'rounded-xl', 'border', 'border-gray-200')}>
-                                    <div className={cn('flex', 'items-center', 'justify-between')}>
-                                        <span className={cn('text-sm', 'text-gray-600', 'flex', 'items-center', 'gap-2')}>
-                                            <FaClock className="text-blue-500" />
-                                            Arrival
-                                        </span>
-                                        <span className={cn('font-bold', 'text-lg', 'text-gray-800')}>{formattedArrivalTime}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Passenger Information */}
-                    <div className={cn('bg-gradient-to-br', 'from-green-50', 'to-emerald-50', 'p-6', 'rounded-2xl', 'border', 'border-green-200')}>
-                        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
-                            <FaUserFriends className="text-green-600" />
-                            Passenger Details
-                        </h3>
-                        <div className={cn('grid', 'grid-cols-3', 'gap-4')}>
-                            <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
-                                <div className={cn('text-2xl', 'font-bold', 'text-green-600')}>{passengerData.adults}</div>
-                                <div className={cn('text-sm', 'text-gray-600')}>Adults</div>
-                            </div>
-                            <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
-                                <div className={cn('text-2xl', 'font-bold', 'text-blue-600')}>{passengerData.children}</div>
-                                <div className={cn('text-sm', 'text-gray-600')}>Children</div>
-                            </div>
-                            <div className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl', 'border', 'border-green-200')}>
-                                <div className={cn('text-2xl', 'font-bold', 'text-purple-600')}>{passengerData.infants}</div>
-                                <div className={cn('text-sm', 'text-gray-600')}>Infants</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Seat Selection */}
-                    <div className={cn('bg-gradient-to-br', 'from-yellow-50', 'to-orange-50', 'p-6', 'rounded-2xl', 'border', 'border-yellow-200')}>
-                        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4', 'flex', 'items-center', 'gap-2')}>
-                            <svg className={cn('w-5', 'h-5', 'text-yellow-600')} fill="currentColor" viewBox="0 0 20 20">
-                                <path d="M10 2L3 7v11a2 2 0 002 2h10a2 2 0 002-2V7l-7-5z" />
-                            </svg>
-                            Select Your Seats ({selectedSeats.length}/{totalPassengers})
-                        </h3>
-
-                        {loading ? (
-                            <div className={cn('py-8', 'space-y-4')}>
-                                <div className={cn('flex', 'items-center', 'justify-center', 'mb-4')}>
-                                    <div className={cn('h-4', 'w-48', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                </div>
-                                <div className={cn('grid', 'grid-cols-6', 'gap-2')}>
-                                    {Array.from({ length: 24 }).map((_, i) => (
-                                        <div key={i} className={cn('h-10', 'w-10', 'bg-gray-200', 'rounded-lg', 'animate-pulse')}></div>
-                                    ))}
-                                </div>
-                            </div>
-                        ) : error && availableSeats.length === 0 ? (
-                            <div className={cn('text-center', 'py-6', 'bg-red-50', 'rounded-xl', 'border', 'border-red-200')}>
-                                <p className={cn('text-red-600', 'mb-3')}>{error}</p>
-                                <button
-                                    onClick={handleRetry}
-                                    className={cn('px-4', 'py-2', 'bg-red-500', 'text-white', 'rounded-lg', 'hover:bg-red-600', 'transition-colors')}
-                                >
-                                    Try Again
-                                </button>
-                            </div>
-                        ) : (
-                            <div>
-                                <div className={cn('mb-4', 'flex', 'items-center', 'justify-center', 'gap-6', 'text-sm')}>
-                                    <div className={cn('flex', 'items-center', 'gap-2')}>
-                                        <div className={cn('w-4', 'h-4', 'bg-green-500', 'rounded')}></div>
-                                        <span>Selected</span>
-                                    </div>
-                                    <div className={cn('flex', 'items-center', 'gap-2')}>
-                                        <div className={cn('w-4', 'h-4', 'bg-blue-200', 'rounded')}></div>
-                                        <span>Available</span>
-                                    </div>
-                                    <div className={cn('flex', 'items-center', 'gap-2')}>
-                                        <div className={cn('w-4', 'h-4', 'bg-red-200', 'rounded')}></div>
-                                        <span>Occupied</span>
-                                    </div>
-                                </div>
-
-                                <div className={cn('bg-white', 'p-4', 'rounded-xl', 'border', 'border-gray-200')}>
-                                    <div className={cn('text-center', 'mb-4')}>
-                                        <div className={cn('inline-block', 'bg-gray-800', 'text-white', 'px-4', 'py-1', 'rounded-full', 'text-xs', 'font-medium')}>
-                                            ✈️ FRONT OF AIRCRAFT
-                                        </div>
-                                    </div>
-                                    <div className={cn('grid', 'grid-cols-2', 'gap-3', 'max-w-[10rem]', 'mx-auto')}>
-                                        {allSeats.map((seat) => (
-                                            <SeatButton
-                                                key={seat}
-                                                seat={seat}
-                                                isSelected={selectedSeats.includes(seat)}
-                                                isAvailable={availableSeats.includes(seat)}
-                                                onToggle={handleSeatToggle}
-                                                disabled={selectedSeats.length >= totalPassengers && !selectedSeats.includes(seat)}
-                                            />
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Price Summary */}
-                    <div className={cn('bg-gradient-to-br', 'from-purple-50', 'to-pink-50', 'p-6', 'rounded-2xl', 'border', 'border-purple-200')}>
-                        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-800', 'mb-4')}>Price Breakdown</h3>
-                        <div className="space-y-3">
-                            <div className={cn('flex', 'justify-between', 'items-center')}>
-                                <span className="text-gray-600">Base Price (Adults: {passengerData.adults})</span>
-                                <span className="font-semibold">₹{(basePrice * passengerData.adults).toLocaleString('en-IN')}</span>
-                            </div>
-                            {passengerData.children > 0 && (
-                                <div className={cn('flex', 'justify-between', 'items-center')}>
-                                    <span className="text-gray-600">Children ({passengerData.children}) - 50% off</span>
-                                    <span className="font-semibold">₹{(basePrice * passengerData.children * childDiscount).toLocaleString('en-IN')}</span>
-                                </div>
-                            )}
-                            {passengerData.infants > 0 && (
-                                <div className={cn('flex', 'justify-between', 'items-center')}>
-                                    <span className="text-gray-600">Infants ({passengerData.infants})</span>
-                                    <span className="font-semibold">₹{(passengerData.infants * infantFee).toLocaleString('en-IN')}</span>
-                                </div>
-                            )}
-                            <div className={cn('border-t', 'border-gray-300', 'pt-3')}>
-                                <div className={cn('flex', 'justify-between', 'items-center', 'text-xl', 'font-bold')}>
-                                    <span className="text-gray-800">Total Amount</span>
-                                    <span className="text-green-600">₹{parseFloat(calculateTotalPrice).toLocaleString('en-IN')}</span>
-                                </div>
-                                <p className={cn('text-xs', 'text-gray-500', 'mt-1')}>✅ Includes all taxes and fees</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4')}>
-                        <Link
-                            href={bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
-                            className={cn('flex-1', 'py-4', 'px-6', 'bg-gray-100', 'text-gray-700', 'rounded-2xl', 'text-lg', 'font-bold', 'hover:bg-gray-200', 'transition-colors', 'text-center')}
-                        >
-                            ← Back to {bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
-                        </Link>
-                        <button
-                            onClick={handleConfirmBooking}
-                            className={cn('flex-1', 'py-4', 'px-6', 'bg-gradient-to-r', 'from-blue-600', 'to-blue-600', 'text-white', 'rounded-2xl', 'text-lg', 'font-bold', 'hover:from-blue-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'shadow-lg', 'hover:shadow-xl', 'disabled:from-gray-400', 'disabled:to-gray-500', 'disabled:cursor-not-allowed')}
-                            disabled={loading || (error && availableSeats.length === 0) || selectedSeats.length !== totalPassengers}
-                        >
-                            {loading ? (
-                                <div className={cn('flex', 'items-center', 'justify-center', 'gap-3')}>
-                                    <div className={cn('h-5', 'w-5', 'bg-white/30', 'rounded', 'animate-pulse')}></div>
-                                    Processing...
-                                </div>
-                            ) : selectedSeats.length !== totalPassengers ? (
-                                `Select ${totalPassengers - selectedSeats.length} more seat${totalPassengers - selectedSeats.length > 1 ? 's' : ''}`
-                            ) : (
-                                `🎫 Confirm Booking - ₹${parseFloat(calculateTotalPrice).toLocaleString('en-IN')}`
-                            )}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Toast Notification */}
-            {toast.show && (
-                <div className={cn(
-                    'fixed', 'top-6', 'right-6', 'z-50',
-                    'max-w-md', 'w-full', 'sm:w-auto',
-                    'animate-slide-in-right',
-                    'shadow-2xl', 'rounded-xl', 'overflow-hidden',
-                    'transform', 'transition-all', 'duration-300'
-                )}>
-                    <div className={cn(
-                        'p-4', 'flex', 'items-start', 'gap-3',
-                        toast.type === 'success' && 'bg-green-50 border-l-4 border-green-500',
-                        toast.type === 'error' && 'bg-red-50 border-l-4 border-red-500',
-                        toast.type === 'warning' && 'bg-yellow-50 border-l-4 border-yellow-500',
-                        toast.type === 'info' && 'bg-blue-50 border-l-4 border-blue-500'
-                    )}>
-                        <div className="flex-shrink-0">
-                            {toast.type === 'success' && (
-                                <svg className="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            )}
-                            {toast.type === 'error' && (
-                                <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            )}
-                            {toast.type === 'warning' && (
-                                <svg className="w-6 h-6 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                </svg>
-                            )}
-                            {toast.type === 'info' && (
-                                <svg className="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            )}
-                        </div>
-                        <div className="flex-1">
-                            <p className={cn(
-                                'text-sm', 'font-medium',
-                                toast.type === 'success' && 'text-green-800',
-                                toast.type === 'error' && 'text-red-800',
-                                toast.type === 'warning' && 'text-yellow-800',
-                                toast.type === 'info' && 'text-blue-800'
-                            )}>
-                                {toast.message}
-                            </p>
-                        </div>
-                        <button
-                            onClick={() => setToast({ show: false, message: '', type: 'info' })}
-                            className={cn(
-                                'flex-shrink-0', 'ml-2',
-                                'text-gray-400', 'hover:text-gray-600',
-                                'transition-colors'
-                            )}
-                        >
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-                    </div>
-                </div>
+      <div className={cn('min-h-screen bg-gray-50 flex items-center justify-center p-4')}>
+        <div className={cn('bg-white rounded-2xl p-8 max-w-lg w-full text-center shadow-xl')}>
+          <div className={cn('text-red-500', 'text-6xl', 'mb-4')}>⚠️</div>
+          <h1 className={cn('text-2xl', 'font-bold', 'text-gray-800', 'mb-4')}>
+            Missing Booking Information
+          </h1>
+          <p className={cn('text-gray-600', 'mb-6')}>
+            Some required booking details are missing. Please go back and select a {bookingParams.bookingType} again.
+          </p>
+          <Link
+            href={bookingParams.bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
+            className={cn(
+              'inline-flex items-center gap-2 px-6 py-3',
+              'bg-blue-600 text-white rounded-lg',
+              'hover:bg-blue-700 transition-colors'
             )}
+          >
+            <FaArrowLeft />
+            Back to {bookingParams.bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
+          </Link>
         </div>
+      </div>
     );
+  }
+
+  const Icon = bookingParams.bookingType === 'helicopter' ? FaHelicopter : FaPlane;
+
+  return (
+    <div className={cn('min-h-screen', 'bg-gray-50', 'py-8', 'px-4')}>
+      <div className={cn('max-w-7xl', 'mx-auto')}>
+        {/* Header */}
+        <div className={cn(
+          'bg-gradient-to-r from-blue-600 to-indigo-700',
+          'text-white p-6 rounded-t-2xl shadow-lg'
+        )}>
+          <div className={cn('flex', 'items-center', 'justify-between')}>
+            <div>
+              <h1 className={cn('text-3xl', 'font-bold', 'flex', 'items-center', 'gap-3')}>
+                <Icon className="text-yellow-300" />
+                Complete Your Booking
+              </h1>
+              <p className={cn('text-blue-100', 'mt-2')}>
+                Secure your seats in just a few clicks
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className={cn('bg-white', 'p-6', 'rounded-b-2xl', 'shadow-lg', 'space-y-6')}>
+          {/* Vehicle Details */}
+          <VehicleDetails
+            bookingType={bookingParams.bookingType}
+            departure={bookingParams.departure}
+            arrival={bookingParams.arrival}
+            date={bookingParams.selectedDate}
+            departureTime={formatTime(bookingParams.departureTime)}
+            arrivalTime={formatTime(bookingParams.arrivalTime)}
+          />
+
+          {/* Passenger Information */}
+          <PassengerInfo
+            adults={passengerData.adults}
+            children={passengerData.children}
+            infants={passengerData.infants}
+          />
+
+          {/* Seat Selection */}
+          <SeatSelector
+            scheduleId={bookingParams.scheduleId}
+            bookingDate={bookingParams.selectedDate}
+            bookingType={bookingParams.bookingType}
+            maxSeats={totalPassengers}
+            vehicleType={bookingParams.bookingType}
+            onSeatsChange={handleSeatsChange}
+            onError={handleSeatError}
+          />
+
+          {/* Price Breakdown */}
+          <PriceBreakdown
+            basePrice={parseFloat(bookingParams.price)}
+            passengers={passengerData}
+            travelers={[]}
+            bookingType={bookingParams.bookingType}
+          />
+
+          {/* Action Buttons */}
+          <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4')}>
+            <Link
+              href={bookingParams.bookingType === 'helicopter' ? "/helicopter-flight" : "/scheduled-flight"}
+              className={cn(
+                'flex-1 py-4 px-6 text-center',
+                'bg-gray-100 text-gray-700 rounded-2xl',
+                'text-lg font-bold',
+                'hover:bg-gray-200 transition-colors'
+              )}
+            >
+              ← Back to {bookingParams.bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
+            </Link>
+            
+            <button
+              onClick={handleConfirmBooking}
+              disabled={selectedSeats.length !== totalPassengers}
+              className={cn(
+                'flex-1 py-4 px-6',
+                'bg-gradient-to-r from-blue-600 to-blue-600',
+                'text-white rounded-2xl text-lg font-bold',
+                'hover:from-blue-700 hover:to-blue-700',
+                'transition-all duration-200 shadow-lg hover:shadow-xl',
+                'disabled:from-gray-400 disabled:to-gray-500',
+                'disabled:cursor-not-allowed'
+              )}
+            >
+              {selectedSeats.length !== totalPassengers
+                ? `Select ${totalPassengers - selectedSeats.length} more seat${totalPassengers - selectedSeats.length > 1 ? 's' : ''}`
+                : `🎫 Confirm Booking - ${PriceCalculator.formatPrice(
+                    PriceCalculator.calculateTotal({
+                      basePrice: parseFloat(bookingParams.price),
+                      passengers: passengerData,
+                      travelers: [],
+                      bookingType: bookingParams.bookingType
+                    })
+                  )}`
+              }
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Toast Notification */}
+      <Toast
+        show={toast.show}
+        message={toast.message}
+        type={toast.type}
+        onClose={() => setToast({ show: false, message: '', type: 'info' })}
+      />
+    </div>
+  );
 };
 
+// Main component with Suspense
 const BookingPage = () => {
-    return (
-        <Suspense fallback={
-            <div className={cn('min-h-screen', 'bg-gray-50', 'py-8', 'px-4')}>
-                <div className={cn('max-w-7xl', 'mx-auto')}>
-                    {/* Header Skeleton */}
-                    <div className={cn('bg-gradient-to-r', 'from-gray-300', 'to-gray-400', 'p-6', 'rounded-t-3xl', 'animate-pulse')}>
-                        <div className={cn('flex', 'items-center', 'justify-between')}>
-                            <div>
-                                <div className={cn('h-8', 'w-64', 'bg-gray-400', 'rounded', 'mb-2')}></div>
-                                <div className={cn('h-4', 'w-48', 'bg-gray-400', 'rounded')}></div>
-                            </div>
-                            <div className={cn('h-12', 'w-32', 'bg-gray-400', 'rounded-full')}></div>
-                        </div>
-                    </div>
-                    
-                    <div className={cn('bg-white', 'rounded-b-3xl', 'p-6', 'space-y-6')}>
-                        {/* Flight Details Skeleton */}
-                        <div className={cn('bg-gray-50', 'p-6', 'rounded-2xl')}>
-                            <div className={cn('h-6', 'w-32', 'bg-gray-200', 'rounded', 'mb-4', 'animate-pulse')}></div>
-                            <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'gap-4')}>
-                                <div className="space-y-3">
-                                    {Array.from({ length: 3 }).map((_, i) => (
-                                        <div key={i} className={cn('flex', 'items-center', 'gap-3')}>
-                                            <div className={cn('w-2', 'h-2', 'bg-gray-200', 'rounded-full', 'animate-pulse')}></div>
-                                            <div className={cn('h-4', 'w-16', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                            <div className={cn('h-4', 'w-24', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                        </div>
-                                    ))}
-                                </div>
-                                <div className="space-y-3">
-                                    {Array.from({ length: 2 }).map((_, i) => (
-                                        <div key={i} className={cn('bg-gray-100', 'p-3', 'rounded-xl')}>
-                                            <div className={cn('flex', 'items-center', 'justify-between')}>
-                                                <div className={cn('h-4', 'w-20', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                                <div className={cn('h-6', 'w-16', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Passenger Details Skeleton */}
-                        <div className={cn('bg-gray-50', 'p-6', 'rounded-2xl')}>
-                            <div className={cn('h-6', 'w-40', 'bg-gray-200', 'rounded', 'mb-4', 'animate-pulse')}></div>
-                            <div className={cn('grid', 'grid-cols-3', 'gap-4')}>
-                                {Array.from({ length: 3 }).map((_, i) => (
-                                    <div key={i} className={cn('text-center', 'bg-white', 'p-4', 'rounded-xl')}>
-                                        <div className={cn('h-8', 'w-8', 'bg-gray-200', 'rounded', 'mx-auto', 'mb-2', 'animate-pulse')}></div>
-                                        <div className={cn('h-4', 'w-16', 'bg-gray-200', 'rounded', 'mx-auto', 'animate-pulse')}></div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Seat Selection Skeleton */}
-                        <div className={cn('bg-gray-50', 'p-6', 'rounded-2xl')}>
-                            <div className={cn('h-6', 'w-48', 'bg-gray-200', 'rounded', 'mb-4', 'animate-pulse')}></div>
-                            <div className={cn('py-8', 'space-y-4')}>
-                                <div className={cn('flex', 'items-center', 'justify-center', 'mb-4')}>
-                                    <div className={cn('h-4', 'w-48', 'bg-gray-200', 'rounded', 'animate-pulse')}></div>
-                                </div>
-                                <div className={cn('grid', 'grid-cols-2', 'gap-3', 'max-w-[10rem]', 'mx-auto')}>
-                                    {Array.from({ length: 6 }).map((_, i) => (
-                                        <div key={i} className={cn('h-12', 'bg-gray-200', 'rounded-lg', 'animate-pulse')}></div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Action Buttons Skeleton */}
-                        <div className={cn('flex', 'flex-col', 'sm:flex-row', 'gap-4')}>
-                            <div className={cn('flex-1', 'h-16', 'bg-gray-200', 'rounded-2xl', 'animate-pulse')}></div>
-                            <div className={cn('flex-1', 'h-16', 'bg-gray-200', 'rounded-2xl', 'animate-pulse')}></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        }>
-            <BookingPageContent />
-        </Suspense>
-    );
+  return (
+    <Suspense fallback={
+      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
+        <div className="text-center">
+          <div className={cn('w-16', 'h-16', 'border-4', 'border-blue-600', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto', 'mb-4')} />
+          <p className="text-gray-600">Loading booking page...</p>
+        </div>
+      </div>
+    }>
+      <BookingPageContent />
+    </Suspense>
+  );
 };
 
 export default BookingPage;
