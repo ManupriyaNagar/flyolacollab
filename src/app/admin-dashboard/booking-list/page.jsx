@@ -1,7 +1,6 @@
 "use client";
 
 import BASE_URL from "@/baseUrl/baseUrl";
-import AdminCancellationModal from "@/components/AdminCancellationModal";
 import { useAuth } from "@/components/AuthContext";
 import BookingDetailsModal from "@/components/BookingDetailsModal";
 import { cn } from "@/lib/utils";
@@ -28,6 +27,8 @@ import "react-datepicker/dist/react-datepicker.css";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import * as XLSX from "xlsx";
+import AdminCancellationModal from "../../../components/AdminCancellationModal";
+import AdminPerSeatCancellationModal from "../../../components/AdminPerSeatCancellationModal";
 const BOOKINGS_PER_PAGE = 50;
 
 export default function AllBookingsPage() {
@@ -54,6 +55,7 @@ export default function AllBookingsPage() {
     const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
     const [selectedBooking, setSelectedBooking] = useState(null);
     const [showCancellationModal, setShowCancellationModal] = useState(false);
+    const [showPerSeatCancellationModal, setShowPerSeatCancellationModal] = useState(false);
     const [showBookingModal, setShowBookingModal] = useState(false);
 
     const [startBookingDate, endBookingDate] = bookingDateRange;
@@ -401,6 +403,11 @@ export default function AllBookingsPage() {
     const handleAdminCancelBooking = (booking) => {
         setSelectedBooking(booking);
         setShowCancellationModal(true);
+    };
+
+    const handleAdminCancelSeats = (booking) => {
+        setSelectedBooking(booking);
+        setShowPerSeatCancellationModal(true);
     };
 
     const handleCancellationSuccess = (cancellationData) => {
@@ -1420,14 +1427,26 @@ ookings Table */}
                                                     View
                                                 </button>
                                                 {canAdminCancelBooking(booking) && (
-                                                    <button
-                                                        onClick={() => handleAdminCancelBooking(booking)}
-                                                        className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-2', 'bg-red-600', 'text-white', 'rounded-lg', 'hover:bg-red-700', 'transition-colors', 'text-sm', 'font-medium')}
-                                                        title="Cancel booking as admin"
-                                                    >
-                                                        <XCircleIcon className={cn('w-4', 'h-4')} />
-                                                        Cancel
-                                                    </button>
+                                                    <>
+                                                        {booking.noOfPassengers > 1 && (
+                                                            <button
+                                                                onClick={() => handleAdminCancelSeats(booking)}
+                                                                className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-2', 'bg-orange-600', 'text-white', 'rounded-lg', 'hover:bg-orange-700', 'transition-colors', 'text-sm', 'font-medium')}
+                                                                title="Cancel individual seats"
+                                                            >
+                                                                <XCircleIcon className={cn('w-4', 'h-4')} />
+                                                                Seats
+                                                            </button>
+                                                        )}
+                                                        <button
+                                                            onClick={() => handleAdminCancelBooking(booking)}
+                                                            className={cn('flex', 'items-center', 'gap-1', 'px-3', 'py-2', 'bg-red-600', 'text-white', 'rounded-lg', 'hover:bg-red-700', 'transition-colors', 'text-sm', 'font-medium')}
+                                                            title={booking.noOfPassengers > 1 ? "Cancel all seats" : "Cancel booking"}
+                                                        >
+                                                            <XCircleIcon className={cn('w-4', 'h-4')} />
+                                                            {booking.noOfPassengers > 1 ? 'All' : 'Cancel'}
+                                                        </button>
+                                                    </>
                                                 )}
                                             </div>
                                         </td>
@@ -1498,6 +1517,17 @@ ookings Table */}
                 isOpen={showCancellationModal}
                 onClose={() => {
                     setShowCancellationModal(false);
+                    setSelectedBooking(null);
+                }}
+                booking={selectedBooking}
+                onCancellationSuccess={handleCancellationSuccess}
+            />
+
+            {/* Admin Per-Seat Cancellation Modal */}
+            <AdminPerSeatCancellationModal
+                isOpen={showPerSeatCancellationModal}
+                onClose={() => {
+                    setShowPerSeatCancellationModal(false);
                     setSelectedBooking(null);
                 }}
                 booking={selectedBooking}

@@ -393,7 +393,7 @@ const ScheduledFlightsPage = () => {
                     departureLocation={depAirport}
                     arrivalLocation={arrAirport}
                     stops={fs.stops || []}
-                    passengers={searchCriteria.passengers}
+                    passengers={filterMinSeats || searchCriteria.passengers || 1}
                     selectedDate={searchCriteria.date}
                     authState={authState}
                   />

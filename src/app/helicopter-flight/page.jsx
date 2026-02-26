@@ -354,7 +354,7 @@ const HelicopterFlightsPage = () => {
                     departureLocation={departureHelipad}
                     arrivalLocation={arrivalHelipad}
                     stops={hs.stops || []}
-                    passengers={searchCriteria?.passengers || 1}
+                    passengers={filterMinSeats || searchCriteria?.passengers || 1}
                     selectedDate={searchCriteria?.date || ""}
                     authState={authState}
                   />
