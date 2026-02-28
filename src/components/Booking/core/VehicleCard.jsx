@@ -6,18 +6,19 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FaCheckCircle, FaHelicopter, FaPlane, FaUserFriends } from "react-icons/fa";
+import { FaCheckCircle, FaHelicopter, FaPlane, FaUserFriends, FaChevronDown, FaChevronUp } from "react-icons/fa";
+import { MdFlight, MdRestaurant, MdLocalBar, MdOndemandVideo, MdAirlineSeatReclineNormal } from "react-icons/md";
+import { IoAirplane } from "react-icons/io5";
 
 // Configuration for different vehicle types
 const VEHICLE_CONFIG = {
   flight: {
     icon: FaPlane,
-    gradient: "from-blue-600 to-indigo-600",
-    hoverColor: "border-blue-300",
-    statusColor: "from-green-400 to-blue-500",
-    bgGradient: "from-blue-50 to-indigo-50",
-    badgeColor: "bg-blue-100",
-    iconColor: "text-blue-600",
+    iconColor: "text-gray-700",
+    badgeColor: "bg-green-500 text-white",
+    priceColor: "text-blue-700",
+    statusAvailable: "text-green-600",
+    statusSold: "text-red-500",
     label: "Flight"
   },
   helicopter: {
@@ -59,7 +60,7 @@ export default function VehicleCard({
   const router = useRouter();
   const config = VEHICLE_CONFIG[type];
   const Icon = config.icon;
-  
+
   // Debug logging
   console.log('[VehicleCard] Rendering:', {
     type,
@@ -70,13 +71,14 @@ export default function VehicleCard({
     price: schedule?.price,
     date: selectedDate
   });
-  
+
   const [availableSeats, setAvailableSeats] = useState([]);
   const [isBookingDisabled, setIsBookingDisabled] = useState(false);
   const [isDeparted, setIsDeparted] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [cutoffTime, setCutoffTime] = useState("09:00");
   const [advanceBookingDays, setAdvanceBookingDays] = useState(0);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const allSeats = useMemo(
     () => SeatManager.generateSeatLabels(vehicle?.seat_limit || 6),
@@ -123,7 +125,7 @@ export default function VehicleCard({
         selectedDate,
         type
       );
-      
+
       if (result.success) {
         const validSeats = SeatManager.filterValidSeats(result.seats, allSeats);
         setAvailableSeats(validSeats);
@@ -153,12 +155,12 @@ export default function VehicleCard({
     const fetchSettings = async () => {
       try {
         // Use the existing system settings API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'http://localhost:4000'}/system-settings/booking-cutoff-time`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'https://api.jetserveaviation.com'}/system-settings/booking-cutoff-time`);
         if (response.ok) {
           const data = await response.json();
           const cutoffKey = type === 'helicopter' ? 'helicopter_cutoff_time' : 'flight_cutoff_time';
           const advanceKey = type === 'helicopter' ? 'helicopter_advance_booking_days' : 'flight_advance_booking_days';
-          
+
           setCutoffTime(data[cutoffKey] || "09:00");
           setAdvanceBookingDays(data[advanceKey] || 0);
         }
@@ -174,14 +176,14 @@ export default function VehicleCard({
   useEffect(() => {
     const checkStatus = () => {
       const isAdmin = authState?.userRole === "1";
-      
+
       // Check if departed
       const departedCheck = BookingValidator.validateNotDeparted(
         schedule.departure_time,
         selectedDate
       );
       setIsDeparted(!departedCheck.valid);
-      
+
       // Check cutoff time
       const cutoffCheck = BookingValidator.validateBookingTime(
         schedule.departure_time,
@@ -190,7 +192,7 @@ export default function VehicleCard({
         advanceBookingDays,
         isAdmin
       );
-      
+
       setIsBookingDisabled(!departedCheck.valid || (!cutoffCheck.valid && !isAdmin));
     };
 
@@ -249,143 +251,188 @@ export default function VehicleCard({
   return (
     <>
       <motion.div
-        className={cn(
-          "w-full max-w-6xl mx-auto rounded-2xl shadow-lg border border-gray-200 bg-white overflow-hidden transition-all duration-300",
-          !canBook ? "opacity-75 bg-gray-50" : `hover:shadow-xl hover:${config.hoverColor} hover:-translate-y-1`
-        )}
+        className="w-full max-w-7xl mx-auto bg-white rounded-3xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        whileHover={{ scale: canBook ? 1.02 : 1 }}
       >
-        {/* Status Banner */}
-        <div className={cn(
-          "h-1 w-full",
-          isDeparted ? "bg-red-500" :
-          isSoldOut ? "bg-gray-400" :
-          `bg-gradient-to-r ${config.statusColor}`
-        )} />
+        <div className="py-4 px-8">
+          <div className="flex flex-col lg:flex-row justify-between gap-8">
 
-        <div className="p-6">
-          <div className={cn("flex flex-col lg:flex-row lg:items-center space-y-6 lg:space-y-0 lg:gap-8")}>
-            {/* Vehicle Info */}
-            <div className={cn("flex items-center gap-4 lg:min-w-[200px]")}>
-              <div className="relative">
-                <div className={cn(`w-16 h-16 bg-gradient-to-r ${config.gradient} rounded-full flex items-center justify-center`)}>
-                  <Icon className={cn('text-white', 'text-2xl')} />
-                </div>
-                {canBook && (
-                  <div className={cn("absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full animate-pulse")} />
-                )}
-              </div>
-              <div>
-                <div className={cn("flex items-center gap-2 mb-1")}>
-                  <Icon className={config.iconColor} size={16} />
-                  <span className={cn("text-lg font-bold text-gray-800")}>
-                    {vehicle?.flight_number || vehicle?.helicopter_number || "Unknown"}
-                  </span>
-                  <span className={cn(
-                    "px-2 py-1 rounded-full text-xs font-medium",
-                    isDeparted ? "bg-red-100 text-red-700" :
-                    isSoldOut ? "bg-gray-100 text-gray-700" :
-                    "bg-green-100 text-green-700"
-                  )}>
-                    {isDeparted ? "Departed" : isSoldOut ? "Sold Out" : "Available"}
-                  </span>
-                </div>
-                <p className={cn("text-sm text-gray-600")}>
-                  <span className={cn("font-medium", config.iconColor)}>
-                    {formatDate(selectedDate)}
-                  </span>
-                </p>
-              </div>
-            </div>
+            {/* LEFT SECTION */}
+            <div className="flex flex-col gap-6 flex-1">
 
-            {/* Route & Time */}
-            <div className={cn("flex-1 space-y-4")}>
-              <div className={cn(`flex items-center justify-center gap-4 bg-gradient-to-r ${config.bgGradient} px-6 py-4 rounded-xl`)}>
-                <div className="text-center">
-                  <div className={cn("text-2xl font-bold text-gray-800")}>
+              {/* Airline + Number */}
+              <div className="flex items-center gap-4">
+
+
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-3">
+                    <div className="w-6 h-6 bg-emerald-500 rounded flex items-center justify-center">
+                      <FaPlane className="text-white text-[12px]" />
+                    </div>
+                    <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight">
+                      Flyola
+                    </h3>
+                  </div>
+
+                  <div className="flex items-center gap-3 mt-1.5 ml-9">
+                    <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">
+                      {vehicle?.flight_number || vehicle?.helicopter_number}
+                    </span>
+
+                    <span className={cn(
+                      "text-[10px] uppercase font-bold px-3 py-1 rounded-md tracking-wider shadow-sm",
+                      type === "flight" && (schedule.class === "Economy" ? "bg-amber-400 text-white" : "bg-emerald-500 text-white"),
+                      type === "helicopter" && "bg-red-500 text-white"
+                    )}>
+                      {schedule.class || (type === "flight" ? "Business" : "Premium")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* TIME SECTION */}
+              <div className="flex  max-w-lg items-center w-full">
+
+                {/* Departure */}
+                <div className="text-left">
+                  <div className="text-xl font-bold text-black">
                     {formatTime(schedule.departure_time)}
                   </div>
-                  <div className={cn("text-xs text-gray-500 uppercase tracking-wide")}>Departure</div>
+                  <div className="text-gray-500 font-medium text-sm">
+                    {departureLocation.airport_code}
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    {formatDate(selectedDate)}
+                  </div>
                 </div>
-                <div className={cn("flex-1 flex items-center justify-center relative")}>
-                  <div className={cn(`w-full h-0.5 bg-gradient-to-r ${config.bgGradient.replace('from-', 'from-').replace('to-', 'to-')}`)}></div>
-                  <Icon className={cn(`absolute ${config.iconColor} bg-white p-1 rounded-full`)} size={20} />
+
+                {/* Middle Line */}
+                <div className="flex items-center flex-1 mx-4 -mt-10">
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0"></div>
+                  <div className="flex-1 border-t border-dashed border-slate-300 mx-2"></div>
+                  <div className="shrink-0">
+                    <Icon className="text-slate-400" size={14} />
+                  </div>
+                  <div className="flex-1 border-t border-dashed border-slate-300 mx-2"></div>
+                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0"></div>
                 </div>
-                <div className="text-center">
-                  <div className={cn("text-2xl font-bold text-gray-800")}>
+
+                {/* Arrival */}
+                <div className="text-right">
+                  <div className="text-xl font-bold text-black">
                     {formatTime(schedule.arrival_time)}
                   </div>
-                  <div className={cn("text-xs text-gray-500 uppercase tracking-wide")}>Arrival</div>
+                  <div className="text-gray-500 font-medium text-sm">
+                    {arrivalLocation.airport_code}
+                  </div>
+                  <div className="text-gray-400 text-sm">
+                    {formatDate(selectedDate)}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* RIGHT SECTION: Price and Availability */}
+            <div className="flex flex-col justify-between items-end min-w-[220px] h-full">
+
+              {/* Top Section: Price */}
+              <div className="text-right">
+                <div className="text-xl font-medium text-[#0133EA] leading-none mb-1">
+                  INR {parseFloat(schedule.price || 0).toLocaleString("en-IN")}
+                  <span className="text-gray-400 text-xs font-normal ml-0.5">/pax</span>
+                </div>
+
+                <div className="text-gray-400 line-through text-sm font-medium pr-1 opacity-70">
+                  INR {Math.round((schedule.price || 0) * 1.3).toLocaleString("en-IN")}
                 </div>
               </div>
 
-              <div className={cn("text-center space-y-2")}>
-                <div className={cn("flex items-center justify-center gap-3 text-gray-700")}>
-                  <span className={cn(`font-semibold text-base ${config.badgeColor} px-3 py-1 rounded-full`)}>
-                    {departureLocation.city} ({departureLocation.airport_code || departureLocation.helipad_code || "N/A"})
-                  </span>
-                  <div className={cn("flex items-center gap-1")}>
-                    <span className="text-gray-400">→</span>
-                    <span className={cn(
-                      "text-xs font-medium px-2 py-1 rounded-full",
-                      isNonStop ? "bg-green-100 text-green-700" : "bg-yellow-100 text-yellow-700"
-                    )}>
-                      {stopText}
+              {/* Bottom Section: Availability & Action */}
+              <div className="flex flex-col items-end gap-3 text-sm mt-20">
+                <div className="flex items-center gap-3">
+                  {availableSeats.length <= 6 && availableSeats.length > 0 && (
+                    <span className="text-red-500 font-light tracking-tight">
+                      {availableSeats.length} seats remaining
                     </span>
-                    <span className="text-gray-400">→</span>
-                  </div>
-                  <span className={cn("font-semibold text-base bg-green-100 px-3 py-1 rounded-full")}>
-                    {arrivalLocation.city} ({arrivalLocation.airport_code || arrivalLocation.helipad_code || "N/A"})
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Pricing & Booking */}
-            <div className={cn("lg:min-w-[220px] space-y-4")}>
-              <div className={cn(`bg-gradient-to-br ${config.bgGradient} p-4 rounded-xl border border-gray-200`)}>
-                <div className={cn("flex items-center justify-between mb-2")}>
-                  <FaUserFriends className="text-gray-500" size={16} />
-                  <span className={cn(
-                    "text-sm font-medium",
-                    isSoldOut ? "text-red-600" : "text-green-600"
-                  )}>
-                    {isSoldOut ? "Sold Out" : `${availableSeats.length} seats left`}
-                  </span>
-                </div>
-
-                <div className="text-right">
-                  <div className={cn("text-3xl font-bold text-gray-900")}>
-                    ₹{parseFloat(schedule.price || 0).toLocaleString('en-IN')}
-                  </div>
-                  <div className={cn("text-sm text-gray-500 flex items-center justify-end gap-1")}>
-                    <FaCheckCircle className="text-green-500" size={12} />
-                    {type === 'flight' ? 'Refundable' : 'Premium Service'}
-                  </div>
+                  )}
+                  {availableSeats.length > 0 && availableSeats.length <= 6 && <span className="text-gray-300">•</span>}
+                  <button
+                    onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+                    className="text-cyan-500 hover:text-cyan-600 font-light flex items-center gap-1 transition-all text-xs tracking-wider"
+                  >
+                    See Details {isDetailsOpen ? <FaChevronUp size={10} className="mt-0.5" /> : <FaChevronDown size={10} className="mt-0.5" />}
+                  </button>
                 </div>
               </div>
 
-              <motion.button
-                onClick={handleBookClick}
-                className={cn(
-                  "w-full py-4 px-6 rounded-xl text-base font-semibold",
-                  !canBook
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : `bg-gradient-to-r ${config.gradient} text-white hover:opacity-90 shadow-lg hover:shadow-xl`
-                )}
-                disabled={!canBook}
-                whileHover={canBook ? { scale: 1.05 } : {}}
-                whileTap={canBook ? { scale: 0.95 } : {}}
-              >
-                {isDeparted ? `${type === 'flight' ? '✈️' : '🚁'} Departed` :
-                  isSoldOut ? "❌ Sold Out" :
-                  "🎫 Book Now"}
-              </motion.button>
             </div>
+
           </div>
+
+          {/* Details Section (Accordion) */}
+          {isDetailsOpen && (
+            <motion.div
+              className="mt-12 pt-12 border-t border-gray-100"
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: "auto", opacity: 1 }}
+            >
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 px-4">
+                {/* Timeline */}
+                <div className="flex flex-col gap-12">
+                  <div className="flex items-start gap-8">
+                    <div className="min-w-[80px]">
+                      <div className="text-xl font-bold text-gray-900">{formatTime(schedule.departure_time)}</div>
+                      <div className="text-[10px] text-gray-400 font-bold uppercase">{formatDate(selectedDate)}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-lg font-bold text-gray-800">{departureLocation.city} ({departureLocation.airport_code})</div>
+                      <div className="text-sm text-gray-400 font-medium">{departureLocation.name}</div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-8">
+                    <div className="min-w-[80px]">
+                      <div className="text-xl font-bold text-gray-900">{formatTime(schedule.arrival_time)}</div>
+                      <div className="text-[10px] text-gray-400 font-bold uppercase">{formatDate(selectedDate)}</div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-lg font-bold text-gray-800">{arrivalLocation.city} ({arrivalLocation.airport_code})</div>
+                      <div className="text-sm text-gray-400 font-medium">{arrivalLocation.name}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Amenities/Action */}
+                <div className="flex flex-col justify-between items-end gap-16">
+                  <div className="grid grid-cols-2 gap-x-12 gap-y-6 text-xs text-gray-500 font-bold uppercase tracking-widest bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
+                    <div className="flex items-center gap-3"><MdRestaurant size={18} className="text-emerald-500" /> Meal Included</div>
+                    <div className="flex items-center gap-3"><MdAirlineSeatReclineNormal size={18} className="text-blue-500" /> 2-2 layout</div>
+                    <div className="flex items-center gap-3"><MdLocalBar size={18} className="text-amber-500" /> Beverages</div>
+                    <div className="flex items-center gap-3"><MdOndemandVideo size={18} className="text-purple-500" /> In-flight Ent.</div>
+                  </div>
+
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleBookClick}
+                    disabled={!canBook}
+                    className={cn(
+                      "px-16 py-4 rounded-full text-lg font-extrabold transition-all duration-300 shadow-xl min-w-[280px] tracking-tight",
+                      canBook
+                        ? "bg-[#FF9F43] text-white hover:bg-[#F39C12] shadow-[#FF9F43]/30"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                    )}
+                  >
+                    {isSoldOut ? "SOLDOUT" : isDeparted ? "DEPARTED" : isBookingDisabled ? "CLOSED" : "Book Now"}
+                  </motion.button>
+                </div>
+              </div>
+            </motion.div>
+          )}
         </div>
       </motion.div>
 

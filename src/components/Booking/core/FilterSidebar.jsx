@@ -19,7 +19,7 @@ export default function FilterSidebar({
   isOpen = false,
   onClose
 }) {
-  const [localFilters, setLocalFilters] = useState(() => 
+  const [localFilters, setLocalFilters] = useState(() =>
     FilterManager.mergeWithDefaults(filters)
   );
   const [errors, setErrors] = useState({});
@@ -46,19 +46,19 @@ export default function FilterSidebar({
   const Icon = currentConfig.icon;
 
   // Count active filters
-  const activeFilterCount = useMemo(() => 
+  const activeFilterCount = useMemo(() =>
     FilterManager.countActiveFilters(localFilters),
     [localFilters]
   );
 
   // Get filter summary
-  const filterSummary = useMemo(() => 
+  const filterSummary = useMemo(() =>
     FilterManager.getFilterSummary(localFilters),
     [localFilters]
   );
 
   // Get location options
-  const locationOptions = useMemo(() => 
+  const locationOptions = useMemo(() =>
     FilterManager.getLocationOptions(locations, type),
     [locations, type]
   );
@@ -77,15 +77,15 @@ export default function FilterSidebar({
     // Sanitize input
     const sanitized = FilterManager.sanitizeFilters({ [field]: value });
     const newValue = sanitized[field] !== undefined ? sanitized[field] : value;
-    
+
     // Update local state
     const newFilters = { ...localFilters, [field]: newValue };
     setLocalFilters(newFilters);
-    
+
     // Validate
     const validation = FilterManager.validateFilters(newFilters);
     setErrors(validation.errors);
-    
+
     // Notify parent if valid
     if (validation.valid) {
       onFilterChange?.(newFilters);
@@ -115,7 +115,7 @@ export default function FilterSidebar({
    * Filter Section Component
    */
   const FilterSection = useCallback(({ icon: SectionIcon, title, children, error }) => (
-    <motion.div 
+    <motion.div
       className={cn(
         "mb-6 bg-gray-50 rounded-xl p-4 border transition-colors",
         error ? "border-red-300" : "border-gray-100 hover:border-blue-200"
@@ -136,7 +136,7 @@ export default function FilterSidebar({
 
   return (
     <AnimatePresence>
-      <motion.aside 
+      <motion.aside
         className={cn(
           "bg-white shadow-xl border-r border-gray-200 h-full overflow-y-auto",
           isOpen ? "block" : "hidden",
@@ -181,23 +181,23 @@ export default function FilterSidebar({
           )}
 
           {/* Date Filter */}
-          <FilterSection icon={FaCalendarAlt} title="Travel Date" error={errors.date}>
+          {/* <FilterSection icon={FaCalendarAlt} title="Travel Date" error={errors.date}>
             <input
               type="date"
               value={localFilters.date || minDate}
               onChange={(e) => handleFilterChange('date', e.target.value)}
               className={cn(
                 "w-full p-3 text-sm border rounded-lg focus:outline-none focus:ring-2 transition-all",
-                errors.date 
-                  ? "border-red-300 focus:ring-red-500" 
+                errors.date
+                  ? "border-red-300 focus:ring-red-500"
                   : "border-gray-300 focus:ring-blue-500 focus:border-transparent"
               )}
               min={minDate}
             />
-          </FilterSection>
+          </FilterSection> */}
 
           {/* Departure Filter */}
-          <FilterSection icon={FaMapMarkerAlt} title={currentConfig.departureLabel}>
+          {/* <FilterSection icon={FaMapMarkerAlt} title={currentConfig.departureLabel}>
             <select
               value={localFilters.departure || ''}
               onChange={(e) => handleFilterChange('departure', e.target.value)}
@@ -210,10 +210,10 @@ export default function FilterSidebar({
                 </option>
               ))}
             </select>
-          </FilterSection>
+          </FilterSection> */}
 
           {/* Arrival Filter */}
-          <FilterSection icon={FaMapMarkerAlt} title={currentConfig.arrivalLabel}>
+          {/* <FilterSection icon={FaMapMarkerAlt} title={currentConfig.arrivalLabel}>
             <select
               value={localFilters.arrival || ''}
               onChange={(e) => handleFilterChange('arrival', e.target.value)}
@@ -226,7 +226,7 @@ export default function FilterSidebar({
                 </option>
               ))}
             </select>
-          </FilterSection>
+          </FilterSection> */}
 
           {/* Status Filter */}
           <FilterSection icon={Icon} title={currentConfig.statusLabel}>
@@ -259,8 +259,8 @@ export default function FilterSidebar({
                 placeholder="Enter number of seats"
               />
               <div className={cn('mt-2', 'text-xs', 'text-gray-500')}>
-                {localFilters.passengers > 0 
-                  ? `${localFilters.passengers} seat${localFilters.passengers > 1 ? 's' : ''} minimum` 
+                {localFilters.passengers > 0
+                  ? `${localFilters.passengers} seat${localFilters.passengers > 1 ? 's' : ''} minimum`
                   : 'Any number of seats'}
               </div>
             </div>

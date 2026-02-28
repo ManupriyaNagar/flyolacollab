@@ -415,3 +415,11 @@ html {
 .counterBtn {
   @apply w-10 h-10 rounded-full border-2 font-bold transition-all duration-200 flex items-center justify-center;
 }
+
+
+.inter-font {
+  font-family: "Inter", sans-serif;
+  font-optical-sizing: auto;
+  font-weight: 400;
+  font-style: normal;
+}
