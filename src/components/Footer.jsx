@@ -120,7 +120,7 @@ const Footer = () => {
                 className={cn('h-16', 'w-60')}
               />
             </div>
-            
+
             <p className={cn('text-slate-300', 'mb-6', 'leading-relaxed')}>
               Jet Serve Aviation is a premier provider of private jet services, catering to travelers seeking luxury, comfort, and convenience.
             </p>

@@ -256,8 +256,8 @@ export default function VehicleCard({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <div className="py-4 px-8">
-          <div className="flex flex-col lg:flex-row justify-between gap-8">
+        <div className="p-8">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
 
             {/* LEFT SECTION */}
             <div className="flex flex-col gap-6 flex-1">
@@ -268,7 +268,7 @@ export default function VehicleCard({
 
                 <div className="flex flex-col">
                   <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-emerald-500 rounded flex items-center justify-center">
+                    <div className="w-6 h-6 bg-emerald-500 rounded flex items-center justify-center shadow-sm">
                       <FaPlane className="text-white text-[12px]" />
                     </div>
                     <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight">
@@ -293,41 +293,46 @@ export default function VehicleCard({
               </div>
 
               {/* TIME SECTION */}
-              <div className="flex  max-w-lg items-center w-full">
+              <div className="flex items-center justify-between w-full max-w-lg mx-auto">
 
                 {/* Departure */}
-                <div className="text-left">
-                  <div className="text-xl font-bold text-black">
+                <div className="flex flex-col">
+                  <div className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none mb-1">
                     {formatTime(schedule.departure_time)}
                   </div>
-                  <div className="text-gray-500 font-medium text-sm">
+                  <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
                     {departureLocation.airport_code}
                   </div>
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-gray-400 text-[10px] font-medium mt-0.5">
                     {formatDate(selectedDate)}
                   </div>
                 </div>
 
                 {/* Middle Line */}
-                <div className="flex items-center flex-1 mx-4 -mt-10">
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0"></div>
-                  <div className="flex-1 border-t border-dashed border-slate-300 mx-2"></div>
-                  <div className="shrink-0">
-                    <Icon className="text-slate-400" size={14} />
+                <div className="flex-1 flex flex-col items-center px-6">
+                  <div className="flex items-center w-full relative">
+                    <div className="w-2 h-2 rounded-full bg-slate-300" />
+                    <div className="flex-1 border-t border-dashed border-slate-300 mx-1 relative">
+                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                        <IoAirplane className="text-slate-400" size={18} />
+                      </div>
+                    </div>
+                    <div className="w-2 h-2 rounded-full bg-slate-300" />
                   </div>
-                  <div className="flex-1 border-t border-dashed border-slate-300 mx-2"></div>
-                  <div className="w-1.5 h-1.5 bg-slate-400 rounded-full shrink-0"></div>
+                  <div className="flex gap-2 mt-2 text-[10px] text-gray-400 font-bold tracking-wide uppercase">
+                    <span>{stopText}</span>
+                  </div>
                 </div>
 
                 {/* Arrival */}
-                <div className="text-right">
-                  <div className="text-xl font-bold text-black">
+                <div className="flex flex-col items-end">
+                  <div className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none mb-1">
                     {formatTime(schedule.arrival_time)}
                   </div>
-                  <div className="text-gray-500 font-medium text-sm">
+                  <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
                     {arrivalLocation.airport_code}
                   </div>
-                  <div className="text-gray-400 text-sm">
+                  <div className="text-gray-400 text-[10px] font-medium mt-0.5">
                     {formatDate(selectedDate)}
                   </div>
                 </div>
