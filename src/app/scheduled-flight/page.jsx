@@ -401,7 +401,7 @@ const ScheduledFlightsPage = () => {
         }}
       />
 
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen">
         <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row">
           <div className="flex-1 overflow-y-auto h-auto">
             <div>
@@ -470,7 +470,7 @@ const ScheduledFlightsPage = () => {
             </main>
           </div>
 
-          <div className="w-full md:w-[420px] md:flex-shrink-0 md:sticky md:top-24 h-fit pb-12 px-4 lg:px-8 mt-6 md:mt-0">
+          <div className="w-full md:w-[440px] md:flex-shrink-0 md:sticky md:top-24 h-fit pb-12 pr-8  mt-6 md:mt-0">
             {(() => {
               const depCode = airports.find(a => a.city.toLowerCase() === (searchCriteria.departure || "").toLowerCase())?.airport_code || "BHO";
               const arrCode = airports.find(a => a.city.toLowerCase() === (searchCriteria.arrival || "").toLowerCase())?.airport_code || "JLR";

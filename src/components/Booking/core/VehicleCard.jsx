@@ -276,8 +276,8 @@ export default function VehicleCard({
                     </h3>
                   </div>
 
-                  <div className="flex items-center gap-3 mt-1.5 ml-9">
-                    <span className="text-gray-400 text-xs font-bold tracking-widest uppercase">
+                  <div className="flex items-center gap-3 mt-1.5">
+                    <span className="text-gray-400 text-xs font-semibold tracking-widest uppercase">
                       {vehicle?.flight_number || vehicle?.helicopter_number}
                     </span>
 
@@ -293,11 +293,11 @@ export default function VehicleCard({
               </div>
 
               {/* TIME SECTION */}
-              <div className="flex items-center justify-between w-full max-w-lg mx-auto">
+              <div className="flex justify-between w-full max-w-lg">
 
                 {/* Departure */}
                 <div className="flex flex-col">
-                  <div className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none mb-1">
+                  <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
                     {formatTime(schedule.departure_time)}
                   </div>
                   <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
@@ -326,7 +326,7 @@ export default function VehicleCard({
 
                 {/* Arrival */}
                 <div className="flex flex-col items-end">
-                  <div className="text-3xl font-extrabold text-gray-900 tracking-tight leading-none mb-1">
+                  <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
                     {formatTime(schedule.arrival_time)}
                   </div>
                   <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
@@ -381,43 +381,57 @@ export default function VehicleCard({
           {/* Details Section (Accordion) */}
           {isDetailsOpen && (
             <motion.div
-              className="mt-12 pt-12 border-t border-gray-100"
+              className="mt-16"
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: "auto", opacity: 1 }}
             >
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 px-4">
                 {/* Timeline */}
                 <div className="flex flex-col gap-12">
-                  <div className="flex items-start gap-8">
-                    <div className="min-w-[80px]">
-                      <div className="text-xl font-bold text-gray-900">{formatTime(schedule.departure_time)}</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase">{formatDate(selectedDate)}</div>
+                  {/* Departure Stop */}
+                  <div className="flex items-start">
+                    <div className="w-24 text-right pr-6 pt-0.5">
+                      <div className="text-xl font-light text-gray-900">{formatTime(schedule.departure_time)}</div>
+                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{formatDate(selectedDate)}</div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-lg font-bold text-gray-800">{departureLocation.city} ({departureLocation.airport_code})</div>
-                      <div className="text-sm text-gray-400 font-medium">{departureLocation.name}</div>
+
+                    <div className="relative flex flex-col items-center px-4 pt-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
+                      <div className="absolute top-6 bottom-[-98px] w-px border-l-2 border-dashed border-gray-300" />
+                    </div>
+
+                    <div className="flex-1 pl-4">
+                      <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">{departureLocation.city} ({departureLocation.airport_code})</div>
+                      <div className="text-sm text-gray-400 font-medium mt-0.5">{departureLocation.name}</div>
                     </div>
                   </div>
 
-                  <div className="flex items-start gap-8">
-                    <div className="min-w-[80px]">
-                      <div className="text-xl font-bold text-gray-900">{formatTime(schedule.arrival_time)}</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase">{formatDate(selectedDate)}</div>
+                  {/* Arrival Stop */}
+                  <div className="flex items-start">
+                    <div className="w-24 text-right pr-6 pt-0.5">
+                      <div className="text-xl font-light text-gray-900">{formatTime(schedule.arrival_time)}</div>
+                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{formatDate(selectedDate)}</div>
                     </div>
-                    <div className="flex-1">
-                      <div className="text-lg font-bold text-gray-800">{arrivalLocation.city} ({arrivalLocation.airport_code})</div>
-                      <div className="text-sm text-gray-400 font-medium">{arrivalLocation.name}</div>
+
+                    <div className="relative flex flex-col items-center px-4 pt-2">
+                      <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
+                    </div>
+
+                    <div className="flex-1 pl-4">
+                      <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">{arrivalLocation.city} ({arrivalLocation.airport_code})</div>
+                      <div className="text-sm text-gray-400 font-medium mt-0.5">{arrivalLocation.name}</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Amenities/Action */}
                 <div className="flex flex-col justify-between items-end gap-16">
-                  <div className="grid grid-cols-2 gap-x-12 gap-y-6 text-xs text-gray-500 font-bold uppercase tracking-widest bg-gray-50/50 p-6 rounded-2xl border border-gray-100">
-                    <div className="flex items-center gap-3"><MdRestaurant size={18} className="text-emerald-500" /> Meal Included</div>
-                    <div className="flex items-center gap-3"><MdAirlineSeatReclineNormal size={18} className="text-blue-500" /> 2-2 layout</div>
-                    <div className="flex items-center gap-3"><MdLocalBar size={18} className="text-amber-500" /> Beverages</div>
-                    <div className="flex items-center gap-3"><MdOndemandVideo size={18} className="text-purple-500" /> In-flight Ent.</div>
+                  <div className="grid grid-cols-1 gap-x-12 gap-y-2 text-xs text-black font-light">
+                    <div className="flex justify-end gap-3"> Flyola 737 <MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
+                    <div className="flex justify-end gap-3">Meal Included<MdRestaurant size={18} className="text-black" /> </div>
+                    <div className="flex justify-end gap-3"> Beverages Included<MdLocalBar size={18} className="text-black" /></div>
+                    <div className="flex justify-end gap-3">On-demand Video<MdOndemandVideo size={18} className="text-black" /></div>
+                    <div className="flex justify-end gap-3">2-2 layout<MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
                   </div>
 
                   <motion.button
@@ -426,7 +440,7 @@ export default function VehicleCard({
                     onClick={handleBookClick}
                     disabled={!canBook}
                     className={cn(
-                      "px-16 py-4 rounded-full text-lg font-extrabold transition-all duration-300 shadow-xl min-w-[280px] tracking-tight",
+                      "px-16 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-xl min-w-[280px] tracking-tight",
                       canBook
                         ? "bg-[#FF9F43] text-white hover:bg-[#F39C12] shadow-[#FF9F43]/30"
                         : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
