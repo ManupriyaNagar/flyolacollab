@@ -157,28 +157,6 @@ export default function CheckoutSidebar({
           <div className="flex items-center gap-4 py-2 overflow-hidden">
             {/* Note: I'm using the standard images available if possible or styled text as fallback */}
             <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-blue-700 rounded-sm flex items-center justify-center text-white text-[8px] font-bold leading-none uppercase">American<br />Express</div>
-                <span className="text-lg font-bold text-gray-600 tracking-tighter">SafeKey®</span>
-              </div>
-
-              <div className="flex items-center gap-3 pl-6 border-l-2 border-gray-100">
-
-                <div className="flex flex-col leading-none">
-                  <span className="text-sm font-bold text-gray-600 uppercase">Verified</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2 pl-6 border-l-2 border-gray-100">
-                <div className="flex -space-x-2">
-                  <div className="w-6 h-6 rounded-full bg-red-600 opacity-90" />
-                  <div className="w-6 h-6 rounded-full bg-yellow-500 opacity-90" />
-                </div>
-                <div className="flex flex-col leading-none ml-2">
-                  <span className="text-sm font-bold text-gray-800">MasterCard.</span>
-
-                </div>
-              </div>
             </div>
           </div>
         </div>

@@ -44,14 +44,14 @@ const Header = () => {
     { name: 'Helicopter Hire', href: '/helicopter-hire' },
     { name: 'Marriage', href: '/hire-for-marriage' },
   ];
-  
+
   const [scheduleUrl, setScheduleUrl] = useState('/schedule-final.pdf');
-  
+
   const downloads = [
     { name: 'Ticket', href: '/get-ticket' },
     { name: 'Schedule', href: scheduleUrl, download: true },
   ];
-  
+
   // Fetch dynamic schedule URL
   useEffect(() => {
     const fetchScheduleUrl = async () => {
@@ -78,7 +78,7 @@ const Header = () => {
     { name: 'My Bookings', href: '/user-dashboard/bookings', icon: TicketIcon },
     { name: 'Settings', href: '', icon: Cog6ToothIcon },
   ];
-  
+
   const adminMenuItems = [
     { name: 'Admin Dashboard', href: '/admin-dashboard', icon: ChartBarIcon },
     { name: 'Manage Flights', href: '/admin-dashboard/add-flight', icon: PaperAirplaneIcon },
@@ -104,11 +104,10 @@ const Header = () => {
   return (
 
 
-<header
-  className={`fixed left-1/2 -translate-x-1/2 bg-white/50 w-full  py-2 top-0 z-50 transition duration-300 ${
-    scrolled ? 'backdrop-blur-md' : 'backdrop-blur-sm'
-  }`}
->
+    <header
+      className={`fixed left-1/2 -translate-x-1/2 bg-white/50 w-full  py-2 top-0 z-50 transition duration-300 ${scrolled ? 'backdrop-blur-md' : 'backdrop-blur-sm'
+        }`}
+    >
 
       <nav className={cn('mx-auto', 'px-4', 'sm:px-6', 'lg:px-16')}>
         <div className={cn('flex', 'h-16', 'items-center', 'justify-between')}>
@@ -117,123 +116,117 @@ const Header = () => {
             <img src="/log.png" alt="Logo" className={cn('h-8', 'w-40')} />
           </Link>
 
-<div className={cn('hidden', 'md:block')}>
-          {/* Desktop Navigation */}
-        <div className={cn('lg:flex', 'items-center', 'space-x-6', 'flex-1', 'justify-center', 'text-black')}>
-            <Link
-              href="/scheduled-flight"
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
-                isActive('/scheduled-flight') 
-                  ? 'bg-blue-100 text-blue-700' 
+          <div className={cn('hidden', 'md:block')}>
+            {/* Desktop Navigation */}
+            <div className={cn('lg:flex', 'items-center', 'space-x-6', 'flex-1', 'justify-center', 'text-black')}>
+              <Link
+                href="/scheduled-flight"
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${isActive('/scheduled-flight')
+                  ? 'bg-blue-100 text-blue-700'
                   : 'text-black hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              Flights
-            </Link>
-
-            <Link
-              href="/joy-ride"
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
-                isActive('/joy-ride') 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              Joy Ride
-            </Link>
-
-            {/* Services Dropdown */}
-            <Menu as="div" className="relative">
-              <Menu.Button className={cn('inline-flex', 'items-center', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-black', 'hover:text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition')}>
-                Services
-                <ChevronDownIcon className={cn('w-4', 'h-4', 'ml-1')} />
-              </Menu.Button>
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                  }`}
               >
-                <Menu.Items className={cn('absolute', 'left-0', 'mt-2', 'w-56', 'bg-white', 'rounded-lg', 'shadow-lg', 'ring-1', 'ring-black', 'ring-opacity-5', 'border', 'border-slate-200', 'z-50')}>
-                  {services.map((item) => (
-                    <Menu.Item key={item.href}>
-                      {({ active }) => (
-                        <Link
-                          href={item.href}
-                          className={`${
-                            active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
-                          } block px-4 py-2 text-sm`}
-                        >
-                          {item.name}
-                        </Link>
-                      )}
-                    </Menu.Item>
-                  ))}
-                </Menu.Items>
-              </Transition>
-            </Menu>
+                Flights
+              </Link>
 
-            <Link
-              href="/about"
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
-                isActive('/about') 
-                  ? 'bg-blue-100 text-blue-700' 
+              <Link
+                href="/joy-ride"
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${isActive('/joy-ride')
+                  ? 'bg-blue-100 text-blue-700'
                   : 'text-black hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              About
-            </Link>
-
-            <Link
-              href="/contact"
-              className={`px-3 py-2 text-sm font-medium rounded-lg transition ${
-                isActive('/contact') 
-                  ? 'bg-blue-100 text-blue-700' 
-                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
-              }`}
-            >
-              Contact
-            </Link>
-
-            {/* Download Dropdown */}
-            <Menu as="div" className="relative">
-              <Menu.Button className={cn('inline-flex', 'items-center', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-black', 'hover:text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition')}>
-                Download
-                <ChevronDownIcon className={cn('w-4', 'h-4', 'ml-1')} />
-              </Menu.Button>
-              <Transition
-                as={Fragment}
-                enter="transition ease-out duration-100"
-                enterFrom="opacity-0 scale-95"
-                enterTo="opacity-100 scale-100"
-                leave="transition ease-in duration-75"
-                leaveFrom="opacity-100 scale-100"
-                leaveTo="opacity-0 scale-95"
+                  }`}
               >
-                <Menu.Items className={cn('absolute', 'left-0', 'mt-2', 'w-40', 'bg-white', 'rounded-lg', 'shadow-lg', 'ring-1', 'ring-black', 'ring-opacity-5', 'border', 'border-slate-200', 'z-50')}>
-                  {downloads.map((item) => (
-                    <Menu.Item key={item.href}>
-                      {({ active }) => (
-                        <Link
-                          href={item.href}
-                          download={item.download}
-                          className={`${
-                            active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
-                          } block px-4 py-2 text-sm`}
-                        >
-                          {item.name}
-                        </Link>
-                      )}
-                    </Menu.Item>
-                  ))}
-                </Menu.Items>
-              </Transition>
-            </Menu>
+                Joy Ride
+              </Link>
+
+              {/* Services Dropdown */}
+              <Menu as="div" className="relative">
+                <Menu.Button className={cn('inline-flex', 'items-center', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-black', 'hover:text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition')}>
+                  Services
+                  <ChevronDownIcon className={cn('w-4', 'h-4', 'ml-1')} />
+                </Menu.Button>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Menu.Items className={cn('absolute', 'left-0', 'mt-2', 'w-56', 'bg-white', 'rounded-lg', 'shadow-lg', 'ring-1', 'ring-black', 'ring-opacity-5', 'border', 'border-slate-200', 'z-50')}>
+                    {services.map((item) => (
+                      <Menu.Item key={item.href}>
+                        {({ active }) => (
+                          <Link
+                            href={item.href}
+                            className={`${active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                              } block px-4 py-2 text-sm`}
+                          >
+                            {item.name}
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+
+              <Link
+                href="/about"
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${isActive('/about')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+              >
+                About
+              </Link>
+
+              <Link
+                href="/contact"
+                className={`px-3 py-2 text-sm font-medium rounded-lg transition ${isActive('/contact')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
+              >
+                Contact
+              </Link>
+
+              {/* Download Dropdown */}
+              <Menu as="div" className="relative">
+                <Menu.Button className={cn('inline-flex', 'items-center', 'px-3', 'py-2', 'text-sm', 'font-medium', 'text-black', 'hover:text-blue-600', 'hover:bg-blue-50', 'rounded-lg', 'transition')}>
+                  Download
+                  <ChevronDownIcon className={cn('w-4', 'h-4', 'ml-1')} />
+                </Menu.Button>
+                <Transition
+                  as={Fragment}
+                  enter="transition ease-out duration-100"
+                  enterFrom="opacity-0 scale-95"
+                  enterTo="opacity-100 scale-100"
+                  leave="transition ease-in duration-75"
+                  leaveFrom="opacity-100 scale-100"
+                  leaveTo="opacity-0 scale-95"
+                >
+                  <Menu.Items className={cn('absolute', 'left-0', 'mt-2', 'w-40', 'bg-white', 'rounded-lg', 'shadow-lg', 'ring-1', 'ring-black', 'ring-opacity-5', 'border', 'border-slate-200', 'z-50')}>
+                    {downloads.map((item) => (
+                      <Menu.Item key={item.href}>
+                        {({ active }) => (
+                          <Link
+                            href={item.href}
+                            download={item.download}
+                            className={`${active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                              } block px-4 py-2 text-sm`}
+                          >
+                            {item.name}
+                          </Link>
+                        )}
+                      </Menu.Item>
+                    ))}
+                  </Menu.Items>
+                </Transition>
+              </Menu>
+            </div>
           </div>
-      </div>
           {/* Desktop Auth Buttons */}
           <div className={cn('hidden', 'md:block', 'lg:flex', 'items-center', 'space-x-3')}>
             {!authState.isLoading && authState.isLoggedIn ? (
@@ -255,27 +248,26 @@ const Header = () => {
                     <div className="p-2">
                       <div className={cn('px-3', 'py-2', 'border-b', 'border-slate-100')}>
                         <p className={cn('text-xs', 'text-slate-500')}>
-                          {authState.userRole === '1' 
-                            ? 'Administrator' 
-                            : authState.userRole === '2' 
-                            ? 'Agent'
-                            : authState.userRole === '6'
-                            ? 'Operations'
-                            : authState.userRole === '8'
-                            ? 'MP Tourism Portal'
-                            : 'Customer'}
+                          {authState.userRole === '1'
+                            ? 'Administrator'
+                            : authState.userRole === '2'
+                              ? 'Agent'
+                              : authState.userRole === '6'
+                                ? 'Operations'
+                                : authState.userRole === '8'
+                                  ? 'MP Tourism Portal'
+                                  : 'Customer'}
                         </p>
                       </div>
-                      
+
                       {(authState.userRole === '1' || authState.userRole === 1) &&
                         adminMenuItems.map((item) => (
                           <Menu.Item key={item.href}>
                             {({ active }) => (
                               <Link
                                 href={item.href}
-                                className={`${
-                                  active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
-                                } flex items-center px-3 py-2 text-sm rounded-lg`}
+                                className={`${active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                                  } flex items-center px-3 py-2 text-sm rounded-lg`}
                               >
                                 <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
                                 {item.name}
@@ -283,16 +275,15 @@ const Header = () => {
                             )}
                           </Menu.Item>
                         ))}
-                      
+
                       {(authState.userRole === '6' || authState.userRole === 6) &&
                         operationsMenuItems.map((item) => (
                           <Menu.Item key={item.href}>
                             {({ active }) => (
                               <Link
                                 href={item.href}
-                                className={`${
-                                  active ? 'bg-orange-50 text-orange-700' : 'text-slate-700'
-                                } flex items-center px-3 py-2 text-sm rounded-lg`}
+                                className={`${active ? 'bg-orange-50 text-orange-700' : 'text-slate-700'
+                                  } flex items-center px-3 py-2 text-sm rounded-lg`}
                               >
                                 <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
                                 {item.name}
@@ -307,9 +298,8 @@ const Header = () => {
                             {({ active }) => (
                               <Link
                                 href={item.href}
-                                className={`${
-                                  active ? 'bg-purple-50 text-purple-700' : 'text-slate-700'
-                                } flex items-center px-3 py-2 text-sm rounded-lg`}
+                                className={`${active ? 'bg-purple-50 text-purple-700' : 'text-slate-700'
+                                  } flex items-center px-3 py-2 text-sm rounded-lg`}
                               >
                                 <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
                                 {item.name}
@@ -317,33 +307,31 @@ const Header = () => {
                             )}
                           </Menu.Item>
                         ))}
-                      
+
                       {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '6' && authState.userRole !== 6 && authState.userRole !== '8' && authState.userRole !== 8) &&
                         userMenuItems.map((item) => (
-                        <Menu.Item key={item.href}>
-                          {({ active }) => (
-                            <Link
-                              href={item.href}
-                              className={`${
-                                active ? 'bg-slate-50 text-slate-900' : 'text-slate-700'
-                              } flex items-center px-3 py-2 text-sm rounded-lg`}
-                            >
-                              <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
-                              {item.name}
-                            </Link>
-                          )}
-                        </Menu.Item>
-                      ))}
-                      
+                          <Menu.Item key={item.href}>
+                            {({ active }) => (
+                              <Link
+                                href={item.href}
+                                className={`${active ? 'bg-slate-50 text-slate-900' : 'text-slate-700'
+                                  } flex items-center px-3 py-2 text-sm rounded-lg`}
+                              >
+                                <item.icon className={cn('w-4', 'h-4', 'mr-2')} />
+                                {item.name}
+                              </Link>
+                            )}
+                          </Menu.Item>
+                        ))}
+
                       <div className={cn('border-t', 'border-slate-100', 'my-2')} />
-                      
+
                       <Menu.Item>
                         {({ active }) => (
                           <button
                             onClick={handleLogout}
-                            className={`flex w-full items-center px-3 py-2 text-sm rounded-lg ${
-                              active ? 'bg-red-50 text-red-700' : 'text-slate-700'
-                            }`}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-lg ${active ? 'bg-red-50 text-red-700' : 'text-slate-700'
+                              }`}
                           >
                             <ArrowRightOnRectangleIcon className={cn('w-4', 'h-4', 'mr-2')} />
                             Sign Out
@@ -402,11 +390,10 @@ const Header = () => {
               <Link
                 href="/scheduled-flight"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-base font-medium rounded-lg ${
-                  isActive('/scheduled-flight')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-black hover:text-blue-600 hover:bg-blue-50'
-                }`}
+                className={`block px-3 py-2 text-base font-medium rounded-lg ${isActive('/scheduled-flight')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
               >
                 Flights
               </Link>
@@ -414,11 +401,10 @@ const Header = () => {
               <Link
                 href="/joy-ride"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-base font-medium rounded-lg ${
-                  isActive('/joy-ride')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-black hover:text-blue-600 hover:bg-blue-50'
-                }`}
+                className={`block px-3 py-2 text-base font-medium rounded-lg ${isActive('/joy-ride')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
               >
                 Joy Ride
               </Link>
@@ -444,9 +430,8 @@ const Header = () => {
                           <Link
                             href={item.href}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`${
-                              active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
-                            } block px-5 py-2 text-base rounded-lg`}
+                            className={`${active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                              } block px-5 py-2 text-base rounded-lg`}
                           >
                             {item.name}
                           </Link>
@@ -460,11 +445,10 @@ const Header = () => {
               <Link
                 href="/about"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-base font-medium rounded-lg ${
-                  isActive('/about')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-black hover:text-blue-600 hover:bg-blue-50'
-                }`}
+                className={`block px-3 py-2 text-base font-medium rounded-lg ${isActive('/about')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
               >
                 About
               </Link>
@@ -472,11 +456,10 @@ const Header = () => {
               <Link
                 href="/contact"
                 onClick={() => setMobileMenuOpen(false)}
-                className={`block px-3 py-2 text-base font-medium rounded-lg ${
-                  isActive('/contact')
-                    ? 'bg-blue-100 text-blue-700'
-                    : 'text-black hover:text-blue-600 hover:bg-blue-50'
-                }`}
+                className={`block px-3 py-2 text-base font-medium rounded-lg ${isActive('/contact')
+                  ? 'bg-blue-100 text-blue-700'
+                  : 'text-black hover:text-blue-600 hover:bg-blue-50'
+                  }`}
               >
                 Contact
               </Link>
@@ -503,9 +486,8 @@ const Header = () => {
                             href={item.href}
                             download={item.download}
                             onClick={() => setMobileMenuOpen(false)}
-                            className={`${
-                              active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
-                            } block px-5 py-2 text-base rounded-lg`}
+                            className={`${active ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                              } block px-5 py-2 text-base rounded-lg`}
                           >
                             {item.name}
                           </Link>
@@ -526,12 +508,12 @@ const Header = () => {
                       {authState.userRole === '1'
                         ? 'Admin'
                         : authState.userRole === '2'
-                        ? 'Agent'
-                        : authState.userRole === '6'
-                        ? 'Operations'
-                        : authState.userRole === '8'
-                        ? 'MP Tourism Portal'
-                        : 'Customer'}
+                          ? 'Agent'
+                          : authState.userRole === '6'
+                            ? 'Operations'
+                            : authState.userRole === '8'
+                              ? 'MP Tourism Portal'
+                              : 'Customer'}
                     </p>
                   </div>
 
@@ -576,16 +558,16 @@ const Header = () => {
 
                   {(authState.userRole !== '1' && authState.userRole !== 1 && authState.userRole !== '6' && authState.userRole !== 6 && authState.userRole !== '8' && authState.userRole !== 8) &&
                     userMenuItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      onClick={() => setMobileMenuOpen(false)}
-                      className={cn('flex', 'items-center', 'px-3', 'py-2', 'text-base', 'font-medium', 'text-black', 'hover:text-slate-900', 'hover:bg-slate-50', 'rounded-lg')}
-                    >
-                      <item.icon className={cn('w-5', 'h-5', 'mr-3')} />
-                      {item.name}
-                    </Link>
-                  ))}
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={cn('flex', 'items-center', 'px-3', 'py-2', 'text-base', 'font-medium', 'text-black', 'hover:text-slate-900', 'hover:bg-slate-50', 'rounded-lg')}
+                      >
+                        <item.icon className={cn('w-5', 'h-5', 'mr-3')} />
+                        {item.name}
+                      </Link>
+                    ))}
 
                   <button
                     onClick={handleLogout}
