@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 const Header2 = () => {
   return (
-    <motion.header 
+    <motion.header
       className="bg-gradient-to-r from-blue-700 via-blue-700 to-blue-700 shadow-2xl border-b border-indigo-300 rounded-2xl mt-2 overflow-hidden relative"
       initial={{ opacity: 0, y: -20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -18,20 +18,20 @@ const Header2 = () => {
           }}></div>
         </div>
       </div>
-      
+
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 relative z-10">
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between">
           <div className="flex-1">
-            <motion.h1 
+            <motion.h1
               className="text-3xl sm:text-4xl md:text-5xl font-bold text-white tracking-tight mb-2"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.8, delay: 0.2 }}
             >
-              <FaPlane className="inline mr-3 text-yellow-400 animate-pulse" /> 
+              <FaPlane className="inline mr-3 text-yellow-400 animate-pulse" />
               Flight Schedules
             </motion.h1>
-            <motion.p 
+            <motion.p
               className="text-lg sm:text-xl text-blue-100 font-medium"
               initial={{ opacity: 0, x: -30 }}
               animate={{ opacity: 1, x: 0 }}
@@ -40,8 +40,8 @@ const Header2 = () => {
               Find and book your perfect flight journey
             </motion.p>
           </div>
-          
-          <motion.div 
+
+          <motion.div
             className="flex items-center space-x-6 mt-4 lg:mt-0"
             initial={{ opacity: 0, x: 30 }}
             animate={{ opacity: 1, x: 0 }}
@@ -57,9 +57,9 @@ const Header2 = () => {
             </div>
           </motion.div>
         </div>
-        
+
         {/* Stats Bar */}
-        <motion.div 
+        <motion.div
           className="mt-6 pt-4 border-t border-blue-700/30"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

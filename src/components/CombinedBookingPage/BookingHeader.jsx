@@ -1,10 +1,10 @@
 "use client";
 
 import React from "react";
-import { 
-  FaPlane, 
-  FaShieldAlt, 
-  FaClock, 
+import {
+  FaPlane,
+  FaShieldAlt,
+  FaClock,
   FaHeadset,
   FaStar,
   FaMapMarkerAlt
@@ -13,7 +13,7 @@ import {
 const BookingHeader = ({ bookingData, currentStep }) => {
   const stepTitles = {
     1: "Review Your Flight",
-    2: "Traveler Information", 
+    2: "Traveler Information",
     3: "Payment & Confirmation"
   };
 
@@ -48,13 +48,13 @@ const BookingHeader = ({ bookingData, currentStep }) => {
                 <div className="text-sm text-gray-500">Departure</div>
                 <div className="text-sm font-medium text-blue-600">{bookingData.departureTime}</div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <div className="w-12 h-px bg-gray-300"></div>
                 <FaPlane className="text-blue-600 text-lg" />
                 <div className="w-12 h-px bg-gray-300"></div>
               </div>
-              
+
               <div className="text-center">
                 <div className="text-2xl font-bold text-gray-800">{bookingData.arrival}</div>
                 <div className="text-sm text-gray-500">Arrival</div>

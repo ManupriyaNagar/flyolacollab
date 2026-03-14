@@ -15,6 +15,9 @@ import Toast from "@/components/booking/ui/Toast";
 // Import business logic
 import { BookingValidator } from "@/lib/business/BookingValidator";
 import { PriceCalculator } from "@/lib/business/PriceCalculator";
+import FlightHeader from "@/components/ScheduledFlight/FlightHeader";
+import FilterSectionTop from "@/components/ScheduledFlight/FilterSectionTop";
+import Hero from "@/components/Traveller/Hero";
 
 /**
  * Refactored Booking Page
@@ -24,6 +27,8 @@ import { PriceCalculator } from "@/lib/business/PriceCalculator";
 const BookingPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const [filterMinSeats, setFilterMinSeats] = useState(0);
 
   // Get booking data from URL parameters
   const bookingParams = useMemo(() => ({
@@ -43,30 +48,64 @@ const BookingPageContent = () => {
   }), [searchParams]);
 
   // State
+  const [passengers, setPassengers] = useState(
+    Array.from({ length: bookingParams.passengers || 1 }, (_, i) => ({
+      id: i + 1,
+      name: "",
+      idNumber: "",
+      seat: ""
+    }))
+  );
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [toast, setToast] = useState({ show: false, message: '', type: 'info' });
 
-  // Passenger data
+  // Update passengers when seats change (optional, but good for linking)
+  const handleSeatsChange = useCallback((seats) => {
+    setSelectedSeats(seats);
+    // Optionally auto-assign seats to passengers
+    setPassengers(prev => prev.map((p, i) => ({
+      ...p,
+      seat: seats[i] || p.seat
+    })));
+  }, []);
+
+  // Handlers for PassengerInfo
+  const handleAddPassenger = useCallback(() => {
+    setPassengers(prev => [
+      ...prev,
+      { id: Date.now(), name: "", idNumber: "", seat: "" }
+    ]);
+  }, []);
+
+  const handleUpdatePassenger = useCallback((id, updates) => {
+    setPassengers(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
+  }, []);
+
+  const handleRemovePassenger = useCallback((id) => {
+    setPassengers(prev => prev.filter(p => p.id !== id));
+  }, []);
+
+  const handleSelectSeat = useCallback((id) => {
+    // Scroll to seat selector or trigger modal
+    const seatSelector = document.getElementById('seat-selector-section');
+    if (seatSelector) {
+      seatSelector.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  // Derive passenger counts for compatibility with existing business logic
   const passengerData = useMemo(() => ({
-    adults: bookingParams.passengers || 1,
+    adults: passengers.length, // Treating all as adults for simplicity, or add type to each
     children: 0,
     infants: 0
-  }), [bookingParams.passengers]);
+  }), [passengers]);
 
   // Total passengers needing seats
-  const totalPassengers = useMemo(
-    () => passengerData.adults + passengerData.children,
-    [passengerData]
-  );
+  const totalPassengers = passengers.length;
 
   // Show toast notification
   const showToast = useCallback((message, type = 'info') => {
     setToast({ show: true, message, type });
-  }, []);
-
-  // Handle seat selection change
-  const handleSeatsChange = useCallback((seats) => {
-    setSelectedSeats(seats);
   }, []);
 
   // Handle seat selection error
@@ -113,6 +152,7 @@ const BookingPageContent = () => {
         arrivalCode: bookingParams.arrivalCode || bookingParams.arrival.substring(0, 3).toUpperCase(),
         selectedDate: bookingParams.selectedDate,
         passengers: passengerData,
+        travelers: passengers, // Include the interactive passenger details
         totalPrice: totalPrice,
         flightSchedule: {
           id: bookingParams.scheduleId,
@@ -136,6 +176,7 @@ const BookingPageContent = () => {
     selectedSeats,
     totalPassengers,
     bookingParams,
+    passengers,
     passengerData,
     router,
     showToast
@@ -144,7 +185,7 @@ const BookingPageContent = () => {
   // Validate required parameters
   if (!bookingParams.departure || !bookingParams.arrival || !bookingParams.selectedDate || !bookingParams.scheduleId) {
     return (
-      <div className={cn('min-h-screen bg-gray-50 flex items-center justify-center p-4')}>
+      <div className={cn('min-h-screen inter-font bg-gray-50 flex items-center justify-center p-4')}>
         <div className={cn('bg-white rounded-2xl p-8 max-w-lg w-full text-center shadow-xl')}>
           <div className={cn('text-red-500', 'text-6xl', 'mb-4')}>⚠️</div>
           <h1 className={cn('text-2xl', 'font-bold', 'text-gray-800', 'mb-4')}>
@@ -173,23 +214,18 @@ const BookingPageContent = () => {
 
   return (
     <div className={cn('min-h-screen', 'bg-gray-50', 'py-8', 'px-4')}>
-      <div className={cn('max-w-7xl', 'mx-auto')}>
+      <div className={cn('', 'mx-auto')}>
         {/* Header */}
+        <FilterSectionTop />
+        <Hero />
+
+
+
         <div className={cn(
-          'bg-gradient-to-r from-blue-600 to-indigo-700',
+          'bg-white',
           'text-white p-6 rounded-t-2xl shadow-lg'
         )}>
-          <div className={cn('flex', 'items-center', 'justify-between')}>
-            <div>
-              <h1 className={cn('text-3xl', 'font-bold', 'flex', 'items-center', 'gap-3')}>
-                <Icon className="text-yellow-300" />
-                Complete Your Booking
-              </h1>
-              <p className={cn('text-blue-100', 'mt-2')}>
-                Secure your seats in just a few clicks
-              </p>
-            </div>
-          </div>
+          <FlightHeader />
         </div>
 
         {/* Main Content */}
@@ -202,13 +238,19 @@ const BookingPageContent = () => {
             date={bookingParams.selectedDate}
             departureTime={formatTime(bookingParams.departureTime)}
             arrivalTime={formatTime(bookingParams.arrivalTime)}
+            price={bookingParams.price}
+            flightNumber={bookingParams.flightNumber || bookingParams.helicopterNumber || "SA 8092"}
+            departureCode={bookingParams.departureCode}
+            arrivalCode={bookingParams.arrivalCode}
           />
 
           {/* Passenger Information */}
           <PassengerInfo
-            adults={passengerData.adults}
-            children={passengerData.children}
-            infants={passengerData.infants}
+            passengers={passengers}
+            onAdd={handleAddPassenger}
+            onUpdate={handleUpdatePassenger}
+            onRemove={handleRemovePassenger}
+            onSelectSeat={handleSelectSeat}
           />
 
           {/* Seat Selection */}
@@ -243,7 +285,7 @@ const BookingPageContent = () => {
             >
               ← Back to {bookingParams.bookingType === 'helicopter' ? 'Helicopters' : 'Flights'}
             </Link>
-            
+
             <button
               onClick={handleConfirmBooking}
               disabled={selectedSeats.length !== totalPassengers}
@@ -260,13 +302,13 @@ const BookingPageContent = () => {
               {selectedSeats.length !== totalPassengers
                 ? `Select ${totalPassengers - selectedSeats.length} more seat${totalPassengers - selectedSeats.length > 1 ? 's' : ''}`
                 : `🎫 Confirm Booking - ${PriceCalculator.formatPrice(
-                    PriceCalculator.calculateTotal({
-                      basePrice: parseFloat(bookingParams.price),
-                      passengers: passengerData,
-                      travelers: [],
-                      bookingType: bookingParams.bookingType
-                    })
-                  )}`
+                  PriceCalculator.calculateTotal({
+                    basePrice: parseFloat(bookingParams.price),
+                    passengers: passengerData,
+                    travelers: [],
+                    bookingType: bookingParams.bookingType
+                  })
+                )}`
               }
             </button>
           </div>

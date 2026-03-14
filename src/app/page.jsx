@@ -40,7 +40,7 @@ export default function Home() {
     const preloadAirports = async () => {
       const cached = sessionStorage.getItem('airports_data');
       const cacheTime = sessionStorage.getItem('airports_cache_time');
-      
+
       if (!cached || !cacheTime || (Date.now() - parseInt(cacheTime)) > 300000) {
         try {
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'NEXT_PUBLIC_API_URL'}/airport`);
@@ -71,52 +71,52 @@ export default function Home() {
   }, []);
 
   return (
-    <div className={cn('min-h-screen', 'bg-gray-50')}>
- 
+    <div className={cn('min-h-screen', 'bg-slate-100')}>
+
 
       <div id="booking" className={cn('hidden', 'md:block')}>
         <FlightBooking />
       </div>
-      
+
       <div className="md:hidden">
         <MobileFlightBooking />
       </div>
-      
+
       <LazySection>
         <ImageShowcase />
       </LazySection>
-      
+
       <LazySection>
         <FeatureCards />
       </LazySection>
-      
+
       <LazySection>
         <PrivateJetRental />
       </LazySection>
-      
+
       <LazySection>
         <AviationHighlights />
       </LazySection>
-      
+
 
       <LazySection>
         <WhyChooseFlyola />
       </LazySection>
-      
+
       <LazySection>
         <CityCaurasol />
       </LazySection>
-      
+
       <LazySection>
         <ArticleSection />
       </LazySection>
-      
+
       <LazySection>
         <HoverEffect />
       </LazySection>
-      
 
-      
+
+
       <LazySection>
         <PopularDestinations />
       </LazySection>

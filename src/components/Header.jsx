@@ -116,7 +116,7 @@ const Header = () => {
             <img src="/log.png" alt="Logo" className={cn('h-8', 'w-40')} />
           </Link>
 
-          <div className={cn('hidden', 'md:block')}>
+          <div className={cn('hidden', "lg:block")}>
             {/* Desktop Navigation */}
             <div className={cn('lg:flex', 'items-center', 'space-x-6', 'flex-1', 'justify-center', 'text-black')}>
               <Link

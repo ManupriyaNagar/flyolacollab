@@ -250,210 +250,271 @@ export default function VehicleCard({
 
   return (
     <>
-      <motion.div
-        className="w-full max-w-7xl mx-auto bg-white rounded-3xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
-      >
-        <div className="p-8">
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+      <div className="flex">
+        <motion.div
+          className="w-full max-w-7xl mx-auto bg-white rounded-3xl shadow-md border border-gray-200 overflow-hidden transition-all duration-300 hover:shadow-lg z-4"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <div className="p-8">
+            <div className="flex flex-col md:flex-row lg:flex-row lg:items-center justify-between gap-8">
 
-            {/* LEFT SECTION */}
-            <div className="flex flex-col gap-6 flex-1">
+              {/* LEFT SECTION */}
+              <div className="flex flex-col gap-6 flex-1">
 
-              {/* Airline + Number */}
-              <div className="flex items-center gap-4">
-
-
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-3">
-                    <div className="w-6 h-6 bg-emerald-500 rounded flex items-center justify-center shadow-sm">
-                      <FaPlane className="text-white text-[12px]" />
+                {/* Airline + Number */}
+                <div className="flex items-center gap-4">
+                  <div className="flex flex-col">
+                    <div className="flex items-center gap-3">
+                      <div className="w-6 h-6 rounded flex items-center justify-center shadow-sm">
+                        <img src="/flights/Layer_1.png" alt="" className="w-full h-full" />
+                      </div>
+                      <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight">
+                        Flyola
+                      </h3>
                     </div>
-                    <h3 className="text-2xl font-extrabold text-gray-800 tracking-tight">
-                      Flyola
-                    </h3>
-                  </div>
 
-                  <div className="flex items-center gap-3 mt-1.5">
-                    <span className="text-gray-400 text-xs font-semibold tracking-widest uppercase">
-                      {vehicle?.flight_number || vehicle?.helicopter_number}
-                    </span>
+                    <div className="flex items-center gap-3 mt-1.5">
+                      <span className="text-gray-400 text-xs font-semibold tracking-widest uppercase">
+                        {vehicle?.flight_number || vehicle?.helicopter_number}
+                      </span>
 
-                    <span className={cn(
-                      "text-[10px] uppercase font-bold px-3 py-1 rounded-md tracking-wider shadow-sm",
-                      type === "flight" && (schedule.class === "Economy" ? "bg-amber-400 text-white" : "bg-emerald-500 text-white"),
-                      type === "helicopter" && "bg-red-500 text-white"
-                    )}>
-                      {schedule.class || (type === "flight" ? "Business" : "Premium")}
-                    </span>
+                      <span className={cn(
+                        "text-[10px] uppercase font-bold px-3 py-1 rounded-md tracking-wider shadow-sm",
+                        type === "flight" && (schedule.class === "Economy" ? "bg-amber-400 text-white" : "bg-emerald-500 text-white"),
+                        type === "helicopter" && "bg-red-500 text-white"
+                      )}>
+                        {schedule.class || (type === "flight" ? "Business" : "Premium")}
+                      </span>
+                    </div>
                   </div>
                 </div>
+
+                {/* TIME SECTION */}
+                <div className="flex justify-between w-full lg:max-w-lg md:max-w-md">
+
+                  {/* Departure */}
+                  <div className="flex flex-col">
+                    <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
+                      {formatTime(schedule.departure_time)}
+                    </div>
+                    <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
+                      {departureLocation.airport_code}
+                    </div>
+                    <div className="text-gray-400 text-[10px] font-medium mt-0.5">
+                      {formatDate(selectedDate)}
+                    </div>
+                  </div>
+
+                  {/* Middle Line */}
+                  <div className="flex-1 flex flex-col items-center px-6">
+                    <div className="flex items-center w-full relative">
+                      <div className="w-2 h-2 rounded-full bg-slate-300" />
+                      <div className="flex-1 border-t border-dashed border-slate-300 mx-1 relative">
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                          <IoAirplane className="text-slate-400" size={18} />
+                        </div>
+                      </div>
+                      <div className="w-2 h-2 rounded-full bg-slate-300" />
+                    </div>
+                    <div className="flex gap-2 mt-2 text-[10px] text-gray-400 font-bold tracking-wide uppercase">
+                      <span>{stopText}</span>
+                    </div>
+                  </div>
+
+                  {/* Arrival */}
+                  <div className="flex flex-col items-end">
+                    <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
+                      {formatTime(schedule.arrival_time)}
+                    </div>
+                    <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
+                      {arrivalLocation.airport_code}
+                    </div>
+                    <div className="text-gray-400 text-[10px] font-medium mt-0.5">
+                      {formatDate(selectedDate)}
+                    </div>
+                  </div>
+
+                </div>
+
               </div>
 
-              {/* TIME SECTION */}
-              <div className="flex justify-between w-full max-w-lg">
+              {/* RIGHT SECTION: Price and Availability */}
+              <div className="flex flex-col justify-between items-end min-w-[220px] h-full">
 
-                {/* Departure */}
-                <div className="flex flex-col">
-                  <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
-                    {formatTime(schedule.departure_time)}
+                {/* Top Section: Price */}
+                <div className="text-right">
+                  <div className="text-xl font-medium text-[#0133EA] leading-none mb-1">
+                    INR {parseFloat(schedule.price || 0).toLocaleString("en-IN")}
+                    <span className="text-gray-400 text-xs font-normal ml-0.5">/pax</span>
                   </div>
-                  <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
-                    {departureLocation.airport_code}
-                  </div>
-                  <div className="text-gray-400 text-[10px] font-medium mt-0.5">
-                    {formatDate(selectedDate)}
+
+                  <div className="text-gray-400 line-through text-sm font-medium pr-1 opacity-70">
+                    INR {Math.round((schedule.price || 0) * 1.3).toLocaleString("en-IN")}
                   </div>
                 </div>
 
-                {/* Middle Line */}
-                <div className="flex-1 flex flex-col items-center px-6">
-                  <div className="flex items-center w-full relative">
-                    <div className="w-2 h-2 rounded-full bg-slate-300" />
-                    <div className="flex-1 border-t border-dashed border-slate-300 mx-1 relative">
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
-                        <IoAirplane className="text-slate-400" size={18} />
+                {/* Bottom Section: Availability & Action */}
+                <div className="flex flex-col items-end gap-3 text-sm md:mt-20 mt-10">
+                  <div className="flex items-center gap-3">
+                    {availableSeats.length <= 6 && availableSeats.length > 0 && (
+                      <span className="text-red-500 font-light tracking-tight">
+                        {availableSeats.length} seats remaining
+                      </span>
+                    )}
+                    {availableSeats.length > 0 && availableSeats.length <= 6 && <span className="text-gray-300">•</span>}
+                    <button
+                      onClick={() => setIsDetailsOpen(!isDetailsOpen)}
+                      className="text-cyan-500 hover:text-cyan-600 font-light flex items-center gap-1 transition-all text-xs tracking-wider"
+                    >
+                      See Details {isDetailsOpen ? <FaChevronUp size={10} className="mt-0.5" /> : <FaChevronDown size={10} className="mt-0.5" />}
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Details Section (Accordion) */}
+            {isDetailsOpen && (
+              <motion.div
+                className="mt-16"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: "auto", opacity: 1 }}
+              >
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-16 px-4">
+                  {/* Timeline */}
+                  <div className="flex flex-col gap-12">
+                    {/* Departure Stop */}
+                    <div className="flex items-start">
+                      <div className="w-24 text-right pr-6 pt-0.5">
+                        <div className="text-xl font-light text-gray-900">
+                          {formatTime(schedule.departure_time)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                          {formatDate(selectedDate)}
+                        </div>
+                      </div>
+
+                      <div className="relative flex flex-col items-center px-4 pt-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
+                        <div className="absolute top-6 bottom-[-164px] w-px border-l-2 border-dashed border-gray-300" />
+                      </div>
+
+                      <div className="flex-1 pl-4">
+                        <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">
+                          {departureLocation.city} ({departureLocation.airport_code})
+                        </div>
+                        <div className="text-sm text-gray-400 font-medium mt-0.5">
+                          {departureLocation.name}
+                        </div>
                       </div>
                     </div>
-                    <div className="w-2 h-2 rounded-full bg-slate-300" />
+
+                    {/* Stop Text (Centered in Timeline) */}
+                    <div className="flex items-center">
+                      <div className="w-44" />
+                      <div className="flex justify-center px-4">
+                        <span className="text-[10px] text-gray-400 font-bold tracking-wide uppercase">
+                          {stopText}
+                        </span>
+                      </div>
+                      <div className="flex-1" />
+                    </div>
+
+                    {/* Arrival Stop */}
+                    <div className="flex items-center">
+                      <div className="w-24 text-right">
+                        <div className="text-xl font-light text-gray-900">
+                          {formatTime(schedule.arrival_time)}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
+                          {formatDate(selectedDate)}
+                        </div>
+                      </div>
+
+                      <div className="relative flex flex-col items-center px-4 pt-2">
+                        <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
+                      </div>
+
+                      <div className="flex-1 pl-4">
+                        <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">
+                          {arrivalLocation.city} ({arrivalLocation.airport_code})
+                        </div>
+                        <div className="text-sm text-gray-400 font-medium mt-0.5">
+                          {arrivalLocation.name}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex gap-2 mt-2 text-[10px] text-gray-400 font-bold tracking-wide uppercase">
-                    <span>{stopText}</span>
+                  {/* Amenities/Action */}
+                  <div className="flex flex-col justify-between items-end gap-16">
+                    <div className="grid grid-cols-1 gap-x-12 gap-y-2 text-xs text-black font-light">
+                      <div className="flex justify-end gap-3"> Flyola 737 <MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
+                      <div className="flex justify-end gap-3">Meal Included<MdRestaurant size={18} className="text-black" /> </div>
+                      <div className="flex justify-end gap-3"> Beverages Included<MdLocalBar size={18} className="text-black" /></div>
+                      <div className="flex justify-end gap-3">On-demand Video<MdOndemandVideo size={18} className="text-black" /></div>
+                      <div className="flex justify-end gap-3">2-2 layout<MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
+                    </div>
+
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={handleBookClick}
+                      disabled={!canBook}
+                      className={cn(
+                        "px-16 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-xl min-w-[280px] tracking-tight",
+                        canBook
+                          ? "bg-[#FF9F43] text-white hover:bg-[#F39C12] shadow-[#FF9F43]/30"
+                          : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
+                      )}
+                    >
+                      {isSoldOut ? "SOLDOUT" : isDeparted ? "DEPARTED" : isBookingDisabled ? "CLOSED" : "Book Now"}
+                    </motion.button>
                   </div>
                 </div>
-
-                {/* Arrival */}
-                <div className="flex flex-col items-end">
-                  <div className="text-xl font-semibold text-gray-900 tracking-tight leading-none mb-1">
-                    {formatTime(schedule.arrival_time)}
-                  </div>
-                  <div className="text-gray-400 text-xs font-bold tracking-widest uppercase">
-                    {arrivalLocation.airport_code}
-                  </div>
-                  <div className="text-gray-400 text-[10px] font-medium mt-0.5">
-                    {formatDate(selectedDate)}
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* RIGHT SECTION: Price and Availability */}
-            <div className="flex flex-col justify-between items-end min-w-[220px] h-full">
-
-              {/* Top Section: Price */}
-              <div className="text-right">
-                <div className="text-xl font-medium text-[#0133EA] leading-none mb-1">
-                  INR {parseFloat(schedule.price || 0).toLocaleString("en-IN")}
-                  <span className="text-gray-400 text-xs font-normal ml-0.5">/pax</span>
-                </div>
-
-                <div className="text-gray-400 line-through text-sm font-medium pr-1 opacity-70">
-                  INR {Math.round((schedule.price || 0) * 1.3).toLocaleString("en-IN")}
-                </div>
-              </div>
-
-              {/* Bottom Section: Availability & Action */}
-              <div className="flex flex-col items-end gap-3 text-sm mt-20">
-                <div className="flex items-center gap-3">
-                  {availableSeats.length <= 6 && availableSeats.length > 0 && (
-                    <span className="text-red-500 font-light tracking-tight">
-                      {availableSeats.length} seats remaining
-                    </span>
-                  )}
-                  {availableSeats.length > 0 && availableSeats.length <= 6 && <span className="text-gray-300">•</span>}
-                  <button
-                    onClick={() => setIsDetailsOpen(!isDetailsOpen)}
-                    className="text-cyan-500 hover:text-cyan-600 font-light flex items-center gap-1 transition-all text-xs tracking-wider"
-                  >
-                    See Details {isDetailsOpen ? <FaChevronUp size={10} className="mt-0.5" /> : <FaChevronDown size={10} className="mt-0.5" />}
-                  </button>
-                </div>
-              </div>
-
-            </div>
-
+              </motion.div>
+            )}
           </div>
 
-          {/* Details Section (Accordion) */}
-          {isDetailsOpen && (
-            <motion.div
-              className="mt-16"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
+        </motion.div>
+
+
+
+        {!isDetailsOpen && (
+          <motion.div
+            className="flex bg-[#FF9F43] rounded-r-xl my-1 shadow-md -ml-2 z-2"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <button
+              onClick={handleBookClick}
+              disabled={!canBook}
+              className={cn(
+                "w-[60px] md:w-[60px] flex items-center justify-center transition-all duration-300 relative",
+                canBook
+                  ? "cursor-pointer"
+                  : "bg-gray-200 cursor-not-allowed"
+              )}
             >
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 px-4">
-                {/* Timeline */}
-                <div className="flex flex-col gap-12">
-                  {/* Departure Stop */}
-                  <div className="flex items-start">
-                    <div className="w-24 text-right pr-6 pt-0.5">
-                      <div className="text-xl font-light text-gray-900">{formatTime(schedule.departure_time)}</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{formatDate(selectedDate)}</div>
-                    </div>
+              <span
+                className={cn(
+                  "text-white font-semibold uppercase rotate-90 whitespace-nowrap tracking-[0.2em] text-md pointer-events-none",
+                  !canBook && "text-gray-400"
+                )}
+              >
+                {isSoldOut ? "SOLD OUT" : isDeparted ? "DEPARTED" : "BOOK NOW"}
+              </span>
 
-                    <div className="relative flex flex-col items-center px-4 pt-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
-                      <div className="absolute top-6 bottom-[-98px] w-px border-l-2 border-dashed border-gray-300" />
-                    </div>
+              <div className="absolute inset-0 bg-black/0 hover:bg-black/5 transition-colors" />
+            </button>
+          </motion.div>
+        )}
 
-                    <div className="flex-1 pl-4">
-                      <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">{departureLocation.city} ({departureLocation.airport_code})</div>
-                      <div className="text-sm text-gray-400 font-medium mt-0.5">{departureLocation.name}</div>
-                    </div>
-                  </div>
-
-                  {/* Arrival Stop */}
-                  <div className="flex items-start">
-                    <div className="w-24 text-right pr-6 pt-0.5">
-                      <div className="text-xl font-light text-gray-900">{formatTime(schedule.arrival_time)}</div>
-                      <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{formatDate(selectedDate)}</div>
-                    </div>
-
-                    <div className="relative flex flex-col items-center px-4 pt-2">
-                      <div className="w-3 h-3 rounded-full bg-gray-300 ring-4 ring-gray-50 z-10" />
-                    </div>
-
-                    <div className="flex-1 pl-4">
-                      <div className="text-lg font-bold text-gray-800 tracking-tight leading-tight">{arrivalLocation.city} ({arrivalLocation.airport_code})</div>
-                      <div className="text-sm text-gray-400 font-medium mt-0.5">{arrivalLocation.name}</div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Amenities/Action */}
-                <div className="flex flex-col justify-between items-end gap-16">
-                  <div className="grid grid-cols-1 gap-x-12 gap-y-2 text-xs text-black font-light">
-                    <div className="flex justify-end gap-3"> Flyola 737 <MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
-                    <div className="flex justify-end gap-3">Meal Included<MdRestaurant size={18} className="text-black" /> </div>
-                    <div className="flex justify-end gap-3"> Beverages Included<MdLocalBar size={18} className="text-black" /></div>
-                    <div className="flex justify-end gap-3">On-demand Video<MdOndemandVideo size={18} className="text-black" /></div>
-                    <div className="flex justify-end gap-3">2-2 layout<MdAirlineSeatReclineNormal size={18} className="text-black" /> </div>
-                  </div>
-
-                  <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={handleBookClick}
-                    disabled={!canBook}
-                    className={cn(
-                      "px-16 py-2 rounded-full text-lg font-bold transition-all duration-300 shadow-xl min-w-[280px] tracking-tight",
-                      canBook
-                        ? "bg-[#FF9F43] text-white hover:bg-[#F39C12] shadow-[#FF9F43]/30"
-                        : "bg-gray-200 text-gray-400 cursor-not-allowed shadow-none"
-                    )}
-                  >
-                    {isSoldOut ? "SOLDOUT" : isDeparted ? "DEPARTED" : isBookingDisabled ? "CLOSED" : "Book Now"}
-                  </motion.button>
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </div>
-      </motion.div>
+      </div>
 
       <AuthModal
         isOpen={showAuthModal}

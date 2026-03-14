@@ -30,18 +30,18 @@ export function RightSidebar({
     ];
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 pb-2">
             {/* Offers Section */}
-            <div className="bg-white rounded-2xl border border-gray-200 ">
-                <div className="p-8">
-                    <h2 className="text-xl font-light text-gray-900 mb-6 tracking-tighter">Offers For You</h2>
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 lg:p-6 xl:p-8 w-full flex flex-col">
+                <div className="space-y-4">
+                    <h2 className="text-xl lg:text-2xl font-medium text-black">Offers For You</h2>
 
                     {/* Promo code field */}
-                    <div className="relative mb-6">
+                    <div className="relative">
                         <input
                             type="text"
                             placeholder="Have a Promo code? Reedeem here"
-                            className="w-full border-2 border-gray-400 rounded-2xl px-5 py-3 text-gray-800 text-sm focus:outline-none focus:border-blue-400 placeholder:text-gray-300 transition-all font-medium"
+                            className="w-full border border-gray-200 rounded-2xl px-4 py-3 text-gray-800 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder:text-gray-400 transition-all font-light"
                         />
                     </div>
 
@@ -53,21 +53,21 @@ export function RightSidebar({
                                 className="flex gap-4 group cursor-pointer"
                             >
                                 <div className={cn(
-                                    "mt-1 h-5 w-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
-                                    selectedOffer === offer.id ? "border-blue-600" : "border-gray-200 group-hover:border-blue-300"
+                                    "mt-1 h-[22px] w-[22px] rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                                    selectedOffer === offer.id ? "border-blue-600 bg-blue-600" : "border-slate-300 group-hover:border-blue-400"
                                 )}>
-                                    {selectedOffer === offer.id && <div className="h-2.5 w-2.5 rounded-full bg-blue-600 shadow-sm" />}
+                                    {selectedOffer === offer.id && <Check size={14} strokeWidth={3} color="white" />}
                                 </div>
 
                                 <div className="flex-1">
-                                    <div className="flex justify-between items-center mb-1">
+                                    <div className="flex justify-between items-start xl:items-center mb-1 flex-col xl:flex-row gap-1 xl:gap-0">
                                         <span className="text-sm font-medium text-gray-900 tracking-tight">{offer.title}</span>
-                                        <span className="text-sm font-medium text-gray-900 tracking-tight">{offer.discount}</span>
+                                        <span className="text-xs font-bold text-[#10B981] tracking-tight">{offer.discount}</span>
                                     </div>
-                                    <p className={cn("text-sm leading-relaxed font-light", selectedOffer === offer.id ? "text-[#10B981]" : "text-gray-400")}>
+                                    <p className={cn("text-xs leading-relaxed font-light", selectedOffer === offer.id ? "text-gray-800" : "text-gray-500")}>
                                         {offer.desc}
                                     </p>
-                                    <button className="text-[10px] font-medium text-gray-900 underline mt-2 hover:text-blue-600 uppercase tracking-widest">
+                                    <button className="text-[10px] font-bold text-gray-900 underline underline-offset-4 mt-2 hover:text-blue-600 uppercase tracking-wide">
                                         Know More
                                     </button>
                                 </div>
@@ -76,20 +76,20 @@ export function RightSidebar({
                     </div>
                 </div>
 
-                <div className="border-t border-gray-100 p-6 bg-gray-50/30">
-                    <button className="text-xs font-medium text-gray-900 tracking-tight hover:text-blue-600 transition-colors uppercase">
+                <div className="border-t border-gray-200 mt-6 pt-4 flex justify-between items-center">
+                    <button className="text-[11px] font-bold text-gray-900 tracking-wide hover:text-blue-600 transition-colors uppercase underline underline-offset-4">
                         View All Offers
                     </button>
                 </div>
             </div>
 
             {/* Fare Summary */}
-            <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-8 w-full max-w-xl">
+            <div className="bg-white rounded-2xl border border-gray-200 shadow-md p-4 lg:p-6 xl:p-8 w-full">
 
                 {/* Header */}
                 <div className="space-y-6">
                     <div className="flex items-start justify-between ">
-                        <h2 className="text-xl font-medium text-black">
+                        <h2 className="text-2xl font-medium text-black">
                             Fare Summary
                         </h2>
                         <span className="text-xs text-gray-600 font-light">
@@ -113,7 +113,7 @@ export function RightSidebar({
                             Base Fare
                         </span>
                         <span className="text-md font-medium text-black">
-                            ₹{baseFare.toLocaleString()}
+                            ₹{(baseFare || 0).toLocaleString()}
                         </span>
                     </div>
 
@@ -123,13 +123,13 @@ export function RightSidebar({
                             Taxes & Fees
                         </span>
                         <span className="text-md font-medium text-black">
-                            ₹{taxes.toLocaleString()}
+                            ₹{(taxes || 0).toLocaleString()}
                         </span>
                     </div>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-gray-300 mt-2" />
+                <div className="border-t border-[#E6E6E6] mt-2" />
 
                 {/* Instant Off */}
                 <div className="flex justify-between items-center py-2">
@@ -137,12 +137,12 @@ export function RightSidebar({
                         Instant Off
                     </span>
                     <span className="text-md font-medium text-green-700">
-                        -₹{discount.toLocaleString()}
+                        -₹{(discount || 0).toLocaleString()}
                     </span>
                 </div>
 
                 {/* Divider */}
-                <div className="border-t border-gray-300" />
+                <div className="border-t border-[#E6E6E6]" />
 
                 {/* Total */}
                 <div className="flex justify-between items-center pt-4">
@@ -150,7 +150,7 @@ export function RightSidebar({
                         Total Amount
                     </span>
                     <span className="text-xl font-medium text-black">
-                        ₹{totalPrice.toLocaleString()}
+                        ₹{(totalPrice || 0).toLocaleString()}
                     </span>
                 </div>
 
@@ -159,7 +159,7 @@ export function RightSidebar({
 
 
             {/* Logos & Legal Text */}
-            <div className="px-6">
+            <div className="">
                 <div className="relative group">
                     <p className="text-[14px] text-gray-900 leading-relaxed font-light opacity-70">
                         By clicking on continue, I confirm that I have read, understood, and agree with the <span className="text-blue-600 underline cursor-pointer hover:text-blue-700">Fare Rules</span>, <span className="text-blue-600 underline cursor-pointer hover:text-blue-700">Privacy Policy</span> and <span className="text-blue-600 underline cursor-pointer hover:text-blue-700">Terms</span> of Use.
@@ -167,7 +167,7 @@ export function RightSidebar({
                     {/* Arrow pointing to text as seen in screenshot */}
                     <div className="absolute -right-4 top-1/2 -translate-y-1/2 hidden xl:block">
                         <div className="relative">
-                            <div className="w-12 h-24 border-r-2 border-b-2 border-gray-300 rounded-br-[20px]" />
+                            <div className="w-12 h-24 border-r-2 border-b-2 border-[#E6E6E6] rounded-br-[20px]" />
                             <ArrowRight className="absolute -bottom-1.5 -right-2 text-gray-300 rotate-180" size={20} />
                         </div>
                         <div className="absolute -bottom-12 -right-20 whitespace-nowrap text-[10px] font-medium text-gray-400 uppercase tracking-widest text-center">
@@ -176,15 +176,15 @@ export function RightSidebar({
                     </div>
                 </div>
 
-                <div className="">
+                <div className="md:mb-10">
                     <h4 className="text-md font-medium text-gray-400 uppercase mt-2">100% Safe Payment Process</h4>
-                    <div className="flex gap-4">
+                    <div className="flex">
                         <img src="/flights/image-1.png" alt="" />
                         <img src="/flights/image-7.png" alt="" />
                         <img src="/flights/image-8.png" alt="" />
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

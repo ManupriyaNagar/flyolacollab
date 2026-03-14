@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { 
-  FaCloud, 
-  FaSun, 
+import {
+  FaCloud,
+  FaSun,
   FaCloudRain,
   FaThermometerHalf,
   FaEye,
@@ -24,7 +24,7 @@ const WeatherInfo = ({ bookingData }) => {
   const generateMockWeather = (location) => {
     const conditions = ['sunny', 'cloudy', 'rainy', 'partly-cloudy'];
     const condition = conditions[Math.floor(Math.random() * conditions.length)];
-    
+
     return {
       location,
       condition,
@@ -62,7 +62,7 @@ const WeatherInfo = ({ bookingData }) => {
         // In a real application, you would fetch from a weather API
         // For now, we'll use mock data
         await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API delay
-        
+
         const departureWeather = generateMockWeather(bookingData.departure);
         const arrivalWeather = generateMockWeather(bookingData.arrival);
 
@@ -124,7 +124,7 @@ const WeatherInfo = ({ bookingData }) => {
         </div>
         {getWeatherIcon(weatherData.condition)}
       </div>
-      
+
       <div className="space-y-3">
         <div className="flex items-center justify-between">
           <span className="text-2xl font-bold text-gray-800">
@@ -134,7 +134,7 @@ const WeatherInfo = ({ bookingData }) => {
             {weatherData.description}
           </span>
         </div>
-        
+
         <div className="grid grid-cols-2 gap-3 text-sm">
           <div className="flex items-center">
             <FaTint className="text-blue-500 mr-2" />
@@ -176,11 +176,11 @@ const WeatherInfo = ({ bookingData }) => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-        <WeatherCard 
+        <WeatherCard
           weatherData={weather.departure}
           title={`${bookingData.departure} (Departure)`}
         />
-        <WeatherCard 
+        <WeatherCard
           weatherData={weather.arrival}
           title={`${bookingData.arrival} (Arrival)`}
         />
@@ -217,7 +217,7 @@ const WeatherInfo = ({ bookingData }) => {
           {['Today', 'Tomorrow', 'Day 3'].map((day, index) => {
             const temp = weather.departure?.temperature + Math.floor(Math.random() * 10) - 5;
             const condition = ['sunny', 'cloudy', 'partly-cloudy'][index];
-            
+
             return (
               <div key={index} className="text-center bg-gray-50 rounded-lg p-3">
                 <div className="text-sm font-medium text-gray-800 mb-1">{day}</div>

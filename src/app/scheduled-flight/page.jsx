@@ -248,6 +248,7 @@ const ScheduledFlightsPage = () => {
           (filterStatus === "Departed" && status === 1);
         const matchesSeats = filterMinSeats === 0 || availableSeats >= filterMinSeats;
         const matchesStops = filterStops === "All" || stops.length === parseInt(filterStops);
+        const matchesClass = flightClass === "All Class" || (fs.class === flightClass);
 
         // Case-insensitive city matching
         const matchesDeparture =
@@ -265,6 +266,7 @@ const ScheduledFlightsPage = () => {
           matchesStatus &&
           matchesSeats &&
           matchesStops &&
+          matchesClass &&
           matchesDeparture &&
           matchesArrival &&
           matchesSearch
@@ -402,17 +404,17 @@ const ScheduledFlightsPage = () => {
       />
 
       <div className="min-h-screen">
-        <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row">
+        <div className="w-full mx-auto flex flex-col md:flex-row">
           <div className="flex-1 overflow-y-auto h-auto">
             <div>
               <FlightHeader
-                departure={searchCriteria.departure}
-                arrival={searchCriteria.arrival}
-                locationOptions={flightAirports}
+                departure={searchCriteria.departure || filterDepartureCity}
+                arrival={searchCriteria.arrival || filterArrivalCity}
+                totalResults={filteredAndSortedFlightSchedules.length}
               />
             </div>
 
-            <main className="py-6 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+            <main className="lg:py-6 py-2 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
               <div className="mb-8">
                 <div className="bg-white rounded-2xl shadow-md px-8 py-6 flex items-center justify-between">
                   <h2 className="text-xl font-semibold text-black">
@@ -470,7 +472,7 @@ const ScheduledFlightsPage = () => {
             </main>
           </div>
 
-          <div className="w-full md:w-[440px] md:flex-shrink-0 md:sticky md:top-24 h-fit pb-12 pr-8  mt-6 md:mt-0">
+          <div className="w-full lg:w-[440px] md:hidden lg:block md:flex-shrink-0 md:sticky md:top-24 h-fit pb-12 md:pr-8  mt-6 md:mt-0">
             {(() => {
               const depCode = airports.find(a => a.city.toLowerCase() === (searchCriteria.departure || "").toLowerCase())?.airport_code || "BHO";
               const arrCode = airports.find(a => a.city.toLowerCase() === (searchCriteria.arrival || "").toLowerCase())?.airport_code || "JLR";

@@ -4,7 +4,7 @@ import { Inter } from 'next/font/google';
 import "./globals.css";
 
 // Optimize font loading with Next.js
-const inter = Inter({ 
+const inter = Inter({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   display: 'swap',
@@ -56,7 +56,7 @@ export default function RootLayout({ children }) {
         <link rel="modulepreload" href="/_next/static/chunks/pages/_app.js" />
 
         <link rel="manifest" href="/manifest.json" />
-        
+
         {/* Service Worker Registration - Updated to avoid CORS issues */}
         <script
           dangerouslySetInnerHTML={{
@@ -117,7 +117,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body className="bg-gray-100">
+      <body className="bg-gray-100 inter-font">
         {/* Google Tag Manager (noscript) */}
         <noscript>
           <iframe

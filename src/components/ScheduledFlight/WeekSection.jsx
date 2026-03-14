@@ -52,19 +52,19 @@ const WeekSection = ({
 
     const formatPrice = (price) => {
         if (!price) return "";
-        return `From Rp${price.toLocaleString()}`;
+        return `From INR ${price.toLocaleString()}`;
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 lg:px-8 mx-auto mb-8 mt-2">
-            <div className="w-full bg-white rounded-3xl shadow-sm border border-gray-100 px-2 py-1 relative overflow-visible">
-                <div className="flex items-center relative px-20">
+        <div className="w-full px-0 sm:px-3 lg:px-8 mx-auto mb-8 mt-2">
+            <div className="w-full bg-white lg:rounded-3xl md:rounded-xl shadow-sm border border-gray-100 px-1 md:px-2 py-1 relative overflow-visible">
+                <div className="flex items-center relative px-10 md:px-20">
                     {/* Left Arrow */}
                     <button
                         onClick={() => scroll("left")}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full border border-gray-100 flex items-center justify-center bg-white z-20 shadow-sm hover:bg-gray-50 transition-colors"
+                        className="absolute left-1 md:left-4 top-1/2 -translate-y-1/2 md:w-10 md:h-10 w-8 h-8 rounded-full border border-gray-100 flex items-center justify-center bg-white z-20 shadow-sm hover:bg-gray-50 transition-colors"
                     >
-                        <ChevronLeft className="w-5 h-5 text-gray-500" />
+                        <ChevronLeft className="md:w-5 md:h-5 w-4 h-4 text-gray-500" />
                     </button>
 
                     {/* Dates Container */}
@@ -93,30 +93,31 @@ const WeekSection = ({
                                     whileTap={{ scale: 0.98 }}
                                     onClick={() => onDateChange?.(dateKey)}
                                     className={cn(
-                                        "flex flex-col items-center justify-center min-w-[143px] h-[70px] rounded-2xl cursor-pointer transition-all relative group",
+                                        "flex flex-col items-center justify-center lg:min-w-[143px] md:min-w-[120px] min-w-[100px] h-[70px] rounded-2xl cursor-pointer transition-all relative group",
                                         isSelected
-                                            ? "bg-[#ff9933] border border-[#0133EA] text-white"
-                                            : "bg-white hover:bg-sky-50 border border-gray-100 text-gray-800 hover:border-sky-500"
+                                            ? "bg-sky-50 border border-sky-500"
+                                            : "bg-white hover:bg-sky-50 border border-gray-200 text-gray-800 hover:border-sky-500"
                                     )}
                                 >
                                     <span className={cn(
-                                        "text-[15px] font-light tracking-tight",
-                                        isSelected ? "text-white" : "text-gray-800"
+                                        "lg:text-[15px] md:text-[15px] text-[12px] font-light tracking-tight",
+                                        isSelected ? "text-black" : "text-gray-800"
                                     )}>
                                         {format(dateObj, "EEE, d MMM")}
                                     </span>
                                     <span className={cn(
-                                        "text-[12px] mt-1.5 font-medium ",
-                                        isSelected ? "text-white/95" : "text-gray-400"
+                                        "lg:text-[12px] md:text-[10px] text-[8.5px] mt-1 md:mt-1.5 font-medium ",
+                                        isSelected ? "text-black/95" : "text-gray-400"
                                     )}>
                                         {formatPrice(price)}
                                     </span>
 
                                     {/* Blue selection indicator bar (Permanent if selected) */}
                                     {isSelected && (
+
                                         <motion.div
                                             layoutId="activeBar"
-                                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[63px] h-[4px] bg-[#0133EA] border-[#0133EA] rounded-t-full z-10"
+                                            className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[40px] md:w-[63px] border border-sky-500 h-[3px] md:h-[4px] bg-sky-500 rounded-t-full z-10"
                                             initial={false}
                                             transition={{ type: "spring", stiffness: 300, damping: 30 }}
                                         />
@@ -125,7 +126,7 @@ const WeekSection = ({
                                     {/* Hover indicator bar (Visible only on hover when NOT selected) */}
                                     {!isSelected && (
                                         <motion.div
-                                            className="opacity-0 group-hover:opacity-100 absolute bottom-0 left-1/2 -translate-x-1/2 w-[63px] h-[4px] bg-sky-500 rounded-t-full z-10 transition-opacity"
+                                            className="opacity-0 group-hover:opacity-100 absolute bottom-0 left-1/2 -translate-x-1/2 w-[40px] md:w-[63px] h-[3px] md:h-[4px] bg-sky-500 rounded-t-full z-10 transition-opacity"
                                             initial={false}
                                         />
                                     )}
@@ -137,9 +138,9 @@ const WeekSection = ({
                     {/* Right Arrow */}
                     <button
                         onClick={() => scroll("right")}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white rounded-full border border-gray-100 flex items-center justify-center z-20 shadow-sm hover:bg-gray-50 transition-colors"
+                        className="absolute right-1 md:right-4 top-1/2 -translate-y-1/2 md:w-10 md:h-10 w-8 h-8 bg-white rounded-full border border-gray-100 flex items-center justify-center z-20 shadow-sm hover:bg-gray-50 transition-colors"
                     >
-                        <ChevronRight className="w-5 h-5 text-gray-500" />
+                        <ChevronRight className="md:w-5 md:h-5 w-4 h-4 text-gray-500" />
                     </button>
                 </div>
             </div>
