@@ -11,7 +11,6 @@ import MobileFlightBooking from "@/components/Home/MobileFlightBooking";
 
 // Lazy load components that are below the fold
 const ImageShowcase = dynamic(() => import("@/components/Home/ImageShowcase"), { ssr: false });
-const FeatureCards = dynamic(() => import("@/components/Home/FeatureCard"), { ssr: false });
 const PrivateJetRental = dynamic(() => import("@/components/Home/Banner"), { ssr: false });
 const AviationHighlights = dynamic(() => import("@/components/Home/Highlights"), { ssr: false });
 const WhyChooseFlyola = dynamic(() => import("@/components/Home/WhyChoose"), { ssr: false });
@@ -84,10 +83,6 @@ export default function Home() {
 
       <LazySection>
         <ImageShowcase />
-      </LazySection>
-
-      <LazySection>
-        <FeatureCards />
       </LazySection>
 
       <LazySection>
