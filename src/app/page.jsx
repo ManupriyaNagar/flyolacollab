@@ -107,13 +107,15 @@ export default function Home() {
         <CityCaurasol />
       </LazySection>
 
-      <LazySection>
-        <ArticleSection />
-      </LazySection>
 
-      <LazySection>
+
+      {/* <LazySection>
+        <ArticleSection />
+      </LazySection> */}
+
+      {/* <LazySection>
         <HoverEffect />
-      </LazySection>
+      </LazySection> */}
 
 
 

@@ -31,7 +31,7 @@ const features = [
     icon: FaDollarSign,
     gradient: "from-blue-500 to-blue-600",
   },
-  
+
 ];
 
 const WhyChooseFlyOla = () => {
@@ -57,12 +57,12 @@ const WhyChooseFlyOla = () => {
             <FaCheckCircle className="text-blue-600" />
             Why Choose Us
           </div>
-          
+
           <h2 className={cn('text-3xl', 'sm:text-4xl', 'lg:text-5xl', 'font-bold', 'text-gray-900', 'mb-6', 'leading-tight')}>
-            Why Choose 
+            Why Choose
             <span className={cn('bg-gradient-to-r', 'from-blue-600', 'to-indigo-600', 'bg-clip-text', 'text-transparent')}> Flyola</span>
           </h2>
-          
+
           <p className={cn('text-lg', 'text-gray-600', 'max-w-4xl', 'mx-auto', 'leading-relaxed')}>
             When it comes to air travel, Flyola stands out as a premier choice for travelers
             seeking a seamless, comfortable, and enjoyable journey. Here are compelling
@@ -82,7 +82,7 @@ const WhyChooseFlyOla = () => {
             <div className={cn('relative', 'h-96', 'lg:h-[500px]', 'flex', 'items-center', 'justify-center')}>
               {/* Background Gradient */}
               <div className={cn('absolute', 'inset-0', 'bg-gradient-to-br', 'from-blue-600', 'to-indigo-600', 'rounded-3xl', 'opacity-10')}></div>
-              
+
               {/* Aircraft Images */}
               <motion.div
                 initial={{ opacity: 0, scale: 0.8 }}
@@ -111,7 +111,7 @@ const WhyChooseFlyOla = () => {
               <div className={cn('absolute', 'top-8', 'right-8', 'w-16', 'h-16', 'bg-white', 'rounded-full', 'shadow-sm', 'flex', 'items-center', 'justify-center', 'opacity-90')}>
                 <FaCheckCircle className={cn('text-2xl', 'text-green-500')} />
               </div>
-              
+
               <div className={cn('absolute', 'bottom-8', 'left-8', 'w-20', 'h-20', 'bg-white', 'rounded-2xl', 'shadow-sm', 'flex', 'items-center', 'justify-center', 'opacity-90')}>
                 <div className="text-center">
                   <p className={cn('text-xs', 'text-gray-500')}>Rating</p>
