@@ -49,13 +49,17 @@ const FilterSectionTop = ({
 
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+            if (activeDropdown && dropdownRef.current && !dropdownRef.current.contains(event.target)) {
                 setActiveDropdown(null);
             }
         };
-        document.addEventListener("mousedown", handleClickOutside);
+        
+        if (activeDropdown) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        
         return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
+    }, [activeDropdown]);
 
     const updateCount = (type, increment) => {
         setCounts((prev) => {
@@ -142,358 +146,477 @@ const FilterSectionTop = ({
         <div ref={dropdownRef}>
 
 
-            {/* === DESKTOP / TABLET VIEW (Single Row) === */}
-            <div className="bg-white w-full">
-                <div
-                    className="hidden md:block w-full inter-font py-2 px-4 lg:px-10 shadow-sm mb-6 mt-4 relative z-40"
-                >
-                    <div className="flex items-center flex-wrap md:flex-nowrap lg:flex-nowrap gap-2 lg:gap-3 py-1 w-full">
+            {/* === DESKTOP / TABLET VIEW === */}
+            <div className="hidden md:block w-full bg-white inter-font overflow-visible">
+   
 
-                        {/* From & To */}
-                        <div className="flex items-center shrink-0">
+                {/* Search Box Container */}
+                <div className="max-w-[1600px] mx-auto px-4 lg:px-10">
+                    <div className=" rounded-2xl p-2  bg-white">
+                        
+                        {/* === TABLET VIEW ONLY (Single Row) === */}
+                        <div className="flex lg:hidden items-center flex-nowrap gap-2 py-1 w-full relative min-h-[60px]">
+                            
+                            {/* Departure & Arrival */}
+                            <div className="flex items-center shrink-0">
+                                <div className="relative">
+                                    <div
+                                        className="flex items-center gap-2 px-4 py-3 bg-sky-50 hover:bg-blue-100 rounded-l-full cursor-pointer min-w-[160px]"
+                                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "departure" ? null : "departure"); }}
+                                    >
+                                        <img src="/flights/flight_takeoff.svg" className="w-5 h-5" alt="" />
+                                        <span className="text-sm text-gray-800 truncate max-w-[100px]">
+                                            {locationOptions.find((o) => o.value === departure)?.label || "All Departure Airports"}
+                                        </span>
+                                        <ChevronDown className="w-4 h-4 ml-auto" />
+                                    </div>
 
-                            <div className="relative">
-                                <div
-                                    className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 lg:py-3 bg-sky-50 hover:bg-blue-100 rounded-l-full cursor-pointer min-w-[140px] lg:min-w-[200px]"
-                                    onClick={() =>
-                                        setActiveDropdown(
-                                            activeDropdown === "departure" ? null : "departure"
-                                        )
-                                    }
+                                    <AnimatePresence>
+                                        {activeDropdown === "departure" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full left-0 mt-2 w-[90vw] md:w-[400px] bg-white rounded-3xl shadow-2xl border z-[50] p-6"
+                                            >
+                                                <h3 className="text-lg font-bold mb-3">Departure</h3>
+                                                <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+                                                    {locationOptions.map((option, i) => (
+                                                        <button key={i} onClick={() => { onDepartureChange?.(option.value); setActiveDropdown(null); }} className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors">{option.label}</button>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+
+                                <button
+                                    onClick={(e) => { e.stopPropagation(); onSwap?.(); }}
+                                    className="w-10 h-10 shrink-0 flex items-center justify-center bg-white rounded-full shadow-md z-10 -mx-3"
                                 >
-                                    <img src="/flights/flight_takeoff.svg" className="w-4 h-4 lg:w-5 lg:h-5" />
+                                    <ArrowLeftRight className="w-4 h-4 text-blue-500" />
+                                </button>
 
-                                    <span className="text-xs lg:text-sm text-gray-800 truncate max-w-[100px] lg:max-w-max">
-                                        {locationOptions.find((o) => o.value === departure)?.label ||
-                                            "All Departure Airports"}
+                                <div className="relative">
+                                    <div
+                                        className="flex items-center gap-2 px-4 py-3 bg-sky-50 hover:bg-blue-100 rounded-r-full cursor-pointer min-w-[120px] pl-5"
+                                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "arrival" ? null : "arrival"); }}
+                                    >
+                                        <img src="/flights/flight_land.svg" className="w-5 h-5" alt="" />
+                                        <span className="text-sm text-gray-800 truncate max-w-[800px]">
+                                            {locationOptions.find((o) => o.value === arrival)?.label || "All Arrival Airports"}
+                                        </span>
+                                        <ChevronDown className="w-4 h-4 ml-auto" />
+                                    </div>
+
+                                    <AnimatePresence>
+                                        {activeDropdown === "arrival" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full right-0 mt-2 w-[90vw] md:w-[400px] bg-white rounded-3xl shadow-2xl border z-[50] p-6"
+                                            >
+                                                <h3 className="text-lg font-bold mb-3">Arrival</h3>
+                                                <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                                                    {locationOptions.map((option, i) => (
+                                                        <button key={i} onClick={() => { onArrivalChange?.(option.value); setActiveDropdown(null); }} className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors">{option.label}</button>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+
+                            {/* Date */}
+                            <div className="shrink-0 relative">
+                                <div
+                                    onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "date" ? null : "date"); }}
+                                    className="min-w-[120px] h-[48px] bg-sky-50 hover:bg-blue-100 rounded-full px-4 flex items-center gap-3 cursor-pointer"
+                                >
+                                    <img src="/flights/calendar_month.svg" className="w-5 h-5 shrink-0" alt="" />
+                                    <span className="text-sm whitespace-nowrap">
+                                        {date ? formatDateDisplay(date) : "Departure"}
                                     </span>
-
-                                    <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 ml-auto" />
                                 </div>
 
                                 <AnimatePresence>
-                                    {activeDropdown === "departure" && (
+                                    {activeDropdown === "date" && (
                                         <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full left-0 mt-2 w-[95vw] md:w-[400px] bg-white rounded-3xl shadow-2xl border z-50 p-6"
+                                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                                            className="absolute top-full left-0 mt-2 w-[90vw] md:w-[700px] lg:w-[900px] bg-white rounded-3xl shadow-2xl border z-[50] p-6 lg:p-8"
                                         >
-                                            <h3 className="text-lg font-bold mb-3">Departure</h3>
-
-                                            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                                                {locationOptions.map((option, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => {
-                                                            onDepartureChange?.(option.value);
-                                                            setActiveDropdown(null);
-                                                        }}
-                                                        className="px-4 py-3 rounded-full border text-sm"
-                                                    >
-                                                        {option.label}
-                                                    </button>
-                                                ))}
+                                            <div className="flex justify-between items-center mb-6">
+                                                <h3 className="text-xl font-semibold">Set the Date</h3>
+                                                <div className="flex gap-2">
+                                                    <button onClick={(e) => { e.stopPropagation(); setMonth(m => m === 0 ? 11 : m - 1); if (month === 0) setYear(year - 1); }} className="p-2 border rounded-full hover:bg-gray-100">←</button>
+                                                    <button onClick={(e) => { e.stopPropagation(); setMonth(m => m === 11 ? 0 : m + 1); if (month === 11) setYear(year + 1); }} className="p-2 border rounded-full hover:bg-gray-100">→</button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
+                                                <CalendarMonth month={month} year={year} startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} onDepartureChange={onDepartureChange} onReturnDateChange={onReturnDateChange} />
+                                                <div className="hidden md:block">
+                                                    <CalendarMonth month={(month + 1) % 12} year={month === 11 ? year + 1 : year} startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} onDepartureChange={onDepartureChange} onReturnDateChange={onReturnDateChange} />
+                                                </div>
                                             </div>
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
                             </div>
 
-                            {/* Swap */}
-                            <button
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    onSwap?.();
-                                }}
-                                className="w-6 h-6 lg:w-10 lg:h-10 shrink-0 flex items-center justify-center bg-white rounded-full shadow-md z-10 -mx-3"
-                            >
-                                <ArrowLeftRight className="w-3 h-3 lg:w-4 lg:h-4 text-blue-500" />
-                            </button>
+                            {/* Passengers & Class */}
+                            <div className="flex items-center gap-2 shrink-0">
+                                <div className="relative">
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "passengers" ? null : "passengers"); }}
+                                        className="flex items-center gap-2 px-4 py-3 rounded-2xl hover:bg-gray-50 cursor-pointer h-[48px]"
+                                    >
+                                        <img src="/flights/person.svg" className="w-5 h-5 shrink-0" alt="" />
+                                        <span className="font-bold text-sm">{totalPassengers}</span>
+                                        <ChevronDown className="w-4 h-4 shrink-0" />
+                                    </div>
 
-                            {/* Arrival */}
-                            <div className="relative">
-                                <div
-                                    className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 lg:py-3 bg-sky-50 hover:bg-blue-100 rounded-r-full cursor-pointer min-w-[140px] lg:min-w-[200px] pl-4 lg:pl-5"
-                                    onClick={() =>
-                                        setActiveDropdown(
-                                            activeDropdown === "arrival" ? null : "arrival"
-                                        )
-                                    }
-                                >
-                                    <img src="/flights/flight_land.svg" className="w-4 h-4 lg:w-5 lg:h-5" />
-
-                                    <span className="text-xs lg:text-sm text-gray-800 truncate max-w-[100px] lg:max-w-max">
-                                        {locationOptions.find((o) => o.value === arrival)?.label ||
-                                            "All Arrival Airports"}
-                                    </span>
-
-                                    <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 ml-auto" />
+                                    <AnimatePresence>
+                                        {activeDropdown === "passengers" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full right-0 mt-2 w-[280px] bg-white rounded-3xl shadow-2xl border z-[50] p-6"
+                                            >
+                                                <h3 className="text-lg font-bold mb-4">Passengers</h3>
+                                                {["adults", "children", "infants"].map(type => (
+                                                    <div key={type} className="flex justify-between items-center mb-4">
+                                                        <div>
+                                                            <div className="font-bold text-sm capitalize">{type}</div>
+                                                            <div className="text-[11px] text-gray-500">{type === "adults" ? "> 12 yrs" : type === "children" ? "2-12 yrs" : "< 2 yrs"}</div>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <button onClick={(e) => { e.stopPropagation(); updateCount(type, false); }} className="w-8 h-8 rounded-full border">-</button>
+                                                            <span className="w-4 text-center font-bold">{counts[type]}</span>
+                                                            <button onClick={(e) => { e.stopPropagation(); updateCount(type, true); }} className="w-8 h-8 rounded-full border">+</button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
-                                <AnimatePresence>
-                                    {activeDropdown === "arrival" && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full left-0 lg:left-auto lg:right-0 mt-2 w-[95vw] md:w-[400px] bg-white rounded-3xl shadow-2xl border z-50 p-6"
-                                        >
-                                            <h3 className="text-lg font-bold mb-3">Arrival</h3>
+                                <div className="relative">
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "class" ? null : "class"); }}
+                                        className="flex items-center gap-2 px-4 py-3 rounded-full hover:bg-gray-50 cursor-pointer h-[48px]"
+                                    >
+                                        <span className="text-sm whitespace-nowrap">{flightClass}</span>
+                                        <ChevronDown className="w-4 h-4 shrink-0" />
+                                    </div>
 
-                                            <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
-                                                {locationOptions.map((option, i) => (
-                                                    <button
-                                                        key={i}
-                                                        onClick={() => {
-                                                            onArrivalChange?.(option.value);
-                                                            setActiveDropdown(null);
-                                                        }}
-                                                        className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors"
-                                                    >
-                                                        {option.label}
-                                                    </button>
+                                    <AnimatePresence>
+                                        {activeDropdown === "class" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full right-0 mt-2 w-[200px] bg-white rounded-3xl shadow-2xl border z-[50] p-4"
+                                            >
+                                                {["All Class", "Economy", "Premium Economy", "Business", "First Class"].map(cls => (
+                                                    <button key={cls} onClick={() => { handleClassSelect(cls); setActiveDropdown(null); }} className={`w-full text-left px-4 py-2 rounded-xl text-sm ${flightClass === cls ? "bg-blue-600 text-white font-bold" : "hover:bg-gray-50"}`}>{cls}</button>
                                                 ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+
+                            {/* Search */}
+                            <div className="shrink-0 ml-auto">
+                                <button
+                                    onClick={onSearch}
+                                    className="flex items-center justify-center gap-2 bg-[#ff9933] hover:bg-[#ff8822] text-white px-6 py-3 rounded-full h-[48px] text-sm font-medium"
+                                >
+                                    <Search className="w-5 h-5" />
+                                    <span>Search</span>
+                                </button>
                             </div>
                         </div>
 
 
-                        {/* Date */}
-                        <div className="flex items-center gap-1 lg:gap-2 shrink-0">
+                        {/* === DESKTOP VIEW ONLY (Two Rows) === */}
+                        <div className="hidden lg:flex flex-col gap-6 w-full">
+                            
+                            {/* Row 1: Locations & Date */}
+                            <div className="flex items-center gap-4">
+                                
+                                {/* Departure & Arrival Group */}
+                                <div className="flex items-center flex-1">
+                                    <div className="relative flex-1">
+                                        <div
+                                            className="flex items-center gap-4 px-6 py-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-3xl cursor-pointer"
+                                            onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "departure" ? null : "departure"); }}
+                                        >
+                                            <img src="/flights/flight_takeoff.svg" className="w-6 h-6" alt="" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">From</span>
+                                                <span className="text-base font-bold text-gray-800">
+                                                    {(() => {
+                                                        const loc = getLocationDisplay(departure, 'from');
+                                                        return `${loc.city} (${loc.code})`;
+                                                    })()}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className="w-4 h-4 ml-auto text-gray-400" />
+                                        </div>
 
-                            <div
-                                onClick={() =>
-                                    setActiveDropdown(activeDropdown === "date" ? null : "date")
-                                }
-                                className="min-w-[120px] lg:min-w-[200px] h-[36px] lg:h-[48px] bg-sky-50 hover:bg-blue-100 rounded-full px-3 lg:px-4 flex items-center gap-2 lg:gap-3 cursor-pointer"
-                            >
-                                <img src="/flights/calendar_month.svg" className="w-4 h-4 lg:w-5 lg:h-5 shrink-0" />
-
-                                <span className="text-xs lg:text-sm whitespace-nowrap">
-                                    {date ? formatDateDisplay(date) : "Departure"}
-                                </span>
-                            </div>
-
-                            {!isReturnActive ? (
-                                <div
-                                    onClick={handleAddReturn}
-                                    className="h-[36px] lg:h-[48px] flex items-center gap-1 lg:gap-2 bg-sky-50 hover:bg-blue-100 px-3 lg:px-4 rounded-full cursor-pointer"
-                                >
-                                    <Plus className="w-3 h-3 lg:w-4 lg:h-4 text-blue-600 shrink-0" />
-                                    <span className="text-xs lg:text-sm whitespace-nowrap">Add return</span>
-                                </div>
-                            ) : (
-                                <div className="relative h-[36px] lg:h-[48px] bg-sky-50 rounded-full flex items-center px-3 lg:px-4">
-                                    <span className="text-xs lg:text-sm whitespace-nowrap">{formatDateDisplay(returnDate)}</span>
+                                        <AnimatePresence>
+                                            {activeDropdown === "departure" && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className="absolute top-full left-0 mt-3 w-[400px] bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-6"
+                                                >
+                                                    <h3 className="text-lg font-bold mb-3">Departure</h3>
+                                                    <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+                                                        {locationOptions.map((option, i) => (
+                                                            <button key={i} onClick={() => { onDepartureChange?.(option.value); setActiveDropdown(null); }} className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors">
+                                                                {option.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
 
                                     <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleRemoveReturn();
-                                        }}
-                                        className="ml-2"
+                                        onClick={(e) => { e.stopPropagation(); onSwap?.(); }}
+                                        className="w-12 h-12 shrink-0 flex items-center justify-center bg-white rounded-full shadow-lg border border-gray-100 z-10 -mx-6 hover:scale-110 transition-transform"
                                     >
-                                        <X size={14} className="shrink-0" />
+                                        <ArrowLeftRight className="w-5 h-5 text-blue-500" />
                                     </button>
-                                </div>
-                            )}
 
-                            <AnimatePresence>
-                                {activeDropdown === "date" && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: 10 }}
-                                        className="absolute top-full left-0 mt-4 w-[95vw] md:w-[700px] lg:w-[900px] bg-white rounded-3xl shadow-2xl border z-50 p-6 lg:p-8"
+                                    <div className="relative flex-1">
+                                        <div
+                                            className="flex items-center gap-4 px-6 py-4 bg-sky-50 hover:bg-sky-100 transition-colors rounded-3xl cursor-pointer pl-10"
+                                            onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "arrival" ? null : "arrival"); }}
+                                        >
+                                            <img src="/flights/flight_land.svg" className="w-6 h-6" alt="" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">To</span>
+                                                <span className="text-base font-bold text-gray-800">
+                                                    {(() => {
+                                                        const loc = getLocationDisplay(arrival, 'to');
+                                                        return `${loc.city} (${loc.code})`;
+                                                    })()}
+                                                </span>
+                                            </div>
+                                            <ChevronDown className="w-4 h-4 ml-auto text-gray-400" />
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {activeDropdown === "arrival" && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className="absolute top-full right-0 mt-3 w-[400px] bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-6"
+                                                >
+                                                    <h3 className="text-lg font-bold mb-3">Arrival</h3>
+                                                    <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto pr-2">
+                                                        {locationOptions.map((option, i) => (
+                                                            <button key={i} onClick={() => { onArrivalChange?.(option.value); setActiveDropdown(null); }} className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors">
+                                                                {option.label}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+
+                                {/* Date Picker */}
+                                <div className="relative min-w-[280px]">
+                                    <div
+                                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "date" ? null : "date"); }}
+                                        className="h-[68px] bg-sky-50 hover:bg-sky-100 transition-colors rounded-3xl px-8 flex items-center gap-4 cursor-pointer"
                                     >
-                                        <div className="flex justify-between items-center mb-6">
-
-                                            <h3 className="text-xl font-semibold">Set the Date</h3>
-
-                                            <div className="flex items-center gap-2">
-
-                                                <button
-                                                    onClick={() => {
-                                                        if (month === 0) {
-                                                            setMonth(11);
-                                                            setYear(year - 1);
-                                                        } else {
-                                                            setMonth(month - 1);
-                                                        }
-                                                    }}
-                                                    className="p-2 rounded-full hover:bg-gray-100"
-                                                >
-                                                    ←
-                                                </button>
-
-                                                <button
-                                                    onClick={() => {
-                                                        if (month === 11) {
-                                                            setMonth(0);
-                                                            setYear(year + 1);
-                                                        } else {
-                                                            setMonth(month + 1);
-                                                        }
-                                                    }}
-                                                    className="p-2 rounded-full hover:bg-gray-100"
-                                                >
-                                                    →
-                                                </button>
-
-                                            </div>
+                                        <img src="/flights/calendar_month.svg" className="w-6 h-6 shrink-0" alt="" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Date</span>
+                                            <span className="text-base font-bold text-gray-800 whitespace-nowrap">
+                                                {date ? formatDateDisplay(date) : "Departure"}
+                                            </span>
                                         </div>
+                                    </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
-                                            <CalendarMonth
-                                                month={month}
-                                                year={year}
-                                                startDate={startDate}
-                                                endDate={endDate}
-                                                setStartDate={setStartDate}
-                                                setEndDate={setEndDate}
-                                                onDepartureChange={onDepartureChange}
-                                                onReturnDateChange={onReturnDateChange}
-                                            />
-
-                                            <CalendarMonth
-                                                month={month + 1}
-                                                year={month === 11 ? year + 1 : year}
-                                                startDate={startDate}
-                                                endDate={endDate}
-                                                setStartDate={setStartDate}
-                                                setEndDate={setEndDate}
-                                                onDepartureChange={onDepartureChange}
-                                                onReturnDateChange={onReturnDateChange}
-                                            />
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-
-                        {/* Passengers & Class */}
-                        <div className="flex items-center gap-1 lg:gap-2 shrink-0">
-                            {/* Passengers */}
-                            <div className="relative">
-                                <div
-                                    onClick={() =>
-                                        setActiveDropdown(
-                                            activeDropdown === "passengers" ? null : "passengers"
-                                        )
-                                    }
-                                    className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 lg:py-3 rounded-2xl lg:bg-transparent hover:bg-gray-50 cursor-pointer h-[36px] lg:h-[48px]"
-                                >
-                                    <img src="/flights/person.svg" className="w-4 h-4 lg:w-5 lg:h-5 shrink-0" />
-                                    <span className="font-bold text-xs lg:text-sm">{totalPassengers}</span>
-                                    <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 shrink-0" />
+                                    <AnimatePresence>
+                                        {activeDropdown === "date" && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 10 }}
+                                                className="absolute top-full right-0 mt-4 w-[900px] bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-8"
+                                            >
+                                                <div className="flex justify-between items-center mb-6">
+                                                    <h3 className="text-xl font-bold">Set the Date</h3>
+                                                    <div className="flex items-center gap-2">
+                                                        <button onClick={() => { if (month === 0) { setMonth(11); setYear(year - 1); } else { setMonth(month - 1); } }} className="p-2 border border-gray-100 rounded-full hover:bg-gray-50">←</button>
+                                                        <button onClick={() => { if (month === 11) { setMonth(0); setYear(year + 1); } else { setMonth(month + 1); } }} className="p-2 border border-gray-100 rounded-full hover:bg-gray-50">→</button>
+                                                    </div>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-10">
+                                                    <CalendarMonth month={month} year={year} startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} onDepartureChange={onDepartureChange} onReturnDateChange={onReturnDateChange} />
+                                                    <CalendarMonth month={month + 1} year={month === 11 ? year + 1 : year} startDate={startDate} endDate={endDate} setStartDate={setStartDate} setEndDate={setEndDate} onDepartureChange={onDepartureChange} onReturnDateChange={onReturnDateChange} />
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
 
-                                <AnimatePresence>
-                                    {activeDropdown === "passengers" && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full right-0 lg:right-auto lg:left-0 mt-2 w-[300px] bg-white rounded-3xl shadow-2xl border z-50 p-6"
-                                        >
-                                            <h3 className="text-lg font-bold mb-4">Passengers</h3>
-
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div>
-                                                    <div className="font-bold text-sm">Adults</div>
-                                                    <div className="text-[11px] text-gray-500">&gt; 12 yrs</div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("adults", false); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
-                                                    <span className="w-4 text-center font-bold">{counts.adults}</span>
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("adults", true); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Plus className="w-4 h-4" /></button>
-                                                </div>
+                                {/* Add Return Pill */}
+                                <div className="relative">
+                                    {!isReturnActive ? (
+                                        <div onClick={handleAddReturn} className="h-[68px] flex items-center gap-3 bg-sky-50/50 hover:bg-sky-100/50 transition-colors px-8 rounded-full cursor-pointer border-2 border-dashed border-sky-300">
+                                            <Plus className="w-5 h-5 text-blue-500" />
+                                            <span className="text-sm font-bold text-blue-600 whitespace-nowrap">Add return</span>
+                                        </div>
+                                    ) : (
+                                        <div className="relative h-[68px] bg-sky-50 rounded-full flex items-center px-8 gap-4 min-w-[180px]">
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">Return</span>
+                                                <span className="text-base font-bold text-gray-800 whitespace-nowrap">{formatDateDisplay(returnDate)}</span>
                                             </div>
-                                            <div className="flex items-center justify-between mb-4">
-                                                <div>
-                                                    <div className="font-bold text-sm">Children</div>
-                                                    <div className="text-[11px] text-gray-500">2-12 yrs</div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("children", false); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
-                                                    <span className="w-4 text-center font-bold">{counts.children}</span>
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("children", true); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Plus className="w-4 h-4" /></button>
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <div className="font-bold text-sm">Infants</div>
-                                                    <div className="text-[11px] text-gray-500">&lt; 2 yrs</div>
-                                                </div>
-                                                <div className="flex items-center gap-3">
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("infants", false); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Minus className="w-4 h-4" /></button>
-                                                    <span className="w-4 text-center font-bold">{counts.infants}</span>
-                                                    <button onClick={(e) => { e.stopPropagation(); updateCount("infants", true); }} className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-50"><Plus className="w-4 h-4" /></button>
-                                                </div>
-                                            </div>
-                                        </motion.div>
+                                            <button onClick={(e) => { e.stopPropagation(); handleRemoveReturn(); }} className="hover:bg-red-50 p-1.5 rounded-full transition-colors ml-auto">
+                                                <X size={16} className="text-gray-400 hover:text-red-500" />
+                                            </button>
+                                        </div>
                                     )}
-                                </AnimatePresence>
-                            </div>
-
-                            {/* Class */}
-                            <div className="relative">
-                                <div
-                                    onClick={() =>
-                                        setActiveDropdown(
-                                            activeDropdown === "class" ? null : "class"
-                                        )
-                                    }
-                                    className="flex items-center gap-1 lg:gap-2 px-3 lg:px-4 py-2 lg:py-3 rounded-full lg:bg-transparent hover:bg-gray-50 cursor-pointer h-[36px] lg:h-[48px]"
-                                >
-                                    <span className="text-xs lg:text-sm whitespace-nowrap">{flightClass}</span>
-                                    <ChevronDown className="w-3 h-3 lg:w-4 lg:h-4 shrink-0" />
                                 </div>
 
-                                <AnimatePresence>
-                                    {activeDropdown === "class" && (
-                                        <motion.div
-                                            initial={{ opacity: 0, y: 10 }}
-                                            animate={{ opacity: 1, y: 0 }}
-                                            exit={{ opacity: 0, y: 10 }}
-                                            className="absolute top-full right-0 mt-2 w-[220px] bg-white rounded-3xl shadow-2xl border z-50 p-6"
-                                        >
-                                            <h3 className="text-lg font-bold mb-3">Class</h3>
-                                            <div className="flex flex-col gap-2">
-                                                {["All Class", "Economy", "Premium Economy", "Business", "First Class"].map((cls) => (
-                                                    <button
-                                                        key={cls}
-                                                        onClick={(e) => { e.stopPropagation(); handleClassSelect(cls); }}
-                                                        className={`px-4 py-2 rounded-xl text-left text-sm transition-colors ${flightClass === cls ? "bg-sky-50 font-bold text-blue-600" : "hover:bg-gray-100"}`}
-                                                    >
-                                                        {cls}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
                             </div>
-                        </div>
 
-                        {/* Search */}
-                        <div className="ml-auto shrink-0 flex justify-end">
-                            <button
-                                onClick={onSearch}
-                                className="flex items-center justify-center gap-1 lg:gap-2 bg-[#ff9933] hover:bg-[#ff8822] text-white px-2 lg:px-10 py-1 lg:py-3 rounded-full lg:font-semibold h-[26px] lg:h-[48px] text-sm lg:text-base"
-                            >
-                                <Search className="w-3 h-3 lg:w-5 lg:h-5" />
-                                <span className="lg:inline md:text-xs lg:text-lg">Search</span>
-                            </button>
+                            {/* Row 2: Passengers, Class, Search */}
+                            <div className="flex items-center justify-between mt-2">
+                                
+                                <div className="flex items-center gap-8 px-2">
+                                    {/* Passengers Selector */}
+                                    <div className="relative">
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "passengers" ? null : "passengers"); }}
+                                            className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition-colors rounded-2xl cursor-pointer"
+                                        >
+                                            <div className="flex items-center gap-3">
+                                                <img src="/flights/person.svg" className="w-6 h-6 shrink-0" alt="" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase">Passengers</span>
+                                                    <span className="font-bold text-gray-800 text-lg leading-tight">{totalPassengers}</span>
+                                                </div>
+                                            </div>
+                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {activeDropdown === "passengers" && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className="absolute top-full left-0 mt-3 w-[320px] bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-6"
+                                                >
+                                                    <h3 className="text-lg font-bold mb-5">Passengers</h3>
+                                                    <div className="space-y-5">
+                                                        {[
+                                                            { label: "Adults", sub: "> 12 yrs", type: "adults" },
+                                                            { label: "Children", sub: "2-12 yrs", type: "children" },
+                                                            { label: "Infants", sub: "< 2 yrs", type: "infants" }
+                                                        ].map((pax) => (
+                                                            <div key={pax.type} className="flex items-center justify-between">
+                                                                <div>
+                                                                    <div className="font-bold text-base text-gray-800">{pax.label}</div>
+                                                                    <div className="text-[11px] text-gray-400 font-medium">{pax.sub}</div>
+                                                                </div>
+                                                                <div className="flex items-center gap-4">
+                                                                    <button onClick={(e) => { e.stopPropagation(); updateCount(pax.type, false); }} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                                                        <Minus className="w-4 h-4 text-gray-600" />
+                                                                    </button>
+                                                                    <span className="w-4 text-center font-bold text-gray-800">{counts[pax.type]}</span>
+                                                                    <button onClick={(e) => { e.stopPropagation(); updateCount(pax.type, true); }} className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center hover:bg-blue-50 hover:border-blue-200 transition-colors">
+                                                                        <Plus className="w-4 h-4 text-gray-600" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+
+                                    {/* Flight Class Selector */}
+                                    <div className="relative border-l border-gray-100 pl-8">
+                                        <div
+                                            onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "class" ? null : "class"); }}
+                                            className="flex items-center gap-4 px-6 py-3 hover:bg-gray-50 transition-colors rounded-2xl cursor-pointer"
+                                        >
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase">Class</span>
+                                                <span className="text-gray-800 font-bold text-lg leading-tight">{flightClass}</span>
+                                            </div>
+                                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                                        </div>
+
+                                        <AnimatePresence>
+                                            {activeDropdown === "class" && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    exit={{ opacity: 0, y: 10 }}
+                                                    className="absolute top-full left-0 mt-3 w-[260px] bg-white rounded-3xl shadow-2xl border border-gray-100 z-50 p-5"
+                                                >
+                                                    <h3 className="text-base font-bold mb-4 px-2">Travel Class</h3>
+                                                    <div className="flex flex-col gap-1.5">
+                                                        {["All Class", "Economy", "Premium Economy", "Business", "First Class"].map((cls) => (
+                                                            <button
+                                                                key={cls}
+                                                                onClick={(e) => { e.stopPropagation(); handleClassSelect(cls); }}
+                                                                className={`px-4 py-3 rounded-xl text-left text-sm transition-all ${flightClass === cls ? "bg-blue-600 font-bold text-white shadow-md shadow-blue-100" : "hover:bg-gray-50 text-gray-600"}`}
+                                                            >
+                                                                {cls}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+                                    </div>
+                                </div>
+
+                                {/* Search Button */}
+                                <button
+                                    onClick={onSearch}
+                                    className="bg-[#ff9933] hover:bg-[#ff8822] text-white px-16 py-5 rounded-3xl font-bold text-xl transition-all shadow-xl shadow-orange-100 flex items-center gap-4 hover:scale-[1.02] active:scale-[0.98] group"
+                                >
+                                    <Search className="w-6 h-6 group-hover:rotate-12 transition-transform" />
+                                    <span>Search Flights</span>
+                                </button>
+
+                            </div>
+
                         </div>
 
                     </div>
                 </div>
             </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -523,7 +646,7 @@ const FilterSectionTop = ({
                 <div className="flex flex-row gap-2 relative mb-2">
                     <div
                         className="flex-1 bg-white border border-gray-200 rounded-[12px] p-3 cursor-pointer overflow-hidden"
-                        onClick={() => setActiveDropdown(activeDropdown === "departure" ? null : "departure")}
+                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "departure" ? null : "departure"); }}
                     >
                         <div className="text-[11px] font-bold text-gray-500 mb-1">FROM</div>
                         {(() => {
@@ -551,7 +674,7 @@ const FilterSectionTop = ({
 
                     <div
                         className="flex-1 bg-white border border-gray-200 rounded-[12px] p-3 cursor-pointer overflow-hidden pl-5"
-                        onClick={() => setActiveDropdown(activeDropdown === "arrival" ? null : "arrival")}
+                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "arrival" ? null : "arrival"); }}
                     >
                         <div className="text-[11px] font-bold text-gray-500 mb-1">TO</div>
                         {(() => {
@@ -571,7 +694,7 @@ const FilterSectionTop = ({
                 <div className="flex flex-row gap-2 mb-2">
                     <div
                         className="flex-1 bg-white border border-gray-200 rounded-[12px] p-3 cursor-pointer overflow-hidden"
-                        onClick={() => setActiveDropdown(activeDropdown === "date" ? null : "date")}
+                        onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "date" ? null : "date"); }}
                     >
                         <div className="text-[11px] font-bold text-gray-500 mb-1">DEPARTURE DATE</div>
                         <div className="text-[16px] font-bold text-black leading-tight flex items-baseline gap-1 truncate mb-3">
@@ -582,7 +705,8 @@ const FilterSectionTop = ({
 
                     <div
                         className={`flex-1 bg-white border border-gray-200 rounded-[12px] p-3 cursor-pointer overflow-hidden relative ${!isReturnActive ? 'opacity-70' : ''}`}
-                        onClick={() => {
+                        onClick={(e) => {
+                            e.stopPropagation();
                             if (!isReturnActive) { setTripType('roundtrip'); handleAddReturn(); }
                             else setActiveDropdown(activeDropdown === "date" ? null : "date");
                         }}
@@ -605,7 +729,7 @@ const FilterSectionTop = ({
 
                 <div
                     className="w-full bg-white border border-gray-200 rounded-[12px] p-3 mb-20 cursor-pointer"
-                    onClick={() => setActiveDropdown(activeDropdown === "passengers" ? null : "passengers")}
+                    onClick={(e) => { e.stopPropagation(); setActiveDropdown(activeDropdown === "passengers" ? null : "passengers"); }}
                 >
                     <div className="text-[11px] font-bold text-gray-500 mb-1">TRAVELLER & CLASS</div>
                     <div className="text-[16px] text-gray-800 leading-tight mb-3">
@@ -799,7 +923,7 @@ function generateCalendar(month, year) {
 
 
 
-function CalendarMonth({ month, year, selectedDate, setSelectedDate }) {
+function CalendarMonth({ month, year, startDate, endDate, setStartDate, setEndDate, onDepartureChange, onReturnDateChange }) {
     const days = generateCalendar(month, year);
     const monthName = new Date(year, month).toLocaleString("default", {
         month: "long",
@@ -807,44 +931,63 @@ function CalendarMonth({ month, year, selectedDate, setSelectedDate }) {
 
     const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
+    const isSelected = (day) => {
+        if (!day || !day.current) return false;
+        const d = new Date(year, month, day.day);
+        if (startDate && d.toDateString() === startDate.toDateString()) return true;
+        if (endDate && d.toDateString() === endDate.toDateString()) return true;
+        return false;
+    };
+
+    const isInRange = (day) => {
+        if (!day || !day.current || !startDate || !endDate) return false;
+        const d = new Date(year, month, day.day);
+        return d > startDate && d < endDate;
+    };
+
     return (
         <div className="w-full">
-            <h2 className="text-lg font-semibold mb-4 text-center">
+            <h2 className="text-sm font-semibold mb-2 text-center text-gray-700">
                 {monthName} {year}
             </h2>
 
-            <div className="grid grid-cols-7 text-center text-sm mb-2">
+            <div className="grid grid-cols-7 text-center text-[10px] mb-1 text-gray-400">
                 {weekdays.map((d, i) => (
-                    <div
-                        key={i}
-                        className={`font-medium ${i === 0 ? "text-red-500" : ""}`}
-                    >
-                        {d}
-                    </div>
+                    <div key={i} className="font-bold">{d}</div>
                 ))}
             </div>
 
-            <div className="grid grid-cols-7 text-center gap-y-2">
+            <div className="grid grid-cols-7 text-center gap-y-1">
                 {days.map((d, i) => {
-                    const isSelected =
-                        selectedDate?.day === d.day &&
-                        selectedDate?.month === month &&
-                        selectedDate?.year === year;
+                    const selected = isSelected(d);
+                    const range = isInRange(d);
 
                     return (
                         <div
                             key={i}
-                            onClick={() =>
-                                d.current &&
-                                setSelectedDate({ day: d.day, month: month, year: year })
-                            }
-                            className={`flex items-center justify-center w-10 h-10 mx-auto rounded-full cursor-pointer
-              ${isSelected
-                                    ? "bg-blue-500 text-white"
-                                    : d.current
-                                        ? "text-gray-800 hover:bg-gray-100"
-                                        : "text-gray-300"
-                                }`}
+                            onClick={() => {
+                                if (!d.current) return;
+                                const selectedDate = new Date(year, month, d.day);
+                                const formatted = selectedDate.toISOString().split("T")[0];
+                                
+                                if (!startDate || (startDate && endDate)) {
+                                    setStartDate(selectedDate);
+                                    setEndDate(null);
+                                    onDepartureChange?.(formatted);
+                                } else if (startDate && !endDate) {
+                                    if (selectedDate < startDate) {
+                                        setStartDate(selectedDate);
+                                        onDepartureChange?.(formatted);
+                                    } else {
+                                        setEndDate(selectedDate);
+                                        onReturnDateChange?.(formatted);
+                                    }
+                                }
+                            }}
+                            className={`flex items-center justify-center w-8 h-8 mx-auto rounded-full cursor-pointer text-xs transition-colors
+                                ${selected ? "bg-blue-600 text-white font-bold" : 
+                                  range ? "bg-blue-50 text-blue-600" : 
+                                  d.current ? "text-gray-700 hover:bg-gray-100" : "text-gray-200"}`}
                         >
                             {d.day}
                         </div>
