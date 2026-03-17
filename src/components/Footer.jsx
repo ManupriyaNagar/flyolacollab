@@ -45,8 +45,9 @@ const Footer = () => {
   ];
 
   return (
-    <footer className="w-full bg-white border-t-[6px] border-[#F39C12] mt-10 font-sans">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <footer className="w-full bg-white border-t-[6px] border-[#F39C12] font-sans">
+      {/* Desktop & Tablet View */}
+      <div className="hidden md:block max-w-7xl mx-auto px-6 md:px-8 py-12">
         {/* Top Header Row */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
           <div className="flex items-center">
@@ -54,7 +55,7 @@ const Footer = () => {
             <img src="/flights/flyolalogo.svg" alt="" />
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center lg:gap-10 gap-4 lg:pr-20 pr-10">
             <Link href="#" className="text-gray-800 hover:text-[#0133EA] transition-colors"><Facebook size={18} fill="currentColor" /></Link>
             <Link href="#" className="text-gray-800 hover:text-[#0133EA] transition-colors"><Instagram size={18} /></Link>
             <Link href="#" className="text-gray-800 hover:text-[#0133EA] transition-colors"><Linkedin size={18} fill="currentColor" /></Link>
@@ -63,9 +64,9 @@ const Footer = () => {
         </div>
 
         {/* Main Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 mb-12">
           {footerSections.map((section) => (
-            <div key={section.title} className="lg:pt-0">
+            <div key={section.title} className="pt-0">
               <ul className="space-y-3">
                 {section.links.map((link) => (
                   <li key={link.name}>
@@ -103,7 +104,7 @@ const Footer = () => {
         </div>
 
         {/* Bottom App & Checkout Section */}
-        <div className="flex flex-col lg:flex-row justify-between items-end gap-10">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-10">
           <div className="flex flex-wrap gap-4">
             <Link href="#" className="block transition-transform hover:scale-105">
               <img src="/flights/Storedownloadbutton.svg" alt="Download on the App Store" className="h-12 w-auto border border-gray-200 rounded-lg shadow-sm" />
@@ -113,32 +114,123 @@ const Footer = () => {
             </Link>
           </div>
 
-          <div className="w-full max-w-sm">
-            {/* <div className="relative border border-gray-100 rounded-lg p-2 bg-gray-50/30"> */}
-              {/* <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-white px-2">
-                <span className="text-[10px] text-gray-400 font-semibold tracking-wider uppercase">Guaranteed Safe Checkout</span>
-              </div> */}
-              <div className="flex items-center justify-between px-2 py-1">
-                <img src="/flights/topping.svg" alt="" className="h-5" />
+          <div className="w-full max-w-sm pl-27">
+            <div className="flex items-center justify-between px-2 py-1">
+              <img src="/flights/topping.svg" alt="" className="h-5" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile View Layout */}
+      <div className="md:hidden px-6 py-10 space-y-8">
+        {/* App Banner */}
+        <div className="w-full bg-[#0E35B5] rounded-3xl p-8 text-white space-y-4 shadow-lg overflow-hidden relative">
+          <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:20px_20px]"></div>
+          <div className="relative z-10">
+            <h3 className="text-xl font-bold leading-tight">Plan, Book, and Track on the Go with Flyola App</h3>
+            <p className="text-xs text-blue-100 opacity-90 leading-relaxed">
+              Experience faster bookings, live train updates, and easy cancellations — all in one app
+            </p>
+            <div className="flex gap-3 pt-2">
+              <Link href="#" className="w-24">
+                <img src="/flights/Storedownloadbuttonn.svg" alt="Google Play" className="w-full h-auto" />
+              </Link>
+              <Link href="#" className="w-24">
+                <img src="/flights/Storedownloadbutton.svg" alt="App Store" className="w-full h-auto" />
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Safe Checkout Section */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="h-px bg-gray-200 flex-grow"></div>
+            <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase text-center">Guaranteed Safe Checkout</span>
+            <div className="h-px bg-gray-200 flex-grow"></div>
+          </div>
+          <div className="flex justify-center">
+            <img src="/flights/topping.svg" alt="Payment Methods" className="h-10 w-auto" />
+          </div>
+        </div>
+
+        {/* Logo Section */}
+        <div className="flex justify-center py-2">
+          <img src="/flights/flyolalogo.svg" alt="Flyola" className="h-10 w-auto" />
+        </div>
+
+        {/* Links Grid */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6">
+          <ul className="space-y-4">
+            {footerSections[0].links.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className="text-gray-900 font-bold text-[15px] underline decoration-transparent hover:decoration-gray-300">
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <ul className="space-y-4">
+            {footerSections[1].links.map((link) => (
+              <li key={link.name}>
+                <Link href={link.href} className="text-gray-900 font-bold text-[15px] underline decoration-transparent hover:decoration-gray-300">
+                  {link.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Services & Contact */}
+        <div className="pt-6 space-y-6 border-t border-gray-100">
+          <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+            <ul className="space-y-4">
+              <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Personal Charter</Link></li>
+              <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Hire Charter</Link></li>
+              <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Helicopter Hire</Link></li>
+            </ul>
+            <ul className="space-y-4">
+              <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Business Class Charter</Link></li>
+              <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Jet Hire</Link></li>
+            </ul>
+          </div>
+
+          <div className="space-y-6 pt-4">
+            <div className="space-y-1">
+              <h4 className="font-black text-gray-900">Address:</h4>
+              <p className="text-sm text-gray-900 font-medium leading-normal">
+                Indraprasth Aerospace & Knowledge Park, Sector-77, Delhi-Jaipur NH-08, Gurgaon, Haryana-122004
+              </p>
+            </div>
+            <div className="flex justify-between items-start">
+              <div className="space-y-1">
+                <h4 className="font-black text-gray-900">Phone:</h4>
+                <p className="text-sm text-gray-900 font-medium">9311896389</p>
               </div>
-            {/* </div> */}
+              <div className="space-y-1 text-right">
+                <h4 className="font-black text-gray-900">Email:</h4>
+                <p className="text-sm text-gray-900 font-medium">booking@flyolaindia.com</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Footer Bottom Bar */}
       <div className="bg-white border-t border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-6 md:px-8 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-400">
             <p className="tracking-tight">
               Jet Serve Aviation Pvt. Ltd © {currentYear}. All Rights Reserved
             </p>
             <div className="flex items-center">
-              <a 
-                href="https://rbshstudio.com/" 
-                target="_blank" 
-                rel="noopener noreferrer" 
+              <a
+                href="https://rbshstudio.com/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-gray-500 underline decoration-gray-300 hover:text-black transition-colors"
+                id="powered-by-link"
               >
                 Powered By RBSH Studio
               </a>
@@ -151,104 +243,3 @@ const Footer = () => {
 };
 
 export default Footer;
-
-
-
-
-
-
-
-
-
-// import React from "react";
-// import { FaFacebookF, FaLinkedinIn, FaInstagram, FaTwitter, FaGlobe } from "react-icons/fa";
-
-// const Footer = () => {
-//   return (
-//     <footer className={cn('bg-[#0B2045]', 'text-white', 'z-10')}>
-//       {/* Special Discount Section */}
-      
-
-//       {/* Main Footer */}
-//       <div className={cn('container', 'mx-auto', 'px-6', 'py-10')}>
-//         <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-4', 'gap-6')}>
-//           {/* Logo & About */}
-//           <div>
-//             <img src="/logo-04.png" alt="Flyola Logo" className="h-12" />
-//             <p className={cn('text-sm', 'mt-4')}>
-//               Jet Serve Aviation is a premier provider of private jet services, catering to travelers seeking luxury, comfort, and convenience.
-//             </p>
-//             {/* Social Media Icons */}
-//             {/* <div className={cn('flex', 'space-x-4', 'mt-4')}>
-//               <FaFacebookF className={cn('cursor-pointer', 'hover:text-gray-400')} />
-//               <FaLinkedinIn className={cn('cursor-pointer', 'hover:text-gray-400')} />
-//               <FaInstagram className={cn('cursor-pointer', 'hover:text-gray-400')} />
-//               <FaTwitter className={cn('cursor-pointer', 'hover:text-gray-400')} />
-//               <FaGlobe className={cn('cursor-pointer', 'hover:text-gray-400')} />
-//             </div> */}
-//           </div>
-
-//           {/* Useful Links */}
-//           {/* <div>
-//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Useful Links</h3>
-//             <ul className="space-y-2">
-//               <li><a href="#" className="hover:text-gray-400">Home</a></li>
-//               <li><a href="#" className="hover:text-gray-400">About Us</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Blogs</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Contact Us</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Download Ticket</a></li>
-//             </ul>
-//           </div> */}
-
-//           {/* Legal */}
-//           {/* <div>
-//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Legal</h3>
-//             <ul className="space-y-2">
-//               <li><a href="#" className="hover:text-gray-400">Privacy Policy</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Refund Policy</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Terms & Conditions</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Disclaimer</a></li>
-//             </ul>
-//           </div> */}
-
-//           {/* Services */}
-//           {/* <div>
-//             <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Services</h3>
-//             <ul className="space-y-2">
-//               <li><a href="#" className="hover:text-gray-400">Personal Charter</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Hire Charter</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Business Class Charter</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Jet Hire</a></li>
-//               <li><a href="#" className="hover:text-gray-400">Helicopter Hire</a></li>
-//             </ul>
-//           </div> */}
-//         </div>
-
-//         {/* Payment Methods */}
-//         {/* <div className="mt-8">
-//           <h3 className={cn('font-semibold', 'text-lg', 'mb-3')}>Payment Methods</h3>
-//           <div className={cn('flex', 'space-x-4')}>
-//             <img src="/1.png" alt="Amex" className="h-6" />
-//             <img src="/2.png" alt="Google Pay" className="h-6" />
-//             <img src="/3.png" alt="Apple Pay" className="h-6" />
-//             <img src="/4.png" alt="Visa" className="h-6" />
-//           </div>
-//         </div> */}
-
-      
-//       </div>
-
-// <div className={cn('flex', 'justify-between', 'items-center', 'bg-[#09182C]', 'text-sm', 'py-4', 'px-6')}>
-//       {/* Bottom Footer */}
-//       <div className={cn('bg-[#09182C]', 'text-center', 'text-sm', 'py-4')}>
-//         Jet Serve Aviation Pvt. Ltd © 2025. All Rights Reserved 
-//       </div>
-//       <div className={cn('bg-[#09182C]', 'text-center', 'text-sm', 'py-4')}>
-//         Powered By RBSH Studio
-//       </div>
-//       </div>
-//     </footer>
-//   );
-// };
-
-// export default Footer;
