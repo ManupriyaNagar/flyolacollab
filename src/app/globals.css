@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "react-day-picker/dist/style.css";
+@import "react-day-picker/style.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -422,4 +422,166 @@ html {
   font-optical-sizing: auto;
   font-weight: 400;
   font-style: normal;
+}
+
+/* Premium Calendar Styles - Optimized for react-day-picker v9 */
+.calendar-premium-wrapper {
+  --rdp-accent-color: #0047FF;
+  --rdp-accent-foreground: white;
+  --rdp-day-size: 56px;
+  --rdp-spacing: 12px;
+  width: 100%;
+}
+
+.calendar-premium-wrapper .rdp-root {
+  --rdp-accent-color: #0047FF;
+  margin: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.calendar-premium-wrapper .rdp-months {
+  display: flex;
+  justify-content: center;
+  gap: 6rem;
+  flex-wrap: nowrap;
+  width: 100%;
+}
+
+.calendar-premium-wrapper .rdp-month {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Header & Navigation positioning */
+.calendar-premium-wrapper .rdp-caption {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 2rem;
+  height: 48px;
+}
+
+.calendar-premium-wrapper .rdp-caption_label {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1e293b;
+  z-index: 1;
+}
+
+.calendar-premium-wrapper .rdp-nav {
+  position: absolute;
+  top: -100px;
+  right: 0;
+  display: flex;
+  gap: 12px;
+  z-index: 50;
+}
+
+.calendar-premium-wrapper .rdp-button_next,
+.calendar-premium-wrapper .rdp-button_previous {
+  width: 48px;
+  height: 48px;
+  border-radius: 50% !important;
+  border: 1.5px solid #e2e8f0 !important;
+  background: white !important;
+  color: #1e293b !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  cursor: pointer;
+}
+
+.calendar-premium-wrapper .rdp-button_next:hover,
+.calendar-premium-wrapper .rdp-button_previous:hover {
+  background: #f8fafc !important;
+  border-color: #cbd5e1 !important;
+  transform: scale(1.05);
+}
+
+/* Grid Layout - Ensure 7 columns */
+.calendar-premium-wrapper .rdp-month_grid {
+  display: table;
+  border-collapse: separate;
+  border-spacing: 0 4px;
+  width: 100%;
+}
+
+.calendar-premium-wrapper .rdp-row {
+  display: table-row;
+}
+
+.calendar-premium-wrapper .rdp-head_row {
+  display: table-row;
+}
+
+.calendar-premium-wrapper .rdp-weekday {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #94a3b8;
+  padding-bottom: 1.5rem;
+  width: 56px;
+  text-align: center;
+  text-transform: capitalize;
+}
+
+.calendar-premium-wrapper .rdp-day {
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  margin: 0;
+  font-weight: 500;
+  color: #475569;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.calendar-premium-wrapper .rdp-day:hover:not(.rdp-day_selected) {
+  background-color: #f1f5f9;
+}
+
+.calendar-premium-wrapper .rdp-day_selected {
+  background-color: #0047FF !important;
+  color: white !important;
+  font-weight: 700;
+}
+
+.calendar-premium-wrapper .rdp-day_today {
+  color: #0047FF;
+  font-weight: 700;
+}
+
+.calendar-premium-wrapper .rdp-day_outside {
+  color: #cbd5e1;
+  opacity: 0.3;
+}
+
+/* Pricing tags via CustomDayContent */
+.calendar-premium-wrapper .price-tag {
+  color: #10b981;
+  font-family: inherit;
+}
+
+/* Hide default nav icons if custom ones are needed, or just style them */
+.calendar-premium-wrapper .rdp-nav svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .calendar-premium-wrapper .rdp-months {
+    flex-wrap: wrap;
+    gap: 2rem;
+  }
 }

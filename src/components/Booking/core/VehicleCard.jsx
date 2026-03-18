@@ -389,7 +389,7 @@ export default function VehicleCard({
                   <div className="flex flex-col gap-12">
                     {/* Departure Stop */}
                     <div className="flex items-start">
-                      <div className="w-24 text-right pr-6 pt-0.5">
+                      <div className="w-24 text-start pr-6 pt-0.5">
                         <div className="text-xl font-light text-gray-900">
                           {formatTime(schedule.departure_time)}
                         </div>
@@ -426,7 +426,7 @@ export default function VehicleCard({
 
                     {/* Arrival Stop */}
                     <div className="flex items-center">
-                      <div className="w-24 text-right">
+                      <div className="w-24 text-left pr-6">
                         <div className="text-xl font-light text-gray-900">
                           {formatTime(schedule.arrival_time)}
                         </div>

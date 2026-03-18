@@ -7,6 +7,8 @@ import VehicleCard from "@/components/booking/core/VehicleCard";
 import Header2 from "@/components/HelicopterFlight/Header";
 import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
+import FilterSectionTop from "@/components/ScheduledFlight/FilterSectionTop";
+import WeekSection from "@/components/ScheduledFlight/WeekSection";
 
 const tz = "Asia/Kolkata";
 const fmtIso = (d) =>
@@ -84,10 +86,10 @@ const HelicopterFlightsPage = () => {
       // Normalize the schedules data (similar to flight schedules)
       const normalized = Array.isArray(schedulesData)
         ? schedulesData.map((schedule) => ({
-            ...schedule,
-            departure_date: schedule.departure_date || date,
-            availableSeats: schedule.availableSeats ?? 0,
-          }))
+          ...schedule,
+          departure_date: schedule.departure_date || date,
+          availableSeats: schedule.availableSeats ?? 0,
+        }))
         : [];
 
       console.log('[HelicopterFlight] Normalized schedules:', normalized.length);
@@ -210,7 +212,7 @@ const HelicopterFlightsPage = () => {
           (filterStatus === "Departed" && status === 1);
         const matchesSeats = filterMinSeats === 0 || availableSeats >= filterMinSeats;
         const matchesStops = filterStops === "All" || stops.length === parseInt(filterStops);
-        
+
         // Case-insensitive city matching
         const matchesDeparture =
           (!filterDepartureCity || departureCity.toLowerCase() === filterDepartureCity.toLowerCase()) ||
@@ -275,103 +277,159 @@ const HelicopterFlightsPage = () => {
     if (newFilters.date !== undefined) {
       setSearchCriteria(prev => ({ ...prev, date: newFilters.date }));
     }
-    
+
     // If filters are cleared (departure and arrival are empty), clear search criteria too
     if (newFilters.departure === '' && newFilters.arrival === '') {
-      setSearchCriteria(prev => ({ 
-        ...prev, 
-        departure: '', 
-        arrival: '' 
+      setSearchCriteria(prev => ({
+        ...prev,
+        departure: '',
+        arrival: ''
       }));
     }
   };
 
   return (
-    <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'flex-col', 'md:flex-row')}>
-      <div className={cn('w-full', 'md:w-72', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'bg-white', 'shadow-lg', 'md:sticky', 'top-20')}>
-        <FilterSidebar
-          type="helicopter"
-          locations={helipads}
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          isOpen={isFilterOpen}
-          onClose={() => setIsFilterOpen(false)}
-        />
-      </div>
+    <div>
 
-      <div className={cn('flex-1', 'overflow-y-auto', 'h-auto')}>
-        <div className={cn('px-4', 'sm:px-6', 'lg:px-8')}>
-          <Header2 />
+      <FilterSectionTop
+        departure={filterDepartureCity}
+        arrival={filterArrivalCity}
+        date={searchCriteria.date}
+        passengers={filterMinSeats}
+        // flightClass={flightClass}
+        locations={helipads}
+        onDepartureChange={(city) => {
+          setFilterDepartureCity(city);
+          setSearchCriteria(prev => ({ ...prev, departure: city }));
+        }}
+        onArrivalChange={(city) => {
+          setFilterArrivalCity(city);
+          setSearchCriteria(prev => ({ ...prev, arrival: city }));
+        }}
+        onDateChange={(newDate) => {
+          setSearchCriteria(prev => ({ ...prev, date: newDate }));
+          fetchData(newDate);
+        }}
+        onPassengersChange={(val) => {
+          setFilterMinSeats(val);
+          setSearchCriteria(prev => ({ ...prev, passengers: val }));
+        }}
+        onClassChange={(val) => {
+          setFlightClass(val);
+        }}
+        onSwap={() => {
+          const d = filterDepartureCity;
+          const a = filterArrivalCity;
+          setFilterDepartureCity(a);
+          setFilterArrivalCity(d);
+          setSearchCriteria(prev => ({ ...prev, departure: a, arrival: d }));
+        }}
+        onSearch={() => fetchData(searchCriteria.date)}
+        returnDate={searchCriteria.returnDate}
+        onReturnDateChange={(newDate) => {
+          setSearchCriteria(prev => ({ ...prev, returnDate: newDate }));
+        }}
+      />
+
+
+
+      <WeekSection
+        selectedDate={searchCriteria.date}
+        onDateChange={(newDate) => {
+          setSearchCriteria(prev => ({ ...prev, date: newDate }));
+          fetchData(newDate);
+        }}
+      />
+
+      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'flex-col', 'md:flex-row')}>
+
+        <div className={cn('w-full', 'md:w-72', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'bg-white', 'shadow-lg', 'md:sticky', 'top-20')}>
+
+
+          <FilterSidebar
+            type="helicopter"
+            locations={helipads}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+          />
         </div>
 
-        <main className={cn('py-6', 'px-4', 'sm:px-6', 'lg:px-8', 'max-w-7xl', 'mx-auto')}>
-          <div className={cn('flex', 'flex-col', 'md:flex-row', 'justify-between', 'items-center', 'mb-6')}>
-            <h2 className={cn('text-xl', 'sm:text-2xl', 'md:text-3xl', 'font-bold', 'text-gray-800', 'mb-4', 'md:mb-0')}>
-              Available Helicopter Flights ({filteredAndSortedHelicopterSchedules.length})
-            </h2>
-            <button
-              className={cn('md:hidden', 'w-full', 'sm:w-auto', 'px-4', 'py-2', 'bg-gradient-to-r', 'from-indigo-500', 'to-blue-600', 'text-white', 'rounded-lg', 'text-sm', 'font-semibold', 'hover:from-indigo-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'flex', 'items-center', 'gap-2')}
-              onClick={() => setIsFilterOpen(true)}
-            >
-              <svg className={cn('w-5', 'h-5')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                />
-              </svg>
-              Filters
-            </button>
-          </div>
+        <div className={cn('flex-1', 'overflow-y-auto', 'h-auto')}>
+          {/* <div className={cn('px-4', 'sm:px-6', 'lg:px-8')}>
+            <Header2 />
+          </div> */}
 
-
-
-          {filteredAndSortedHelicopterSchedules.length > 0 ? (
-            <div className="space-y-6">
-              {filteredAndSortedHelicopterSchedules.map((hs) => {
-                const helicopter = helicopters.find(h => h.id === hs.helicopter_id) || {};
-                const departureHelipad = helipads.find(h => h.id === hs.departure_helipad_id) || { city: "Unknown", helipad_code: "UNK" };
-                const arrivalHelipad = helipads.find(h => h.id === hs.arrival_helipad_id) || { city: "Unknown", helipad_code: "UNK" };
-                
-                console.log('[HelicopterFlight] Rendering card:', {
-                  scheduleId: hs.id,
-                  helicopter: helicopter.helicopter_number,
-                  departure: departureHelipad.city,
-                  arrival: arrivalHelipad.city,
-                  stops: hs.stops
-                });
-                
-                return (
-                  <VehicleCard
-                    key={`${hs.id}-${hs.departure_date}`}
-                    type="helicopter"
-                    schedule={hs}
-                    vehicle={{
-                      helicopter_number: helicopter.helicopter_number || "Unknown",
-                      seat_limit: helicopter.seat_limit || 6
-                    }}
-                    departureLocation={departureHelipad}
-                    arrivalLocation={arrivalHelipad}
-                    stops={hs.stops || []}
-                    passengers={filterMinSeats || searchCriteria?.passengers || 1}
-                    selectedDate={searchCriteria?.date || ""}
-                    authState={authState}
+          <main className={cn('py-6', 'px-4', 'sm:px-6', 'lg:px-8', 'max-w-7xl', 'mx-auto')}>
+            <div className={cn('flex', 'flex-col', 'md:flex-row', 'justify-between', 'items-center', 'mb-6')}>
+              <h2 className={cn('text-xl', 'sm:text-2xl', 'md:text-3xl', 'font-bold', 'text-gray-800', 'mb-4', 'md:mb-0')}>
+                Available Helicopter Flights ({filteredAndSortedHelicopterSchedules.length})
+              </h2>
+              <button
+                className={cn('md:hidden', 'w-full', 'sm:w-auto', 'px-4', 'py-2', 'bg-gradient-to-r', 'from-indigo-500', 'to-blue-600', 'text-white', 'rounded-lg', 'text-sm', 'font-semibold', 'hover:from-indigo-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'flex', 'items-center', 'gap-2')}
+                onClick={() => setIsFilterOpen(true)}
+              >
+                <svg className={cn('w-5', 'h-5')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
                   />
-                );
-              })}
+                </svg>
+                Filters
+              </button>
             </div>
-          ) : (
-            <div className={cn('text-center', 'py-6', 'sm:py-12')}>
-              <p className={cn('text-gray-500', 'text-base', 'sm:text-lg')}>
-                No active helicopter flights available matching your criteria.
-              </p>
-              <p className={cn('text-gray-400', 'text-sm', 'mt-2')}>
-                Try adjusting your filters or search criteria.
-              </p>
-            </div>
-          )}
-        </main>
+
+
+
+            {filteredAndSortedHelicopterSchedules.length > 0 ? (
+              <div className="space-y-6">
+                {filteredAndSortedHelicopterSchedules.map((hs) => {
+                  const helicopter = helicopters.find(h => h.id === hs.helicopter_id) || {};
+                  const departureHelipad = helipads.find(h => h.id === hs.departure_helipad_id) || { city: "Unknown", helipad_code: "UNK" };
+                  const arrivalHelipad = helipads.find(h => h.id === hs.arrival_helipad_id) || { city: "Unknown", helipad_code: "UNK" };
+
+                  console.log('[HelicopterFlight] Rendering card:', {
+                    scheduleId: hs.id,
+                    helicopter: helicopter.helicopter_number,
+                    departure: departureHelipad.city,
+                    arrival: arrivalHelipad.city,
+                    stops: hs.stops
+                  });
+
+                  return (
+                    <VehicleCard
+                      key={`${hs.id}-${hs.departure_date}`}
+                      type="helicopter"
+                      schedule={hs}
+                      vehicle={{
+                        helicopter_number: helicopter.helicopter_number || "Unknown",
+                        seat_limit: helicopter.seat_limit || 6
+                      }}
+                      departureLocation={departureHelipad}
+                      arrivalLocation={arrivalHelipad}
+                      stops={hs.stops || []}
+                      passengers={filterMinSeats || searchCriteria?.passengers || 1}
+                      selectedDate={searchCriteria?.date || ""}
+                      authState={authState}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div className={cn('text-center', 'py-6', 'sm:py-12')}>
+                <p className={cn('text-gray-500', 'text-base', 'sm:text-lg')}>
+                  No active helicopter flights available matching your criteria.
+                </p>
+                <p className={cn('text-gray-400', 'text-sm', 'mt-2')}>
+                  Try adjusting your filters or search criteria.
+                </p>
+              </div>
+            )}
+          </main>
+        </div>
       </div>
     </div>
   );

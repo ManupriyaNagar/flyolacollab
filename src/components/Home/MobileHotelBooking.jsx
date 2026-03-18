@@ -24,19 +24,20 @@ import {
 } from "react-icons/fa";
 
 const formatDateToInput = (d) => {
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
+    if (!d || !(d instanceof Date) || isNaN(d.getTime())) return "";
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
 };
 
 const getTomorrowDateIST = () => {
-  const now = new Date();
-  const utc = now.getTime() + now.getTimezoneOffset() * 60000;
-  const istOffset = 5.5 * 60 * 60000;
-  const istNow = new Date(utc + istOffset);
-  istNow.setDate(istNow.getDate() + 1);
-  return formatDateToInput(istNow);
+    const now = new Date();
+    const utc = now.getTime() + now.getTimezoneOffset() * 60000;
+    const istOffset = 5.5 * 60 * 60000;
+    const istNow = new Date(utc + istOffset);
+    istNow.setDate(istNow.getDate() + 1);
+    return formatDateToInput(istNow);
 };
 
 export default function MobileHotelBooking() {
@@ -53,7 +54,7 @@ export default function MobileHotelBooking() {
     const [loadingCities, setLoadingCities] = useState(true);
     const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
     const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
-    
+
     const guestDropdownRef = useRef(null);
     const priceDropdownRef = useRef(null);
 
@@ -74,7 +75,7 @@ export default function MobileHotelBooking() {
             try {
                 setLoadingCities(true);
                 const response = await API.hotels.getCities();
-                
+
                 if (response && response.data && Array.isArray(response.data)) {
                     const activeCities = response.data.filter(city => city.status === 0);
                     setCities(activeCities);
@@ -244,11 +245,10 @@ export default function MobileHotelBooking() {
                     </label>
                     <div
                         onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-                        className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-12 ${
-                            isGuestDropdownOpen
+                        className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-12 ${isGuestDropdownOpen
                                 ? "ring-2 ring-blue-500 border-blue-500"
                                 : "hover:border-blue-300"
-                        }`}
+                            }`}
                     >
                         <div className={cn('p-1', 'bg-blue-100', 'rounded-lg')}>
                             <FaUser className={cn('text-blue-600', 'text-sm')} />
@@ -259,9 +259,8 @@ export default function MobileHotelBooking() {
                             </span>
                         </div>
                         <svg
-                            className={`w-5 h-5 text-blue-500 transition-transform duration-300 ${
-                                isGuestDropdownOpen ? "rotate-180" : ""
-                            }`}
+                            className={`w-5 h-5 text-blue-500 transition-transform duration-300 ${isGuestDropdownOpen ? "rotate-180" : ""
+                                }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -413,11 +412,10 @@ export default function MobileHotelBooking() {
                     </label>
                     <div
                         onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
-                        className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-12 ${
-                            isPriceDropdownOpen
+                        className={`flex items-center gap-2 border-2 border-gray-200 rounded-2xl px-4 py-4 text-sm cursor-pointer bg-white shadow-sm transition-all duration-300 h-12 ${isPriceDropdownOpen
                                 ? "ring-2 ring-blue-500 border-blue-500"
                                 : "hover:border-blue-300"
-                        }`}
+                            }`}
                     >
                         <div className={cn('flex-grow', 'min-w-0')}>
                             <span className={cn('text-gray-700', 'font-semibold', 'text-xs', 'truncate', 'block')}>
@@ -425,9 +423,8 @@ export default function MobileHotelBooking() {
                             </span>
                         </div>
                         <svg
-                            className={`w-5 h-5 text-blue-500 transition-transform duration-300 ${
-                                isPriceDropdownOpen ? "rotate-180" : ""
-                            }`}
+                            className={`w-5 h-5 text-blue-500 transition-transform duration-300 ${isPriceDropdownOpen ? "rotate-180" : ""
+                                }`}
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -489,11 +486,10 @@ export default function MobileHotelBooking() {
                     }}
                 >
                     <Button
-                        className={`w-full h-12 text-lg font-bold rounded-2xl flex items-center gap-3 transition-all duration-300 shadow-xl ${
-                            isSearchDisabled
+                        className={`w-full h-12 text-lg font-bold rounded-2xl flex items-center gap-3 transition-all duration-300 shadow-xl ${isSearchDisabled
                                 ? "bg-gray-400 cursor-not-allowed text-gray-600"
                                 : "bg-gradient-to-r from-purple-600 via-purple-600 to-purple-600 hover:from-purple-700 hover:via-purple-700 hover:to-purple-700 text-white transform hover:scale-[1.02] active:scale-[0.98]"
-                        }`}
+                            }`}
                         disabled={isSearchDisabled}
                     >
                         <FaHome className="text-xl" />

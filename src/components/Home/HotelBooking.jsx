@@ -9,12 +9,14 @@ import {
   FaCalendarAlt,
   FaMapMarkerAlt,
   FaRupeeSign,
-  FaUsers
+  FaUsers,
+  FaChevronDown,
+  FaRegCalendarAlt
 } from "react-icons/fa";
-import { Label } from "../ui/label";
 import CityAutocomplete from "./CityAutocomplete";
 
 const formatDateToInput = (d) => {
+  if (!d || !(d instanceof Date) || isNaN(d.getTime())) return "";
   const year = d.getFullYear();
   const month = String(d.getMonth() + 1).padStart(2, "0");
   const day = String(d.getDate()).padStart(2, "0");
@@ -41,14 +43,12 @@ const HotelBooking = forwardRef((props, ref) => {
     children: 0
   });
   const [priceRange, setPriceRange] = useState("any");
-  
+
   const [isGuestDropdownOpen, setIsGuestDropdownOpen] = useState(false);
   const [isPriceDropdownOpen, setIsPriceDropdownOpen] = useState(false);
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [calendarMode, setCalendarMode] = useState("checkin"); // "checkin" or "checkout"
   const [cities, setCities] = useState([]);
   const [loadingCities, setLoadingCities] = useState(true);
-  
+
   const guestDropdownRef = useRef(null);
   const priceDropdownRef = useRef(null);
 
@@ -63,50 +63,27 @@ const HotelBooking = forwardRef((props, ref) => {
     { id: "10000+", label: "₹10,000+", min: 10000, max: null }
   ];
 
-  // Fetch cities from API
   useEffect(() => {
     const fetchCities = async () => {
       try {
         setLoadingCities(true);
         const response = await API.hotels.getCities();
-        
-        // API returns {data: [...], message: ...}
         if (response && response.data && Array.isArray(response.data)) {
-          // Filter only active cities (status = 0)
           const activeCities = response.data.filter(city => city.status === 0);
           setCities(activeCities);
-          // Auto-select first city
           if (activeCities.length > 0 && !destination) {
             setDestination(activeCities[0].name);
           }
-          console.log('Cities loaded from API:', activeCities.length);
-        } else if (response && Array.isArray(response)) {
-          // Fallback: if response is directly an array
-          const activeCities = response.filter(city => city.status === 0);
-          setCities(activeCities);
-          // Auto-select first city
-          if (activeCities.length > 0 && !destination) {
-            setDestination(activeCities[0].name);
-          }
-          console.log('Cities loaded from API (direct array):', activeCities.length);
-        } else {
-          console.warn('Unexpected API response format:', response);
-          setCities([]);
         }
       } catch (error) {
         console.error('Error fetching cities:', error);
-        setCities([]);
       } finally {
         setLoadingCities(false);
       }
     };
-
     fetchCities();
   }, []);
 
-
-
-  // Set default checkout date (1 day after checkin)
   useEffect(() => {
     if (checkInDate && !checkOutDate) {
       const checkin = new Date(checkInDate + 'T00:00:00');
@@ -115,7 +92,6 @@ const HotelBooking = forwardRef((props, ref) => {
     }
   }, [checkInDate, checkOutDate]);
 
-  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (guestDropdownRef.current && !guestDropdownRef.current.contains(event.target)) {
@@ -125,380 +101,198 @@ const HotelBooking = forwardRef((props, ref) => {
         setIsPriceDropdownOpen(false);
       }
     };
-
-    const handleKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        setIsCalendarOpen(false);
-        setIsGuestDropdownOpen(false);
-        setIsPriceDropdownOpen(false);
-      }
-    };
-
     document.addEventListener('mousedown', handleClickOutside);
-    document.addEventListener('keydown', handleKeyDown);
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('keydown', handleKeyDown);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const handleGuestChange = (type, action) => {
-    setGuests(prev => {
-      let newValue = prev[type];
-      if (action === "increment") {
-        newValue = prev[type] + 1;
-      } else {
-        newValue = Math.max(type === "rooms" ? 1 : 0, prev[type] - 1);
-      }
-      return { ...prev, [type]: newValue };
-    });
-  };
-
-
-
-  const openCalendar = (mode) => {
-    setCalendarMode(mode);
-    setIsCalendarOpen(true);
-  };
-
-  const handleDateSelect = (date) => {
-    if (!date) return;
-    const formattedDate = formatDateToInput(date);
-    
-    if (calendarMode === "checkin") {
-      setCheckInDate(formattedDate);
-      // Auto-set checkout to next day if not set or if checkout is before new checkin
-      if (!checkOutDate || new Date(checkOutDate) <= new Date(formattedDate)) {
-        const nextDay = new Date(date);
-        nextDay.setDate(nextDay.getDate() + 1);
-        setCheckOutDate(formatDateToInput(nextDay));
-      }
-    } else {
-      setCheckOutDate(formattedDate);
-    }
-    setIsCalendarOpen(false);
+    setGuests(prev => ({
+      ...prev,
+      [type]: action === "increment" ? prev[type] + 1 : Math.max(type === "rooms" ? 1 : 0, prev[type] - 1)
+    }));
   };
 
   const totalGuests = guests.adults + guests.children;
   const isSearchDisabled = !destination.trim() || !checkInDate || !checkOutDate;
 
-  // Expose search data to parent component
   useImperativeHandle(ref, () => ({
-    getSearchData: () => ({
-      destination,
-      checkInDate,
-      checkOutDate,
-      guests,
-      totalGuests,
-      priceRange
-    }),
+    getSearchData: () => ({ destination, checkInDate, checkOutDate, guests, totalGuests, priceRange }),
     isSearchDisabled: () => isSearchDisabled,
-    handleSearch: () => {
-      return `/hotels?destination=${encodeURIComponent(destination)}&checkin=${checkInDate}&checkout=${checkOutDate}&rooms=${guests.rooms}&adults=${guests.adults}&children=${guests.children}&guests=${totalGuests}&priceRange=${priceRange}`;
-    },
-    setOpenCalendar: (fn) => {
-      setOpenCalendarFn(() => fn);
-    },
+    handleSearch: () => `/hotels?destination=${encodeURIComponent(destination)}&checkin=${checkInDate}&checkout=${checkOutDate}&rooms=${guests.rooms}&adults=${guests.adults}&children=${guests.children}&guests=${totalGuests}&priceRange=${priceRange}`,
+    setOpenCalendar: (fn) => setOpenCalendarFn(() => fn),
     setCheckInDate: (date) => {
       setCheckInDate(date);
-      // Auto-set checkout to next day if not set or if checkout is before new checkin
       if (!checkOutDate || new Date(checkOutDate) <= new Date(date)) {
         const nextDay = new Date(date + 'T00:00:00');
         nextDay.setDate(nextDay.getDate() + 1);
         setCheckOutDate(formatDateToInput(nextDay));
       }
     },
-    setCheckOutDate: (date) => {
-      setCheckOutDate(date);
-    }
+    setCheckOutDate: (date) => setCheckOutDate(date)
   }));
 
-  // Format dates for display
-  const formatDisplayDate = (dateStr) => {
-    if (!dateStr) return { day: "", month: "", year: "", weekday: "" };
-    const date = new Date(dateStr + 'T00:00:00');
-    return {
-      day: date.getDate(),
-      month: date.toLocaleString("en-US", { month: "short" }),
-      year: date.getFullYear().toString().slice(-2),
-      weekday: date.toLocaleString("en-US", { weekday: "long" })
-    };
+  const formatDate = (dateStr) => {
+    if (!dateStr) return "";
+    return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
   };
 
-  const checkinDisplay = formatDisplayDate(checkInDate);
-  const checkoutDisplay = formatDisplayDate(checkOutDate);
-
   return (
-    <div className="space-y-6">
-      {/* Hotel Search Form */}
-      <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-2', 'lg:grid-cols-5', 'gap-1')}>
-        
-        {/* Destination Input */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.5 }}
-          className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm')}
-        >
-          <CityAutocomplete
-            cities={cities}
-            value={destination}
-            onChange={setDestination}
-            placeholder="Search city..."
-            label="Destination"
-            icon={FaMapMarkerAlt}
-            disabled={loadingCities}
-          />
-        </motion.div>
-
-        {/* Check-in Date */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.6 }}
-          className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-          onClick={() => openCalendarFn && openCalendarFn('hotelCheckin')}
-        >
-          <Label className={cn('text-sm', 'text-gray-950', 'mb-2')}>
-            <FaCalendarAlt className={cn('inline', 'w-4', 'h-4', 'mr-1')} />
-            Check-in
-          </Label>
-          <div className={cn('flex', 'flex-col')}>
-            <div className={cn('flex', 'items-baseline', 'gap-2')}>
-              <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{checkinDisplay.day}</span>
-              <span className={cn('text-lg', 'font-semibold', 'leading-none')}>
-                {checkinDisplay.month}
-                <span className={cn('align-top', 'text-sm', 'font-semibold', 'ml-0.5')}>
-                  '{checkinDisplay.year}
-                </span>
-              </span>
-            </div>
-            <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{checkinDisplay.weekday}</span>
+    <div className="w-full">
+      <div className="flex flex-wrap lg:flex-nowrap items-end gap-3 w-full">
+        {/* Destination */}
+        <div className="flex-[1.5] min-w-[250px] space-y-2">
+          <label className="text-sm font-semibold text-gray-400 ml-1">Destination</label>
+          <div className="bg-gray-100/80 rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
+            <CityAutocomplete
+              cities={cities}
+              value={destination}
+              onChange={setDestination}
+              placeholder="Where are you going?"
+              disabled={loadingCities}
+            />
           </div>
-        </motion.div>
+        </div>
 
-        {/* Check-out Date */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.7 }}
-          className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-          onClick={() => openCalendarFn && openCalendarFn('hotelCheckout')}
-        >
-          <Label className={cn('text-sm', 'text-gray-950', 'mb-2')}>
-            <FaCalendarAlt className={cn('inline', 'w-4', 'h-4', 'mr-1')} />
-            Check-out
-          </Label>
-          <div className={cn('flex', 'flex-col')}>
-            <div className={cn('flex', 'items-baseline', 'gap-2')}>
-              <span className={cn('text-4xl', 'font-bold', 'leading-none')}>{checkoutDisplay.day}</span>
-              <span className={cn('text-lg', 'font-semibold', 'leading-none')}>
-                {checkoutDisplay.month}
-                <span className={cn('align-top', 'text-sm', 'font-semibold', 'ml-0.5')}>
-                  '{checkoutDisplay.year}
-                </span>
-              </span>
-            </div>
-            <span className={cn('mt-1', 'text-sm', 'text-gray-500')}>{checkoutDisplay.weekday}</span>
-          </div>
-        </motion.div>
-
-        {/* Price Range */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.75 }}
-          className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-          ref={priceDropdownRef}
-        >
-          <Label className={cn('text-sm', 'text-gray-950', 'mb-2')}>
-            <FaRupeeSign className={cn('inline', 'w-4', 'h-4', 'mr-1')} />
-            Price per Night
-          </Label>
-          <div
-            onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
-            className={cn('flex', 'flex-col', 'justify-center', 'cursor-pointer', 'h-14')}
+        {/* Check-in */}
+        <div className="flex-1 min-w-[160px] space-y-2">
+          <label className="text-sm font-semibold text-gray-400 ml-1">Check-in</label>
+          <button
+            onClick={() => openCalendarFn && openCalendarFn('hotelCheckin')}
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
-            <div className={cn('flex', 'items-center', 'gap-1')}>
-              <span className={cn('text-lg', 'font-semibold', 'text-gray-900', 'truncate')}>
-                {priceRanges.find(range => range.id === priceRange)?.label || "Any Price"}
-              </span>
-            </div>
-            <div className={cn('text-xs', 'text-gray-600')}>
-              Budget Range
-            </div>
-          </div>
+            <span className="text-gray-900 font-black text-lg tracking-tighter">
+              {formatDate(checkInDate)}
+            </span>
+            <FaRegCalendarAlt className="text-gray-400 group-hover:text-blue-500 transition-colors w-5 h-5" />
+          </button>
+        </div>
 
-          {/* Price Range Dropdown */}
+        {/* Check-out */}
+        <div className="flex-1 min-w-[160px] space-y-2">
+          <label className="text-sm font-semibold text-gray-400 ml-1">Check-out</label>
+          <button
+            onClick={() => openCalendarFn && openCalendarFn('hotelCheckout')}
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
+          >
+            <span className="text-gray-900 font-black text-lg tracking-tighter">
+              {formatDate(checkOutDate)}
+            </span>
+            <FaRegCalendarAlt className="text-gray-400 group-hover:text-blue-500 transition-colors w-5 h-5" />
+          </button>
+        </div>
+
+        {/* Budget */}
+        <div className="flex-1 min-w-[180px] space-y-2 relative" ref={priceDropdownRef}>
+          <label className="text-sm font-semibold text-gray-400 ml-1">Budget per Night</label>
+          <button
+            onClick={() => setIsPriceDropdownOpen(!isPriceDropdownOpen)}
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
+          >
+            <div className="flex flex-col leading-tight">
+              <span className="text-gray-900 font-black text-lg tracking-tighter truncate max-w-[120px]">
+                {priceRanges.find(r => r.id === priceRange)?.label || "Any Price"}
+              </span>
+              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">Budget</span>
+            </div>
+            <FaChevronDown className={cn("text-gray-400 text-xs transition-transform", isPriceDropdownOpen && "rotate-180")} />
+          </button>
+
           <AnimatePresence>
             {isPriceDropdownOpen && (
               <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[250px]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-50', 'py-2', 'max-h-80', 'overflow-y-auto')}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute top-full left-0 mt-3 w-64 bg-white rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[110] overflow-hidden border border-gray-100"
               >
-                {priceRanges.map((range) => (
-                  <div
-                    key={range.id}
-                    onClick={() => {
-                      setPriceRange(range.id);
-                      setIsPriceDropdownOpen(false);
-                    }}
-                    className={cn(
-                      'px-4', 'py-3', 'hover:bg-gray-50', 'cursor-pointer', 'transition-colors',
-                      priceRange === range.id ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-700'
-                    )}
-                  >
-                    <div className="font-medium">{range.label}</div>
-                  </div>
-                ))}
+                <div className="max-h-80 overflow-y-auto py-2">
+                  {priceRanges.map((range) => (
+                    <button
+                      key={range.id}
+                      onClick={() => {
+                        setPriceRange(range.id);
+                        setIsPriceDropdownOpen(false);
+                      }}
+                      className={cn(
+                        "w-full px-6 py-3.5 text-left text-sm font-bold transition-colors",
+                        priceRange === range.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
+                      )}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
 
-        {/* Guests & Rooms */}
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.8 }}
-          className={cn('relative', 'flex', 'flex-col', 'rounded-sm', 'border', 'border-gray-200', 'bg-white', 'px-4', 'py-3', 'shadow-sm', 'cursor-pointer')}
-          ref={guestDropdownRef}
-        >
-          <Label className={cn('text-sm', 'text-gray-950', 'mb-2')}>
-            <FaUsers className={cn('inline', 'w-4', 'h-4', 'mr-1')} />
-            Guests & Rooms
-          </Label>
-          <div
+        {/* Guests */}
+        <div className="flex-1 min-w-[200px] space-y-2 relative" ref={guestDropdownRef}>
+          <label className="text-sm font-semibold text-gray-400 ml-1">Guests & Rooms</label>
+          <button
             onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-            className={cn('flex', 'flex-col', 'justify-center', 'cursor-pointer', 'h-14')}
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
-            <div className={cn('flex', 'items-baseline', 'gap-1')}>
-              <span className={cn('text-2xl', 'font-bold', 'text-gray-900')}>
-                {totalGuests}
+            <div className="flex flex-col leading-tight">
+              <span className="text-gray-900 font-black text-lg tracking-tighter">
+                {totalGuests} Guest{totalGuests !== 1 ? "s" : ""}
               </span>
-              <span className={cn('text-sm', 'font-semibold', 'text-gray-900')}>
-                Guest{totalGuests !== 1 ? "s" : ""}
+              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+                {guests.rooms} Room{guests.rooms !== 1 ? "s" : ""}
               </span>
             </div>
-            <div className={cn('text-xs', 'text-gray-600')}>
-              {guests.rooms} Room{guests.rooms !== 1 ? "s" : ""}
-            </div>
-          </div>
+            <FaChevronDown className={cn("text-gray-400 text-xs transition-transform", isGuestDropdownOpen && "rotate-180")} />
+          </button>
 
-          {/* Guests Dropdown */}
           <AnimatePresence>
             {isGuestDropdownOpen && (
               <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2, ease: "easeInOut" }}
-                className={cn('absolute', 'top-full', 'mt-2', 'left-0', 'w-full', 'min-w-[300px]', 'bg-white', 'border-2', 'border-gray-100', 'rounded-2xl', 'shadow-2xl', 'z-50', 'p-6', 'space-y-4')}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute top-full right-0 mt-3 w-[320px] bg-white rounded-[32px] shadow-[0_20px_60px_rgba(0,0,0,0.15)] z-[110] p-6 border border-gray-100"
               >
-                {/* Rooms */}
-                <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2')}>
-                  <div>
-                    <p className={cn('text-gray-800', 'font-semibold')}>Rooms</p>
-                  </div>
-                  <div className={cn('flex', 'items-center', 'gap-3')}>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("rooms", "decrement")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                      disabled={guests.rooms === 1}
-                    >
-                      -
-                    </Button>
-                    <span className={cn('w-10', 'text-center', 'font-bold', 'text-lg')}>
-                      {guests.rooms}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("rooms", "increment")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Adults */}
-                <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2')}>
-                  <div>
-                    <p className={cn('text-gray-800', 'font-semibold')}>Adults</p>
-                    <p className={cn('text-xs', 'text-gray-500')}>(12+ years)</p>
-                  </div>
-                  <div className={cn('flex', 'items-center', 'gap-3')}>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("adults", "decrement")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                      disabled={guests.adults === 1}
-                    >
-                      -
-                    </Button>
-                    <span className={cn('w-10', 'text-center', 'font-bold', 'text-lg')}>
-                      {guests.adults}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("adults", "increment")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                    >
-                      +
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Children */}
-                <div className={cn('flex', 'items-center', 'justify-between', 'py-3', 'px-2')}>
-                  <div>
-                    <p className={cn('text-gray-800', 'font-semibold')}>Children</p>
-                    <p className={cn('text-xs', 'text-gray-500')}>(0-12 years)</p>
-                  </div>
-                  <div className={cn('flex', 'items-center', 'gap-3')}>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("children", "decrement")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                      disabled={guests.children === 0}
-                    >
-                      -
-                    </Button>
-                    <span className={cn('w-10', 'text-center', 'font-bold', 'text-lg')}>
-                      {guests.children}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={() => handleGuestChange("children", "increment")}
-                      className={cn('w-10', 'h-10', 'rounded-full')}
-                    >
-                      +
-                    </Button>
-                  </div>
+                <div className="space-y-6">
+                  {[
+                    { label: "Rooms", type: "rooms", sub: "Number of rooms" },
+                    { label: "Adults", type: "adults", sub: "12+ yrs" },
+                    { label: "Children", type: "children", sub: "0-12 yrs" }
+                  ].map((item) => (
+                    <div key={item.type} className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <span className="font-black text-gray-900">{item.label}</span>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.sub}</span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <button
+                          onClick={() => handleGuestChange(item.type, "decrement")}
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                          disabled={item.type === "rooms" ? guests.rooms === 1 : item.type === "adults" ? guests.adults === 1 : guests.children === 0}
+                        >–</button>
+                        <span className="font-black text-gray-900 w-4 text-center tracking-tighter">{guests[item.type]}</span>
+                        <button
+                          onClick={() => handleGuestChange(item.type, "increment")}
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                        >+</button>
+                      </div>
+                    </div>
+                  ))}
+                  <Button
+                    onClick={() => setIsGuestDropdownOpen(false)}
+                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black mt-2"
+                  >
+                    Done
+                  </Button>
                 </div>
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+        </div>
       </div>
-
-
-
-
     </div>
   );
 });
 
 HotelBooking.displayName = "HotelBooking";
-
 export default HotelBooking;

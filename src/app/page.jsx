@@ -84,11 +84,6 @@ export default function Home() {
       <LazySection>
         <ImageShowcase />
       </LazySection>
-
-      <LazySection>
-        <PrivateJetRental />
-      </LazySection>
-
       <LazySection>
         <AviationHighlights />
       </LazySection>
@@ -97,10 +92,18 @@ export default function Home() {
       <LazySection>
         <WhyChooseFlyola />
       </LazySection>
-
       <LazySection>
-        <CityCaurasol />
+        <PrivateJetRental />
       </LazySection>
+
+
+
+
+
+
+      {/* <LazySection>
+        <CityCaurasol />
+      </LazySection> */}
 
 
 

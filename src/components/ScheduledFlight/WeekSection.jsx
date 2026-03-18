@@ -14,13 +14,9 @@ const WeekSection = ({
 
     // Generate dates centered around selectedDate
     const dates = useMemo(() => {
-        let baseDate = selectedDate instanceof Date ? selectedDate : new Date(selectedDate);
+        const baseDate = new Date();
 
         // Safety check: if date is invalid, fallback to today
-        if (isNaN(baseDate.getTime())) {
-            baseDate = new Date();
-        }
-
         const result = [];
         for (let i = 0; i <= 30; i++) {
             result.push(addDays(baseDate, i));
