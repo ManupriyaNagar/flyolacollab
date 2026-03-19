@@ -204,7 +204,9 @@ export default function TravellerDetailsPage() {
                     }}
                 />
             </div>
-            <Hero />
+            <div className="pt-10">
+                <Hero />
+            </div>
 
 
             <main className="">

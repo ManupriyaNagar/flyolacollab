@@ -3,29 +3,29 @@
 import { useAuth } from "@/components/AuthContext";
 import RouteGuard from "@/components/RouteGuard";
 import {
-    Bell,
-    Home,
-    Search,
-    Settings,
-    User
+  Bell,
+  Home,
+  Search,
+  Settings,
+  User
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import {
-    FaBars,
-    FaClock,
-    FaCreditCard,
-    FaDollarSign,
-    FaHeadset,
-    FaHome,
-    FaHotel,
-    FaPlane,
-    FaSignOutAlt,
-    FaTicketAlt,
-    FaTimes,
-    FaUser,
-    FaUserCircle
+  FaBars,
+  FaClock,
+  FaCreditCard,
+  FaDollarSign,
+  FaHeadset,
+  FaHome,
+  FaHotel,
+  FaPlane,
+  FaSignOutAlt,
+  FaTicketAlt,
+  FaTimes,
+  FaUser,
+  FaUserCircle
 } from "react-icons/fa";
 
 const normalizePath = (path) => path.replace(/\/+$/, "");
@@ -102,8 +102,8 @@ export default function UserDashboardLayout({ children }) {
               <Link
                 href="/user-dashboard"
                 className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                  : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                   }`}
                 onClick={() => setSidebarVisible(false)}
               >
@@ -124,8 +124,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/bookings"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/bookings")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -139,8 +139,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/helicopter-bookings"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/helicopter-bookings")
-                      ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -154,8 +154,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/hotel-bookings"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/hotel-bookings")
-                      ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -169,8 +169,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/pnr-status"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/pnr-status")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -192,8 +192,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/payments"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/payments")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -207,8 +207,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/refunds"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/refunds")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -230,8 +230,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/support"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/support")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >
@@ -245,8 +245,8 @@ export default function UserDashboardLayout({ children }) {
                 <Link
                   href="/user-dashboard/profile"
                   className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/profile")
-                      ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                      : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
+                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
                     }`}
                   onClick={() => setSidebarVisible(false)}
                 >

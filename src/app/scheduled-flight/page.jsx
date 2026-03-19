@@ -11,6 +11,7 @@ import API from "@/services/api";
 import { useEffect, useState } from "react";
 import FlightHeader from "@/components/ScheduledFlight/FlightHeader";
 import CheckoutSidebar from "@/components/ScheduledFlight/CheckoutSidebar";
+import Hero from "@/components/Traveller/Hero";
 
 const tz = "Asia/Kolkata";
 const fmtIso = (d) =>
@@ -402,6 +403,7 @@ const ScheduledFlightsPage = () => {
           fetchData(newDate);
         }}
       />
+      <Hero />
 
       <div className="min-h-screen">
         <div className="w-full mx-auto flex flex-col md:flex-row">

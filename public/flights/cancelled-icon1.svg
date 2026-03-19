@@ -1,0 +1,28 @@
+<svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_2858_2930)">
+<path d="M98 0H22C9.84974 0 0 9.84974 0 22V98C0 110.15 9.84974 120 22 120H98C110.15 120 120 110.15 120 98V22C120 9.84974 110.15 0 98 0Z" fill="url(#paint0_linear_2858_2930)"/>
+<path opacity="0.35" d="M18 42C20.2091 42 22 40.2091 22 38C22 35.7909 20.2091 34 18 34C15.7909 34 14 35.7909 14 38C14 40.2091 15.7909 42 18 42Z" fill="white"/>
+<path opacity="0.2" d="M14 82.5C15.3807 82.5 16.5 81.3807 16.5 80C16.5 78.6193 15.3807 77.5 14 77.5C12.6193 77.5 11.5 78.6193 11.5 80C11.5 81.3807 12.6193 82.5 14 82.5Z" fill="white"/>
+<path opacity="0.25" d="M102 47C103.657 47 105 45.6569 105 44C105 42.3431 103.657 41 102 41C100.343 41 99 42.3431 99 44C99 45.6569 100.343 47 102 47Z" fill="white"/>
+<path opacity="0.2" d="M106 92C107.105 92 108 91.1046 108 90C108 88.8954 107.105 88 106 88C104.895 88 104 88.8954 104 90C104 91.1046 104.895 92 106 92Z" fill="white"/>
+<path opacity="0.18" d="M91 38H29C25.134 38 22 41.134 22 45V79C22 82.866 25.134 86 29 86H91C94.866 86 98 82.866 98 79V45C98 41.134 94.866 38 91 38Z" fill="white"/>
+<path d="M91 38H29C25.134 38 22 41.134 22 45V79C22 82.866 25.134 86 29 86H91C94.866 86 98 82.866 98 79V45C98 41.134 94.866 38 91 38Z" stroke="white" stroke-width="2"/>
+<path d="M22 68C25.3137 68 28 65.3137 28 62C28 58.6863 25.3137 56 22 56C18.6863 56 16 58.6863 16 62C16 65.3137 18.6863 68 22 68Z" fill="#BE1E2D"/>
+<path d="M98 68C101.314 68 104 65.3137 104 62C104 58.6863 101.314 56 98 56C94.6863 56 92 58.6863 92 62C92 65.3137 94.6863 68 98 68Z" fill="#BE1E2D"/>
+<path opacity="0.6" d="M28 62H92" stroke="white" stroke-width="1.5" stroke-dasharray="4 3"/>
+<path opacity="0.7" d="M34 45H58C59.1 45 60 45.9 60 47C60 48.1 59.1 49 58 49H34C32.9 49 32 48.1 32 47C32 45.9 32.9 45 34 45Z" fill="white"/>
+<path opacity="0.4" d="M33.5 52H48.5C49.33 52 50 52.67 50 53.5C50 54.33 49.33 55 48.5 55H33.5C32.67 55 32 54.33 32 53.5C32 52.67 32.67 52 33.5 52Z" fill="white"/>
+<path d="M52 68L68 84" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+<path d="M68 68L52 84" stroke="white" stroke-width="4.5" stroke-linecap="round"/>
+<path opacity="0.5" d="M60 88C66.6274 88 72 82.6274 72 76C72 69.3726 66.6274 64 60 64C53.3726 64 48 69.3726 48 76C48 82.6274 53.3726 88 60 88Z" stroke="white" stroke-width="1.5"/>
+</g>
+<defs>
+<linearGradient id="paint0_linear_2858_2930" x1="-0.2" y1="0.4" x2="119.8" y2="120.4" gradientUnits="userSpaceOnUse">
+<stop stop-color="#BE1E2D"/>
+<stop offset="1" stop-color="#8B1520"/>
+</linearGradient>
+<clipPath id="clip0_2858_2930">
+<rect width="120" height="120" fill="white"/>
+</clipPath>
+</defs>
+</svg>

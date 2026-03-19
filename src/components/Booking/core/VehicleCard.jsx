@@ -155,7 +155,7 @@ export default function VehicleCard({
     const fetchSettings = async () => {
       try {
         // Use the existing system settings API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'https://api.jetserveaviation.com'}/system-settings/booking-cutoff-time`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'https://app.jetserveaviation.com'}/system-settings/booking-cutoff-time`);
         if (response.ok) {
           const data = await response.json();
           const cutoffKey = type === 'helicopter' ? 'helicopter_cutoff_time' : 'flight_cutoff_time';
@@ -283,9 +283,9 @@ export default function VehicleCard({
                       <span className={cn(
                         "text-[10px] uppercase font-bold px-3 py-1 rounded-md tracking-wider shadow-sm",
                         type === "flight" && (schedule.class === "Economy" ? "bg-amber-400 text-white" : "bg-emerald-500 text-white"),
-                        type === "helicopter" && "bg-red-500 text-white"
+                        type === "helicopter" && "bg-amber-400 text-white"
                       )}>
-                        {schedule.class || (type === "flight" ? "Business" : "Premium")}
+                        {schedule.class || (type === "flight" ? "Business" : "Economy")}
                       </span>
                     </div>
                   </div>

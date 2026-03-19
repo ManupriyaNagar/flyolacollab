@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useEffect, useState } from "react";
 import FilterSectionTop from "@/components/ScheduledFlight/FilterSectionTop";
 import WeekSection from "@/components/ScheduledFlight/WeekSection";
+import CheckoutSidebar from "@/components/ScheduledFlight/CheckoutSidebar";
 
 const tz = "Asia/Kolkata";
 const fmtIso = (d) =>
@@ -288,6 +289,28 @@ const HelicopterFlightsPage = () => {
     }
   };
 
+
+
+  // Handle reset filters
+  const handleResetFilters = () => {
+    setFilterDepartureCity("");
+    setFilterArrivalCity("");
+    setFilterStatus("All");
+    setFilterMinSeats(0);
+    setFlightClass("All Class");
+    setFilterStops("All");
+    setSortOption("Price: Low to High");
+    setSearchCriteria(prev => ({
+      ...prev,
+      departure: "",
+      arrival: "",
+      returnDate: "",
+      passengers: 1,
+    }));
+  };
+
+
+
   return (
     <div>
 
@@ -343,7 +366,7 @@ const HelicopterFlightsPage = () => {
 
       <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'flex-col', 'md:flex-row')}>
 
-        <div className={cn('w-full', 'md:w-72', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'bg-white', 'shadow-lg', 'md:sticky', 'top-20')}>
+        {/* <div className={cn('w-full', 'md:w-72', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'bg-white', 'shadow-lg', 'md:sticky', 'top-20')}>
 
 
           <FilterSidebar
@@ -354,7 +377,7 @@ const HelicopterFlightsPage = () => {
             isOpen={isFilterOpen}
             onClose={() => setIsFilterOpen(false)}
           />
-        </div>
+        </div> */}
 
         <div className={cn('flex-1', 'overflow-y-auto', 'h-auto')}>
           {/* <div className={cn('px-4', 'sm:px-6', 'lg:px-8')}>
@@ -367,18 +390,13 @@ const HelicopterFlightsPage = () => {
                 Available Helicopter Flights ({filteredAndSortedHelicopterSchedules.length})
               </h2>
               <button
-                className={cn('md:hidden', 'w-full', 'sm:w-auto', 'px-4', 'py-2', 'bg-gradient-to-r', 'from-indigo-500', 'to-blue-600', 'text-white', 'rounded-lg', 'text-sm', 'font-semibold', 'hover:from-indigo-600', 'hover:to-blue-700', 'transition-all', 'duration-200', 'flex', 'items-center', 'gap-2')}
-                onClick={() => setIsFilterOpen(true)}
+                className="text-indigo-600 hover:text-indigo-800 font-medium text-sm transition-colors duration-200 flex items-center gap-1"
+                onClick={handleResetFilters}
               >
-                <svg className={cn('w-5', 'h-5')} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"
-                  />
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
-                Filters
+                Reset
               </button>
             </div>
 
@@ -430,6 +448,40 @@ const HelicopterFlightsPage = () => {
             )}
           </main>
         </div>
+
+        <div className={cn('w-full', 'md:w-116', 'md:flex-shrink-0', 'overflow-y-auto', 'h-auto', 'md:h-screen', 'md:sticky', 'top-20')}>
+          {/* 
+
+          <FilterSidebar
+            type="helicopter"
+            locations={helipads}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            isOpen={isFilterOpen}
+            onClose={() => setIsFilterOpen(false)}
+          /> */}
+
+
+
+          <div className="w-full lg:w-[440px] md:hidden lg:block md:flex-shrink-0 md:sticky md:top-24 h-fit pb-12 md:pr-8  mt-6 md:mt-0">
+            {(() => {
+              const depCode = helipads.find(a => a.city.toLowerCase() === (searchCriteria.departure || "").toLowerCase())?.airport_code || "BHO";
+              const arrCode = helipads.find(a => a.city.toLowerCase() === (searchCriteria.arrival || "").toLowerCase())?.airport_code || "JLR";
+              return (
+                <CheckoutSidebar
+                  departure={searchCriteria.departure || "Bhopal"}
+                  departureCode={depCode}
+                  arrival={searchCriteria.arrival || "Jabalpur"}
+                  arrivalCode={arrCode}
+                  passengers={searchCriteria.passengers || 1}
+                />
+              );
+            })()}
+          </div>
+        </div>
+
+
+
       </div>
     </div>
   );

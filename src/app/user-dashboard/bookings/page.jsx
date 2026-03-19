@@ -12,13 +12,18 @@ import {
   ExclamationTriangleIcon,
   TicketIcon,
   UserGroupIcon,
-  XCircleIcon
+  XCircleIcon,
+  MagnifyingGlassIcon,
+  ChevronRightIcon,
+  BriefcaseIcon,
+  NoSymbolIcon,
 } from '@heroicons/react/24/outline';
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import PerSeatCancellationModal from "../../../components/PerSeatCancellationModal";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function UserBookingsPage() {
   const { authState } = useAuth();
@@ -29,6 +34,10 @@ export default function UserBookingsPage() {
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [showCancellationModal, setShowCancellationModal] = useState(false);
   const [showPerSeatCancellationModal, setShowPerSeatCancellationModal] = useState(false);
+
+  // New UI states
+  const [activeTab, setActiveTab] = useState('UPCOMING'); // 'UPCOMING', 'CANCELLED', 'COMPLETED'
+  const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
     if (!authState.isLoading && !authState.isLoggedIn) {
@@ -74,6 +83,63 @@ export default function UserBookingsPage() {
     }
   };
 
+  const getBgImage = () => {
+    switch (activeTab) {
+      case "UPCOMING":
+        return "/flights/upcoming.svg";
+      case "CANCELLED":
+        return "/flights/cancelled.svg";
+      case "COMPLETED":
+        return "/flights/completed.svg";
+      default:
+        return "/flights/upcoming.svg";
+    }
+  };
+
+
+  const emptyStateConfig = {
+    UPCOMING: {
+      icon: "/flights/upcoming-icon1.svg",
+      title: "No trips yet",
+      subtitle: "Your itinerary will appear here.",
+    },
+    CANCELLED: {
+      icon: "/flights/cancelled-icon1.svg",
+      title: "No cancellations here",
+      subtitle: "No cancellations on record.",
+    },
+    COMPLETED: {
+      icon: "/flights/completed-icon1.svg",
+      title: "No completed trips yet",
+      subtitle: "Our past bookings will appear here once a trip is done.",
+    },
+  };
+
+  const filteredBookings = useMemo(() => {
+    let result = bookings;
+
+    // Filter by tab
+    if (activeTab === 'UPCOMING') {
+      result = result.filter(b => (b.bookingStatus === 'CONFIRMED' || b.bookingStatus === 'SUCCESS' || b.bookingStatus === 'PENDING') && new Date(b.bookDate) >= new Date());
+    } else if (activeTab === 'CANCELLED') {
+      result = result.filter(b => b.bookingStatus === 'CANCELLED');
+    } else if (activeTab === 'COMPLETED') {
+      result = result.filter(b => (b.bookingStatus === 'CONFIRMED' || b.bookingStatus === 'SUCCESS') && new Date(b.bookDate) < new Date());
+    }
+
+    // Filter by search term
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(b =>
+        (b.pnr && b.pnr.toLowerCase().includes(term)) ||
+        (b.bookingNo && b.bookingNo.toString().toLowerCase().includes(term)) ||
+        (b.seatLabels && b.seatLabels.join(", ").toLowerCase().includes(term))
+      );
+    }
+
+    return result;
+  }, [bookings, activeTab, searchTerm]);
+
   const handleCancelBooking = (booking) => {
     setSelectedBooking(booking);
     setShowCancellationModal(true);
@@ -85,10 +151,9 @@ export default function UserBookingsPage() {
   };
 
   const handleCancellationSuccess = (cancellationData) => {
-    // Update the booking status in the local state
-    setBookings(prevBookings => 
-      prevBookings.map(booking => 
-        booking.id === cancellationData.bookingId 
+    setBookings(prevBookings =>
+      prevBookings.map(booking =>
+        booking.id === cancellationData.bookingId
           ? { ...booking, bookingStatus: 'CANCELLED' }
           : booking
       )
@@ -127,7 +192,7 @@ export default function UserBookingsPage() {
   const canCancelBooking = (booking) => {
     if (booking.bookingStatus === 'CANCELLED') return false;
     if (booking.bookingStatus !== 'CONFIRMED' && booking.bookingStatus !== 'SUCCESS') return false;
-    
+
     // Check if booking date hasn't passed
     const bookingDate = new Date(booking.bookDate);
     const today = new Date();
@@ -136,210 +201,266 @@ export default function UserBookingsPage() {
 
   if (authState.isLoading || loading) {
     return (
-      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
+      <div className={cn('min-h-screen', 'flex', 'items-center', 'justify-center')}>
         <div className="text-center">
-          <div className={cn('w-12', 'h-12', 'border-4', 'border-blue-500', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto', 'mb-4')}></div>
-          <p className="text-gray-600">Loading your bookings...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={cn('min-h-screen', 'bg-gray-50', 'flex', 'items-center', 'justify-center')}>
-        <div className={cn('text-center', 'p-8')}>
-          <ExclamationTriangleIcon className={cn('w-16', 'h-16', 'text-red-500', 'mx-auto', 'mb-4')} />
-          <h2 className={cn('text-xl', 'font-semibold', 'text-gray-900', 'mb-2')}>Error Loading Bookings</h2>
-          <p className={cn('text-red-600', 'mb-4')}>{error}</p>
-          <button 
-            onClick={fetchMyBookings}
-            className={cn('px-4', 'py-2', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition-colors')}
-          >
-            Try Again
-          </button>
+          <div className={cn('w-12', 'h-12', 'border-4', 'border-blue-600', 'border-t-transparent', 'rounded-full', 'animate-spin', 'mx-auto', 'mb-4')}></div>
+          <p className="text-gray-600 font-medium">Loading your bookings...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className={cn('min-h-screen', 'bg-gray-50')}>
+    <div className={cn('min-h-screen')}>
       <ToastContainer position="top-right" autoClose={3000} />
-      
-      <div className={cn('p-6', 'lg:p-8')}>
-        {/* Header */}
-        <div className="mb-8">
-          <div className={cn('flex', 'items-center', 'gap-3', 'mb-2')}>
-            <div className={cn('p-2', 'bg-blue-100', 'rounded-lg')}>
-              <TicketIcon className={cn('w-6', 'h-6', 'text-blue-600')} />
-            </div>
-            <h1 className={cn('text-3xl', 'font-bold', 'text-gray-900')}>My Bookings</h1>
-          </div>
-          <p className="text-gray-600">Manage your flight bookings and cancellations</p>
-        </div>
 
-        {bookings.length === 0 ? (
-          <div className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-gray-200', 'p-12', 'text-center')}>
-            <TicketIcon className={cn('w-16', 'h-16', 'text-gray-300', 'mx-auto', 'mb-4')} />
-            <h3 className={cn('text-xl', 'font-semibold', 'text-gray-900', 'mb-2')}>No Flight Bookings Found</h3>
-            <p className={cn('text-gray-600', 'mb-6')}>You haven't made any flight bookings yet. Start your journey today!</p>
-            <button 
-              onClick={() => router.push('/scheduled-flight')}
-              className={cn('px-6', 'py-3', 'bg-blue-600', 'text-white', 'rounded-lg', 'hover:bg-blue-700', 'transition-colors')}
-            >
-              Book Your First Flight
+      {/* Blue Header Section */}
+      <div className="relative h-64 overflow-hidden">
+        {/* Background Image */}
+        <div
+          className="absolute inset-0 bg-cover bg-center rounded-2xl -z-4"
+          style={{
+            backgroundImage: `url(${getBgImage()})`,
+          }}
+        />
+
+        <div className="relative px-6 pt-10 flex flex-col md:flex-row md:items-center justify-end">
+          {/* Search Bar */}
+          <div className="flex items-center gap-0 bg-white rounded-xl overflow-hidden w-full max-w-md">
+            <div className="flex-1 flex items-center px-4 py-3 bg-[#f0f3f8]">
+              <input
+                type="text"
+                placeholder="Search for a booking"
+                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium text-sm"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+            <button className="bg-[#ff9533] hover:bg-[#ff8000] p-4 text-white transition-all flex items-center justify-center">
+              <MagnifyingGlassIcon className="w-6 h-6 stroke-[2.5px]" />
             </button>
           </div>
-        ) : (
-          <div className="space-y-6">
-            {bookings.map((booking) => (
-              <div key={booking.id} className={cn('bg-white', 'rounded-2xl', 'shadow-lg', 'border', 'border-gray-200', 'overflow-hidden')}>
-                <div className="p-6">
-                  {/* Booking Header */}
-                  <div className={cn('flex', 'items-center', 'justify-between', 'mb-4')}>
-                    <div className={cn('flex', 'items-center', 'gap-4')}>
-                      <div className={cn('p-3', 'bg-blue-100', 'rounded-xl')}>
-                        <TicketIcon className={cn('w-6', 'h-6', 'text-blue-600')} />
-                      </div>
-                      <div>
-                        <h3 className={cn('text-lg', 'font-semibold', 'text-gray-900')}>
-                          PNR: {booking.pnr}
-                        </h3>
-                        <p className={cn('text-sm', 'text-gray-500')}>
-                          Booking No: {booking.bookingNo || booking.id}
-                        </p>
-                      </div>
-                    </div>
-                    <div className={`flex items-center gap-2 px-3 py-1 rounded-full border ${getStatusColor(booking.bookingStatus)}`}>
-                      {getStatusIcon(booking.bookingStatus)}
-                      <span className={cn('text-sm', 'font-medium')}>{booking.bookingStatus}</span>
+        </div>
+      </div>
+
+      {/* Main Content Card */}
+      <div className="max-w-5xl mx-auto px-6 -mt-24">
+        <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col">
+          {/* Tab Navigation */}
+          <div className="flex border-b border-gray-100 bg-[#fafbfc] px-4 py-4">
+            {[
+              { id: 'UPCOMING', label: 'UPCOMING', icon: BriefcaseIcon },
+              { id: 'CANCELLED', label: 'CANCELLED', icon: NoSymbolIcon },
+              { id: 'COMPLETED', label: 'COMPLETED', icon: CheckCircleIcon }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={cn(
+                  "flex items-center gap-3 px-8 py-5 text-sm font-bold tracking-wider transition-all relative",
+                  activeTab === tab.id
+                    ? "text-[#0052cc]"
+                    : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+                )}
+              >
+                <tab.icon className={cn(
+                  "w-6 h-6 shrink-0",
+                  activeTab === tab.id
+                    ? (tab.id === 'CANCELLED' ? "text-red-500" : tab.id === 'COMPLETED' ? "text-green-500" : "text-[#0052cc]")
+                    : "text-gray-400"
+                )} />
+                {tab.label}
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTab"
+                    className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#0052cc]"
+                  />
+                )}
+              </button>
+            ))}
+          </div>
+
+          <div className="flex-1">
+            <AnimatePresence mode="wait">
+              {filteredBookings.length === 0 ? (
+                <motion.div
+                  key="empty"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex flex-col md:flex-row items-center justify-between bg-white py-12 px-6"
+                >
+                  <div className="flex items-center gap-6">
+                    <img src={emptyStateConfig[activeTab].icon} alt="" className="h-auto w-16" />
+                    <div>
+                      <h3 className="text-2xl font-medium text-gray-900 mb-1">{emptyStateConfig[activeTab].title}</h3>
+                      <p className="text-gray-500 font-medium">{emptyStateConfig[activeTab].subtitle}</p>
                     </div>
                   </div>
+                  <button
+                    onClick={() => router.push('/scheduled-flight')}
+                    className="mt-8 md:mt-0 px-10 py-4 bg-[#ff9533] hover:bg-[#ff8000] text-white font-light rounded-lg transition-all active:scale-95"
+                  >
+                    Plan a trip
+                  </button>
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="list"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="space-y-6"
+                >
+                  {filteredBookings.map((booking) => (
+                    <div key={booking.id} className={cn('bg-white', 'rounded-2xl', 'border', 'border-gray-100', 'overflow-hidden')}>
+                      <div className="p-6">
+                        {/* Booking Header */}
+                        <div className={cn('flex', 'items-center', 'justify-between', 'mb-6')}>
+                          <div className={cn('flex', 'items-center', 'gap-4')}>
+                            <div className={cn('p-3', 'bg-blue-50', 'rounded-xl')}>
+                              <TicketIcon className={cn('w-6', 'h-6', 'text-blue-600')} />
+                            </div>
+                            <div>
+                              <h3 className={cn('text-lg', 'font-bold', 'text-gray-900')}>
+                                PNR: {booking.pnr}
+                              </h3>
+                              <p className={cn('text-xs', 'text-gray-500', 'font-medium', 'mt-0.5')}>
+                                Booking No: {booking.bookingNo || booking.id}
+                              </p>
+                            </div>
+                          </div>
+                          <div className={`flex items-center gap-2 px-4 py-1.5 rounded-full border text-sm font-bold ${getStatusColor(booking.bookingStatus)} whitespace-nowrap`}>
+                            {getStatusIcon(booking.bookingStatus)}
+                            <span>{booking.bookingStatus}</span>
+                          </div>
+                        </div>
 
-                  {/* Booking Details Grid */}
-                  <div className={cn('grid', 'grid-cols-1', 'md:grid-cols-4', 'gap-4', 'mb-6')}>
-                    <div className={cn('flex', 'items-center', 'gap-3', 'p-3', 'bg-gray-50', 'rounded-lg')}>
-                      <CalendarDaysIcon className={cn('w-5', 'h-5', 'text-gray-600')} />
-                      <div>
-                        <p className={cn('text-xs', 'text-gray-500')}>Travel Date</p>
-                        <p className={cn('font-medium', 'text-gray-900')}>
-                          {new Date(booking.bookDate).toLocaleDateString('en-IN', {
-                            day: '2-digit',
-                            month: 'short',
-                            year: 'numeric'
-                          })}
-                        </p>
-                      </div>
-                    </div>
+                        {/* Booking Details Grid */}
+                        <div className={cn('grid', 'grid-cols-2', 'md:grid-cols-4', 'gap-4', 'mb-6')}>
+                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <CalendarDaysIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                            <div>
+                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Travel Date</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>
+                                {new Date(booking.bookDate).toLocaleDateString('en-IN', {
+                                  day: '2-digit',
+                                  month: 'short',
+                                  year: 'numeric'
+                                })}
+                              </p>
+                            </div>
+                          </div>
 
-                    <div className={cn('flex', 'items-center', 'gap-3', 'p-3', 'bg-gray-50', 'rounded-lg')}>
-                      <UserGroupIcon className={cn('w-5', 'h-5', 'text-gray-600')} />
-                      <div>
-                        <p className={cn('text-xs', 'text-gray-500')}>Passengers</p>
-                        <p className={cn('font-medium', 'text-gray-900')}>{booking.noOfPassengers}</p>
-                      </div>
-                    </div>
+                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <UserGroupIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                            <div>
+                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Passengers</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>{booking.noOfPassengers}</p>
+                            </div>
+                          </div>
 
-                    <div className={cn('flex', 'items-center', 'gap-3', 'p-3', 'bg-gray-50', 'rounded-lg')}>
-                      <CurrencyRupeeIcon className={cn('w-5', 'h-5', 'text-gray-600')} />
-                      <div>
-                        <p className={cn('text-xs', 'text-gray-500')}>Total Fare</p>
-                        <p className={cn('font-medium', 'text-gray-900')}>₹{booking.totalFare}</p>
-                      </div>
-                    </div>
+                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <CurrencyRupeeIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                            <div>
+                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Total Fare</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>₹{booking.totalFare}</p>
+                            </div>
+                          </div>
 
-                    <div className={cn('flex', 'items-center', 'gap-3', 'p-3', 'bg-gray-50', 'rounded-lg')}>
-                      <TicketIcon className={cn('w-5', 'h-5', 'text-gray-600')} />
-                      <div>
-                        <p className={cn('text-xs', 'text-gray-500')}>Seats</p>
-                        <p className={cn('font-medium', 'text-gray-900')}>
-                          {booking.seatLabels?.join(", ") || "N/A"}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <TicketIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                            <div>
+                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Seats</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>
+                                {booking.seatLabels?.join(", ") || "N/A"}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
 
-                  {/* Cancellation Info */}
-                  {booking.bookingStatus === 'CANCELLED' && (
-                    <div className={cn('bg-red-50', 'border', 'border-red-200', 'rounded-lg', 'p-4', 'mb-4')}>
-                      <div className={cn('flex', 'items-start', 'gap-3')}>
-                        <XCircleIcon className={cn('w-5', 'h-5', 'text-red-600', 'flex-shrink-0', 'mt-0.5')} />
-                        <div>
-                          <p className={cn('text-red-800', 'font-medium')}>Booking Cancelled</p>
-                          {booking.cancelledAt && (
-                            <p className={cn('text-red-700', 'text-sm', 'mt-1')}>
-                              Cancelled on: {new Date(booking.cancelledAt).toLocaleString('en-IN')}
-                            </p>
-                          )}
-                          {booking.refundAmount && (
-                            <p className={cn('text-red-700', 'text-sm')}>
-                              Refund Amount: ₹{booking.refundAmount}
-                            </p>
-                          )}
+                        {/* Cancellation Info */}
+                        {booking.bookingStatus === 'CANCELLED' && (
+                          <div className={cn('bg-red-50', 'border', 'border-red-100', 'rounded-xl', 'p-4', 'mb-6')}>
+                            <div className={cn('flex', 'items-start', 'gap-3')}>
+                              <XCircleIcon className={cn('w-5', 'h-5', 'text-red-500', 'flex-shrink-0', 'mt-0.5')} />
+                              <div>
+                                <p className={cn('text-red-700', 'font-bold', 'text-sm')}>Booking Cancelled</p>
+                                {booking.cancelledAt && (
+                                  <p className={cn('text-red-600/70', 'text-xs', 'mt-0.5', 'font-medium')}>
+                                    Cancelled on: {new Date(booking.cancelledAt).toLocaleString('en-IN')}
+                                  </p>
+                                )}
+                                {booking.refundAmount && (
+                                  <p className={cn('text-red-700', 'text-sm', 'font-bold', 'mt-1')}>
+                                    Refund Amount: ₹{booking.refundAmount}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className={cn('flex', 'flex-col', 'sm:flex-row', 'items-center', 'justify-between', 'gap-4', 'pt-5', 'border-t', 'border-gray-50')}>
+                          <div className={cn('text-xs', 'text-gray-400', 'font-medium')}>
+                            Booked on: {new Date(booking.created_at || booking.bookDate).toLocaleDateString('en-IN')}
+                          </div>
+                          <div className={cn('flex', 'flex-wrap', 'items-center', 'justify-center', 'gap-3')}>
+                            <button
+                              onClick={() => router.push(`/get-ticket?pnr=${booking.pnr}`)}
+                              className={cn('px-5', 'py-2', 'text-[#0052cc]', 'bg-[#0052cc]/5', 'hover:bg-[#0052cc]/10', 'rounded-lg', 'transition-colors', 'text-sm', 'font-bold')}
+                            >
+                              View Ticket
+                            </button>
+                            {canCancelBooking(booking) && (
+                              <>
+                                <button
+                                  onClick={() => {
+                                    router.push(`/reschedule?pnr=${booking.pnr}&type=flight`);
+                                  }}
+                                  className={cn('px-5', 'py-2', 'text-[#ff9533]', 'bg-[#ff9533]/5', 'hover:bg-[#ff9533]/10', 'rounded-lg', 'transition-colors', 'text-sm', 'font-bold', 'flex', 'items-center', 'gap-2')}
+                                >
+                                  <CalendarDaysIcon className={cn('w-4', 'h-4')} />
+                                  Reschedule
+                                </button>
+                                {booking.noOfPassengers > 1 ? (
+                                  <>
+                                    <button
+                                      onClick={() => handleCancelSeats(booking)}
+                                      className={cn('px-5', 'py-2', 'text-[#ff9533]', 'bg-[#ff9533]/5', 'hover:bg-[#ff9533]/10', 'rounded-lg', 'transition-colors', 'text-sm', 'font-bold')}
+                                    >
+                                      Cancel Seats
+                                    </button>
+                                    <button
+                                      onClick={() => handleCancelBooking(booking)}
+                                      className={cn('px-5', 'py-2', 'text-red-500', 'bg-red-50', 'hover:bg-red-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-bold')}
+                                    >
+                                      Cancel All
+                                    </button>
+                                  </>
+                                ) : (
+                                  <button
+                                    onClick={() => handleCancelBooking(booking)}
+                                    className={cn('px-5', 'py-2', 'text-red-500', 'bg-red-50', 'hover:bg-red-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-bold')}
+                                  >
+                                    Cancel Booking
+                                  </button>
+                                )}
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  )}
-
-                  {/* Action Buttons */}
-                  <div className={cn('flex', 'items-center', 'justify-between', 'pt-4', 'border-t', 'border-gray-200')}>
-                    <div className={cn('text-sm', 'text-gray-500')}>
-                      Booked on: {new Date(booking.created_at || booking.bookDate).toLocaleDateString('en-IN')}
-                    </div>
-                    <div className={cn('flex', 'items-center', 'gap-3')}>
-                      <button 
-                        onClick={() => router.push(`/get-ticket?pnr=${booking.pnr}`)}
-                        className={cn('px-4', 'py-2', 'text-blue-600', 'bg-blue-50', 'hover:bg-blue-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-medium')}
-                      >
-                        View Ticket
-                      </button>
-                      {canCancelBooking(booking) && (
-                        <>
-                          <button 
-                            onClick={() => {
-                              router.push(`/reschedule?pnr=${booking.pnr}&type=flight`);
-                            }}
-                            className={cn('px-4', 'py-2', 'text-orange-600', 'bg-orange-50', 'hover:bg-orange-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-medium', 'flex', 'items-center', 'gap-2')}
-                          >
-                            <CalendarDaysIcon className={cn('w-4', 'h-4')} />
-                            Reschedule
-                          </button>
-                          {booking.noOfPassengers > 1 ? (
-                            <>
-                              <button 
-                                onClick={() => handleCancelSeats(booking)}
-                                className={cn('px-4', 'py-2', 'text-orange-600', 'bg-orange-50', 'hover:bg-orange-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-medium')}
-                              >
-                                Cancel Seats
-                              </button>
-                              <button 
-                                onClick={() => handleCancelBooking(booking)}
-                                className={cn('px-4', 'py-2', 'text-red-600', 'bg-red-50', 'hover:bg-red-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-medium')}
-                              >
-                                Cancel All
-                              </button>
-                            </>
-                          ) : (
-                            <button 
-                              onClick={() => handleCancelBooking(booking)}
-                              className={cn('px-4', 'py-2', 'text-red-600', 'bg-red-50', 'hover:bg-red-100', 'rounded-lg', 'transition-colors', 'text-sm', 'font-medium')}
-                            >
-                              Cancel Booking
-                            </button>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        )}
+        </div>
       </div>
 
-      {/* Cancellation Modal */}
+      {/* Cancellation Modals */}
       <CancellationModal
         isOpen={showCancellationModal}
         onClose={() => {
@@ -351,7 +472,6 @@ export default function UserBookingsPage() {
         bookingType="flight"
       />
 
-      {/* Per-Seat Cancellation Modal */}
       <PerSeatCancellationModal
         isOpen={showPerSeatCancellationModal}
         onClose={() => {
@@ -362,6 +482,6 @@ export default function UserBookingsPage() {
         onCancellationSuccess={handleCancellationSuccess}
         bookingType="flight"
       />
-    </div>
+    </div >
   );
 }

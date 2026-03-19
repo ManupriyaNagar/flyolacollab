@@ -1,7 +1,7 @@
 // Base URL configuration for different services
 
 // Node.js backend (existing flight services)
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.jetserveaviation.com";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://app.jetserveaviation.com";
 
 // Go backend (hotel services)
 const GO_BASE_URL = process.env.NEXT_PUBLIC_GO_API_URL || "http://localhost:8080";
