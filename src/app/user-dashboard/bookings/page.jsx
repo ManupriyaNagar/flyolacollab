@@ -215,39 +215,41 @@ export default function UserBookingsPage() {
       <ToastContainer position="top-right" autoClose={3000} />
 
       {/* Blue Header Section */}
-      <div className="relative h-64 overflow-hidden">
-        {/* Background Image */}
+      <div className="relative h-64 overflow-hidden bg-blue-600/90 rounded-2xl mx-4 sm:mx-6 mt-4">
+        {/* Background Image Layer */}
         <div
-          className="absolute inset-0 bg-cover bg-center rounded-2xl -z-4"
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-500 transform scale-105"
           style={{
             backgroundImage: `url(${getBgImage()})`,
           }}
         />
+        {/* Dark overlay for better button/input contrast */}
+        {/* <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-transparent" /> */}
 
-        <div className="relative px-6 pt-10 flex flex-col md:flex-row md:items-center justify-end">
+        <div className="relative h-full px-4 sm:px-6 pt-6 sm:pt-10 flex flex-col items-end justify-center -mt-10">
           {/* Search Bar */}
-          <div className="flex items-center gap-0 bg-white rounded-xl overflow-hidden w-full max-w-md">
-            <div className="flex-1 flex items-center px-4 py-3 bg-[#f0f3f8]">
+          <div className="flex items-center gap-0 bg-white/95 backdrop-blur-sm rounded-xl overflow-hidden w-full max-w-md shadow-2xl border border-white/20">
+            <div className="flex-1 flex items-center px-4 py-2.5 sm:py-3">
               <input
                 type="text"
                 placeholder="Search for a booking"
-                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium text-sm"
+                className="bg-transparent border-none outline-none w-full text-gray-700 placeholder:text-gray-400 font-medium text-xs sm:text-sm"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <button className="bg-[#ff9533] hover:bg-[#ff8000] p-4 text-white transition-all flex items-center justify-center">
-              <MagnifyingGlassIcon className="w-6 h-6 stroke-[2.5px]" />
+            <button className="bg-[#ff9533] hover:bg-[#ff8000] p-3 sm:p-4 text-white transition-all flex items-center justify-center">
+              <MagnifyingGlassIcon className="w-5 h-5 sm:w-6 sm:h-6 stroke-[2.5px]" />
             </button>
           </div>
         </div>
       </div>
 
       {/* Main Content Card */}
-      <div className="max-w-5xl mx-auto px-6 -mt-24">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 -mt-16 sm:-mt-20 pb-12 relative z-10">
         <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden flex flex-col">
           {/* Tab Navigation */}
-          <div className="flex border-b border-gray-100 bg-[#fafbfc] px-4 py-4">
+          <div className="flex border-b border-gray-100 bg-[#fafbfc] px-2 sm:px-4 overflow-x-auto no-scrollbar">
             {[
               { id: 'UPCOMING', label: 'UPCOMING', icon: BriefcaseIcon },
               { id: 'CANCELLED', label: 'CANCELLED', icon: NoSymbolIcon },
@@ -257,14 +259,14 @@ export default function UserBookingsPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={cn(
-                  "flex items-center gap-3 px-8 py-5 text-sm font-bold tracking-wider transition-all relative",
+                  "flex items-center gap-2 sm:gap-3 px-4 sm:px-8 py-4 sm:py-5 text-xs sm:text-sm font-bold tracking-wider transition-all relative whitespace-nowrap",
                   activeTab === tab.id
                     ? "text-[#0052cc]"
                     : "text-gray-500 hover:text-gray-700 hover:bg-gray-50"
                 )}
               >
                 <tab.icon className={cn(
-                  "w-6 h-6 shrink-0",
+                  "w-5 h-5 sm:w-6 sm:h-6 shrink-0",
                   activeTab === tab.id
                     ? (tab.id === 'CANCELLED' ? "text-red-500" : tab.id === 'COMPLETED' ? "text-green-500" : "text-[#0052cc]")
                     : "text-gray-400"
@@ -288,18 +290,18 @@ export default function UserBookingsPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
-                  className="flex flex-col md:flex-row items-center justify-between bg-white py-12 px-6"
+                  className="flex flex-col md:flex-row items-center justify-between bg-white py-10 sm:py-12 px-6"
                 >
-                  <div className="flex items-center gap-6">
-                    <img src={emptyStateConfig[activeTab].icon} alt="" className="h-auto w-16" />
+                  <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 text-center sm:text-left">
+                    <img src={emptyStateConfig[activeTab].icon} alt="" className="h-auto w-12 sm:w-16" />
                     <div>
-                      <h3 className="text-2xl font-medium text-gray-900 mb-1">{emptyStateConfig[activeTab].title}</h3>
-                      <p className="text-gray-500 font-medium">{emptyStateConfig[activeTab].subtitle}</p>
+                      <h3 className="text-xl sm:text-2xl font-medium text-gray-900 mb-1">{emptyStateConfig[activeTab].title}</h3>
+                      <p className="text-sm sm:text-base text-gray-500 font-medium">{emptyStateConfig[activeTab].subtitle}</p>
                     </div>
                   </div>
                   <button
                     onClick={() => router.push('/scheduled-flight')}
-                    className="mt-8 md:mt-0 px-10 py-4 bg-[#ff9533] hover:bg-[#ff8000] text-white font-light rounded-lg transition-all active:scale-95"
+                    className="mt-6 md:mt-0 px-8 sm:px-10 py-3 sm:py-4 bg-[#ff9533] hover:bg-[#ff8000] text-white font-medium rounded-lg transition-all active:scale-95"
                   >
                     Plan a trip
                   </button>
@@ -336,12 +338,12 @@ export default function UserBookingsPage() {
                         </div>
 
                         {/* Booking Details Grid */}
-                        <div className={cn('grid', 'grid-cols-2', 'md:grid-cols-4', 'gap-4', 'mb-6')}>
-                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
-                            <CalendarDaysIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                        <div className={cn('grid', 'grid-cols-2', 'md:grid-cols-4', 'gap-3 sm:gap-4', 'mb-6')}>
+                          <div className={cn('flex', 'items-center', 'gap-2 sm:gap-3', 'p-3 sm:p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <CalendarDaysIcon className={cn('w-4 h-4 sm:w-5 sm:h-5', 'text-blue-500')} />
                             <div>
-                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Travel Date</p>
-                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>
+                              <p className={cn('text-[9px] sm:text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Travel Date</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-xs sm:text-sm')}>
                                 {new Date(booking.bookDate).toLocaleDateString('en-IN', {
                                   day: '2-digit',
                                   month: 'short',
@@ -351,27 +353,27 @@ export default function UserBookingsPage() {
                             </div>
                           </div>
 
-                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
-                            <UserGroupIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                          <div className={cn('flex', 'items-center', 'gap-2 sm:gap-3', 'p-3 sm:p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <UserGroupIcon className={cn('w-4 h-4 sm:w-5 sm:h-5', 'text-blue-500')} />
                             <div>
-                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Passengers</p>
-                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>{booking.noOfPassengers}</p>
+                              <p className={cn('text-[9px] sm:text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Passengers</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-xs sm:text-sm')}>{booking.noOfPassengers}</p>
                             </div>
                           </div>
 
-                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
-                            <CurrencyRupeeIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                          <div className={cn('flex', 'items-center', 'gap-2 sm:gap-3', 'p-3 sm:p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <CurrencyRupeeIcon className={cn('w-4 h-4 sm:w-5 sm:h-5', 'text-blue-500')} />
                             <div>
-                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Total Fare</p>
-                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>₹{booking.totalFare}</p>
+                              <p className={cn('text-[9px] sm:text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Total Fare</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-xs sm:text-sm')}>₹{booking.totalFare}</p>
                             </div>
                           </div>
 
-                          <div className={cn('flex', 'items-center', 'gap-3', 'p-4', 'bg-[#f8faff]', 'rounded-xl')}>
-                            <TicketIcon className={cn('w-5', 'h-5', 'text-blue-500')} />
+                          <div className={cn('flex', 'items-center', 'gap-2 sm:gap-3', 'p-3 sm:p-4', 'bg-[#f8faff]', 'rounded-xl')}>
+                            <TicketIcon className={cn('w-4 h-4 sm:w-5 sm:h-5', 'text-blue-500')} />
                             <div>
-                              <p className={cn('text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Seats</p>
-                              <p className={cn('font-bold', 'text-gray-900', 'text-sm')}>
+                              <p className={cn('text-[9px] sm:text-[10px]', 'text-gray-400', 'uppercase', 'tracking-wider', 'font-bold')}>Seats</p>
+                              <p className={cn('font-bold', 'text-gray-900', 'text-xs sm:text-sm')}>
                                 {booking.seatLabels?.join(", ") || "N/A"}
                               </p>
                             </div>

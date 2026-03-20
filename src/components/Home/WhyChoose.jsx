@@ -71,7 +71,7 @@ const WhyChooseFlyOla = () => {
         {/* Cards Grid */}
 
       </div>
-      <div className="bg-white grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-18">
+      <div className="bg-white grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 p-6 lg:p-18">
         {/* Main Hero Card */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}

@@ -50,8 +50,8 @@ const Footer = () => {
         <img src="/flights/Banner-Flyola2.svg" alt="Flyola Banner" className="w-full h-auto" />
       </div>
       <footer className="w-full bg-white border-t-[6px] border-[#F39C12] font-sans">
-        {/* Desktop & Tablet View */}
-        <div className="hidden md:block max-w-7xl mx-auto px-6 md:px-8 py-10">
+        {/* Desktop View (lg and up) */}
+        <div className="hidden lg:block max-w-7xl mx-auto px-6 md:px-8 py-10">
           {/* Top Header Row */}
           <div className="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
             <div className="flex items-center">
@@ -126,8 +126,8 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Mobile View Layout */}
-        <div className="md:hidden px-6 py-10 space-y-8">
+        {/* Mobile & Tablet View Layout (lg:hidden) */}
+        <div className="lg:hidden px-6 py-10 space-y-8 max-w-4xl mx-auto">
           {/* App Banner */}
           <div className="w-full bg-[#0E35B5] rounded-3xl p-8 text-white space-y-4 shadow-lg overflow-hidden relative">
             <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_white_1px,_transparent_1px)] bg-[length:20px_20px]"></div>
@@ -147,74 +147,50 @@ const Footer = () => {
             </div>
           </div>
 
+          {/* Logo Section */}
+          <div className="flex justify-center py-4">
+            <img src="/flights/flyolalogo.svg" alt="Flyola" className="h-12 w-auto" />
+          </div>
+
           {/* Safe Checkout Section */}
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <div className="h-px bg-gray-200 flex-grow"></div>
-              <span className="text-[10px] font-bold text-gray-400 tracking-widest uppercase text-center">Guaranteed Safe Checkout</span>
-              <div className="h-px bg-gray-200 flex-grow"></div>
-            </div>
-            <div className="flex justify-center">
-              <img src="/flights/topping.svg" alt="Payment Methods" className="h-10 w-auto" />
+            <div className="flex justify-center scale-110 sm:scale-125 md:scale-150 py-4">
+              <img src="/flights/topping.svg" alt="Payment Methods" className="h-8 w-auto" />
             </div>
           </div>
 
-          {/* Logo Section */}
-          <div className="flex justify-center py-2">
-            <img src="/flights/flyolalogo.svg" alt="Flyola" className="h-10 w-auto" />
-          </div>
-
-          {/* Links Grid */}
-          <div className="grid grid-cols-2 gap-x-8 gap-y-6">
-            <ul className="space-y-4">
-              {footerSections[0].links.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-900 font-bold text-[15px] underline decoration-transparent hover:decoration-gray-300">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <ul className="space-y-4">
-              {footerSections[1].links.map((link) => (
-                <li key={link.name}>
-                  <Link href={link.href} className="text-gray-900 font-bold text-[15px] underline decoration-transparent hover:decoration-gray-300">
-                    {link.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Services & Contact */}
-          <div className="pt-6 space-y-6 border-t border-gray-100">
-            <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-              <ul className="space-y-4">
-                <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Personal Charter</Link></li>
-                <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Hire Charter</Link></li>
-                <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Helicopter Hire</Link></li>
+          {/* Links Grid - 3 Columns for Mobile & Tablet */}
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-x-8 gap-y-10">
+            {footerSections.map((section) => (
+              <ul key={section.title} className="space-y-4">
+                {section.links.map((link) => (
+                  <li key={link.name}>
+                    <Link href={link.href} className="text-gray-900 font-bold text-[15px] underline decoration-transparent hover:decoration-gray-300">
+                      {link.name}
+                    </Link>
+                  </li>
+                ))}
               </ul>
-              <ul className="space-y-4">
-                <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Business Class Charter</Link></li>
-                <li><Link href="#" className="text-gray-900 font-bold text-[15px]">Jet Hire</Link></li>
-              </ul>
-            </div>
+            ))}
+          </div>
 
-            <div className="space-y-6 pt-4">
-              <div className="space-y-1">
-                <h4 className="font-black text-gray-900">Address:</h4>
-                <p className="text-sm text-gray-900 font-medium leading-normal">
+          {/* Contact Info Section */}
+          <div className="pt-10 space-y-8 border-t border-gray-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="space-y-2">
+                <h4 className="font-black text-gray-900 text-lg">Address:</h4>
+                <p className="text-sm text-gray-900 font-medium leading-relaxed max-w-sm">
                   Indraprasth Aerospace & Knowledge Park, Sector-77, Delhi-Jaipur NH-08, Gurgaon, Haryana-122004
                 </p>
               </div>
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <h4 className="font-black text-gray-900">Phone:</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-black text-gray-900 text-lg">Phone:</h4>
                   <p className="text-sm text-gray-900 font-medium">9311896389</p>
                 </div>
-                <div className="space-y-1 text-right">
-                  <h4 className="font-black text-gray-900">Email:</h4>
-                  <p className="text-sm text-gray-900 font-medium">booking@flyolaindia.com</p>
+                <div className="space-y-2">
+                  <h4 className="font-black text-gray-900 text-lg">Email:</h4>
+                  <p className="text-sm text-gray-900 font-medium break-all sm:break-normal">booking@flyolaindia.com</p>
                 </div>
               </div>
             </div>
@@ -224,8 +200,22 @@ const Footer = () => {
         {/* Footer Bottom Bar */}
         <div className="bg-white border-t border-gray-200">
           <div className="max-w-7xl mx-auto px-6 md:px-8 py-6">
-            <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-semibold text-gray-400">
-              <p className="tracking-tight">
+            <div className="flex flex-col lg:flex-row justify-between items-center gap-6 text-xs font-semibold text-gray-400">
+              <div className="flex lg:hidden items-center gap-8 mb-2">
+                <Link href="#" className="text-black hover:text-[#0133EA] transition-colors">
+                  <Facebook size={20} fill="currentColor" strokeWidth={0} />
+                </Link>
+                <Link href="#" className="text-black hover:text-[#0133EA] transition-colors">
+                  <Instagram size={20} />
+                </Link>
+                <Link href="#" className="text-black hover:text-[#0133EA] transition-colors">
+                  <Linkedin size={20} fill="currentColor" strokeWidth={0} />
+                </Link>
+                <Link href="#" className="text-black hover:text-[#0133EA] transition-colors">
+                  <Twitter size={20} fill="currentColor" strokeWidth={0} />
+                </Link>
+              </div>
+              <p className="tracking-tight text-center lg:text-left">
                 Jet Serve Aviation Pvt. Ltd © {currentYear}. All Rights Reserved
               </p>
               <div className="flex items-center">

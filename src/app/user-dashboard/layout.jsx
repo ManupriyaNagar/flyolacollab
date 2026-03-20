@@ -51,222 +51,169 @@ export default function UserDashboardLayout({ children }) {
 
   return (
     <RouteGuard>
-      <div className="flex min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-        {/* Enhanced Sidebar */}
+      <div className="flex min-h-screen bg-slate-50/50">
+        {/* Minimalist Sidebar */}
         <aside
-          className={`fixed top-0 left-0 h-full z-30 w-80 flex flex-col overflow-hidden transition-all duration-300 ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"
-            } md:translate-x-0 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900 text-white shadow-2xl border-r border-slate-700/50`}
+          className={`fixed top-0 left-0 h-full z-30 w-72 flex flex-col overflow-hidden transition-all duration-300 border-r border-slate-200 shadow-sm ${isSidebarVisible ? "translate-x-0" : "-translate-x-full"
+            } md:translate-x-0 bg-white text-slate-600`}
         >
           {/* Header */}
-          <div className="p-6 border-b border-slate-700/50">
-            <div className="flex items-center justify-between mb-4">
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl flex items-center justify-center">
-                  <FaPlane className="text-white text-lg" />
-                </div>
+                <img src="/flights/Layer_1.png" alt="" className="w-10 h-10" />
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                    Flyola
+                  <h1 className="text-xl font-bold text-slate-900 flex items-center gap-1">
+                    Flyola <span className="text-xs font-normal text-slate-400">⌄</span>
                   </h1>
-                  <p className="text-xs text-slate-400">User Portal</p>
                 </div>
               </div>
               <button
                 onClick={() => setSidebarVisible(false)}
-                className="md:hidden p-2 rounded-lg hover:bg-slate-800 transition-colors"
+                className="md:hidden p-2 rounded-lg hover:bg-slate-100 transition-colors text-slate-400"
                 aria-label="Close sidebar"
               >
                 <FaTimes size={20} />
               </button>
             </div>
-
-            {/* User Info */}
-            <div className="flex items-center gap-3 p-3 bg-slate-800/50 rounded-xl">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
-                <FaUserCircle className="text-white text-sm" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-white">Welcome Back!</p>
-                <p className="text-xs text-slate-400">Valued Customer</p>
-              </div>
-            </div>
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-            {/* Dashboard Section */}
+          <nav className="flex-1 px-4 py-2 space-y-1 overflow-y-auto">
+            {/* Overview Section */}
             <div className="mb-6">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                Overview
-              </p>
               <Link
                 href="/user-dashboard"
-                className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard")
-                  ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                  : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
                   }`}
                 onClick={() => setSidebarVisible(false)}
               >
-                <FaHome className={`text-lg ${isActive("/user-dashboard") ? "text-white" : "text-blue-400"}`} />
-                <span className="font-medium">Dashboard</span>
-                {isActive("/user-dashboard") && (
-                  <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                )}
+                <FaHome className={`text-lg ${isActive("/user-dashboard") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Start here!</span>
               </Link>
             </div>
 
-            {/* Booking Management */}
-            <div className="mb-6">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                My Bookings
-              </p>
-              <div className="space-y-1">
-                <Link
-                  href="/user-dashboard/bookings"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/bookings")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaClock className={`text-lg ${isActive("/user-dashboard/bookings") ? "text-white" : "text-emerald-400"}`} />
-                  <span className="font-medium">Flight Bookings</span>
-                  {isActive("/user-dashboard/bookings") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
+            <div className="h-px bg-slate-100 my-4 mx-2"></div>
 
-                <Link
-                  href="/user-dashboard/helicopter-bookings"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/helicopter-bookings")
-                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaClock className={`text-lg ${isActive("/user-dashboard/helicopter-bookings") ? "text-white" : "text-purple-400"}`} />
-                  <span className="font-medium">Helicopter Bookings</span>
-                  {isActive("/user-dashboard/helicopter-bookings") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
+            {/* My Bookings Section */}
+            <div className="space-y-1">
+              <Link
+                href="/user-dashboard/bookings"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/bookings")
+                  ? "bg-gray-100 text-[#0049CF] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaPlane className={`text-lg ${isActive("/user-dashboard/bookings") ? "text-[#0049CF]" : "text-slate-400"}`} />
+                <span>Flight Bookings</span>
+              </Link>
 
-                <Link
-                  href="/user-dashboard/hotel-bookings"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/hotel-bookings")
-                    ? "bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaHotel className={`text-lg ${isActive("/user-dashboard/hotel-bookings") ? "text-white" : "text-amber-400"}`} />
-                  <span className="font-medium">Hotel Bookings</span>
-                  {isActive("/user-dashboard/hotel-bookings") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
+              <Link
+                href="/user-dashboard/helicopter-bookings"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/helicopter-bookings")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaClock className={`text-lg ${isActive("/user-dashboard/helicopter-bookings") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Helicopter Bookings</span>
+              </Link>
 
-                <Link
-                  href="/user-dashboard/pnr-status"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/pnr-status")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaTicketAlt className={`text-lg ${isActive("/user-dashboard/pnr-status") ? "text-white" : "text-sky-400"}`} />
-                  <span className="font-medium">PNR Status</span>
-                  {isActive("/user-dashboard/pnr-status") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
-              </div>
+              <Link
+                href="/user-dashboard/hotel-bookings"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/hotel-bookings")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaHotel className={`text-lg ${isActive("/user-dashboard/hotel-bookings") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Hotel Bookings</span>
+              </Link>
+
+              <Link
+                href="/user-dashboard/pnr-status"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/pnr-status")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaTicketAlt className={`text-lg ${isActive("/user-dashboard/pnr-status") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>PNR Status</span>
+              </Link>
             </div>
 
-            {/* Financial Management */}
-            <div className="mb-6">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                Financial
-              </p>
-              <div className="space-y-1">
-                <Link
-                  href="/user-dashboard/payments"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/payments")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaCreditCard className={`text-lg ${isActive("/user-dashboard/payments") ? "text-white" : "text-orange-400"}`} />
-                  <span className="font-medium">Payment History</span>
-                  {isActive("/user-dashboard/payments") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
+            <div className="h-px bg-slate-100 my-6 mx-2"></div>
 
-                <Link
-                  href="/user-dashboard/refunds"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/refunds")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaDollarSign className={`text-lg ${isActive("/user-dashboard/refunds") ? "text-white" : "text-green-400"}`} />
-                  <span className="font-medium">Refund Requests</span>
-                  {isActive("/user-dashboard/refunds") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
-              </div>
+            {/* Financial Section */}
+            <div className="space-y-1">
+              <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Financial</p>
+              <Link
+                href="/user-dashboard/payments"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/payments")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaCreditCard className={`text-lg ${isActive("/user-dashboard/payments") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Payments</span>
+              </Link>
+              <Link
+                href="/user-dashboard/refunds"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/refunds")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaDollarSign className={`text-lg ${isActive("/user-dashboard/refunds") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Refunds</span>
+              </Link>
             </div>
 
-            {/* Support & Account */}
-            <div className="mb-6">
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3 px-3">
-                Support & Account
-              </p>
-              <div className="space-y-1">
-                <Link
-                  href="/user-dashboard/support"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/support")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaHeadset className={`text-lg ${isActive("/user-dashboard/support") ? "text-white" : "text-pink-400"}`} />
-                  <span className="font-medium">Support Tickets</span>
-                  {isActive("/user-dashboard/support") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
+            <div className="h-px bg-slate-100 my-6 mx-2"></div>
 
-                <Link
-                  href="/user-dashboard/profile"
-                  className={`flex items-center gap-3 py-3 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/profile")
-                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
-                    : "hover:bg-slate-800/50 text-slate-300 hover:text-white"
-                    }`}
-                  onClick={() => setSidebarVisible(false)}
-                >
-                  <FaUser className={`text-lg ${isActive("/user-dashboard/profile") ? "text-white" : "text-indigo-400"}`} />
-                  <span className="font-medium">Profile Settings</span>
-                  {isActive("/user-dashboard/profile") && (
-                    <div className="ml-auto w-2 h-2 bg-white rounded-full"></div>
-                  )}
-                </Link>
-              </div>
+            {/* Account Section */}
+            <div className="space-y-1">
+              <p className="px-4 text-[11px] font-bold text-slate-400 uppercase tracking-widest mb-2">Account</p>
+              <Link
+                href="/user-dashboard/support"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/support")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaHeadset className={`text-lg ${isActive("/user-dashboard/support") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Support</span>
+              </Link>
+              <Link
+                href="/user-dashboard/profile"
+                className={`flex items-center gap-3 py-2.5 px-4 rounded-xl transition-all duration-200 group ${isActive("/user-dashboard/profile")
+                  ? "bg-[#E8F5E9] text-[#001E5B] font-semibold"
+                  : "hover:bg-slate-50 text-slate-600 hover:text-slate-900"
+                  }`}
+                onClick={() => setSidebarVisible(false)}
+              >
+                <FaUser className={`text-lg ${isActive("/user-dashboard/profile") ? "text-[#001E5B]" : "text-slate-400"}`} />
+                <span>Profile</span>
+              </Link>
             </div>
           </nav>
 
-          {/* Footer */}
-          <div className="p-4 border-t border-slate-700/50">
+          {/* User Profile / Logout */}
+          <div className="p-4 border-t border-slate-100 bg-slate-50/50">
             <button
               onClick={handleLogout}
-              className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-slate-300 hover:text-white hover:bg-red-600/20 transition-all duration-200 group"
+              className="flex items-center gap-3 w-full py-3 px-4 rounded-xl text-slate-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 group"
             >
-              <FaSignOutAlt className="text-lg text-red-400" />
+              <FaSignOutAlt className="text-lg text-slate-400 group-hover:text-red-500" />
               <span className="font-medium">Sign Out</span>
             </button>
           </div>
@@ -279,34 +226,32 @@ export default function UserDashboardLayout({ children }) {
             className="fixed inset-0 bg-black/50 z-20 md:hidden"
             aria-hidden="true"
           />
-        )}
-
-        {/* Main Content */}
-        <main className="flex-1 relative md:ml-80">
+        )}        {/* Main Content */}
+        <main className="flex-1 relative md:ml-72 bg-white flex flex-col min-h-screen">
           {/* Enhanced Header */}
-          <header className="sticky top-0 z-20 bg-white/80 backdrop-blur-lg border-b border-slate-200/50 shadow-sm">
-            <div className="flex items-center justify-between px-6 py-4">
-              <div className="flex items-center gap-4">
+          <header className="sticky top-0 z-20 bg-white border-b border-slate-100 shadow-sm">
+            <div className="flex items-center justify-between px-4 lg:px-6 py-4">
+              <div className="flex items-center gap-3 lg:gap-4">
                 <button
                   onClick={() => setSidebarVisible(!isSidebarVisible)}
                   className="md:hidden p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
                   aria-label="Toggle sidebar"
                 >
-                  <FaBars size={20} className="text-slate-600" />
+                  <FaBars size={18} className="text-slate-600" />
                 </button>
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-800">
+                  <h2 className="text-sm lg:text-2xl font-bold text-slate-800">
                     Welcome Back!
                   </h2>
-                  <p className="text-sm text-slate-500">
-                    Manage your bookings and travel preferences
+                  <p className="text-[10px] lg:text-sm text-slate-500">
+                    Manage your bookings
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                {/* Search */}
-                <div className="hidden sm:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl">
+              <div className="flex items-center gap-2 lg:gap-3">
+                {/* Search - Hidden on Small Screens */}
+                <div className="hidden lg:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-xl">
                   <Search size={18} className="text-slate-400" />
                   <input
                     type="text"
@@ -321,55 +266,55 @@ export default function UserDashboardLayout({ children }) {
                   className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors"
                   title="Go to Home"
                 >
-                  <Home size={20} className="text-slate-600" />
+                  <Home size={18} className="text-slate-600 sm:w-5 sm:h-5" />
                 </Link>
 
                 {/* Notifications */}
                 <button className="relative p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors">
-                  <Bell size={20} className="text-slate-600" />
-                  <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
+                  <Bell size={18} className="text-slate-600 sm:w-5 sm:h-5" />
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
                 </button>
 
-                {/* Settings */}
-                <button className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors">
-                  <Settings size={20} className="text-slate-600" />
+                {/* Settings - Hidden on mobile, shown on SM or above if needed or just kept for desktop */}
+                <button className="hidden sm:block p-2 rounded-xl bg-slate-100 hover:bg-slate-200 transition-colors">
+                  <Settings size={18} className="text-slate-600 sm:w-5 sm:h-5" />
                 </button>
 
                 {/* Profile */}
-                <div className="flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl text-white">
-                  <User size={18} />
-                  <span className="text-sm font-medium hidden sm:block">Profile</span>
+                <div className="flex items-center gap-2 px-2 sm:px-3 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500 to-purple-500 rounded-xl text-white">
+                  <User size={16} className="sm:w-[18px] sm:h-[18px]" />
+                  <span className="text-xs sm:text-sm font-medium hidden sm:block">Profile</span>
                 </div>
               </div>
             </div>
           </header>
 
           {/* Content Area */}
-          <div className="p-6 min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
-            <div className="max-w-7xl mx-auto">
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl shadow-xl border border-white/20 p-8 min-h-[600px]">
+          <div className="p-4 md:p-6 lg:p-8 flex-1 bg-slate-50/30">
+            <div className="max-w-7xl mx-auto h-full">
+              <div className="bg-white rounded-2xl border border-slate-100 p-4 sm:p-6 lg:p-10 min-h-[600px] shadow-sm">
                 {children}
               </div>
             </div>
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-700 bg-gradient-to-br from-indigo-900 via-purple-900 to-blue-900">
+          <div className="border-t border-slate-200 bg-white">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
               <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-slate-400">
+                <div className="flex flex-col md:flex-row items-center gap-4 text-sm text-slate-500">
                   <p>Jet Serve Aviation Pvt. Ltd © {new Date().getFullYear()}. All Rights Reserved</p>
                   <div className="flex items-center gap-4">
                     <span className="hidden md:block">|</span>
-                    <Link href="/privacy" className="hover:text-white transition-colors duration-200">
+                    <Link href="/privacy" className="hover:text-slate-900 transition-colors duration-200">
                       Privacy
                     </Link>
                     <span>•</span>
-                    <Link href="/terms" className="hover:text-white transition-colors duration-200">
+                    <Link href="/terms" className="hover:text-slate-900 transition-colors duration-200">
                       Terms
                     </Link>
                     <span>•</span>
-                    <Link href="/refund" className="hover:text-white transition-colors duration-200">
+                    <Link href="/refund" className="hover:text-slate-900 transition-colors duration-200">
                       Refund Policy
                     </Link>
                   </div>

@@ -15,7 +15,7 @@ export default function PopularDestinations() {
           className="text-center"
         >
           <div className={cn('bg-[#0334EA]', 'rounded-2xl', 'py-20', 'text-white', 'shadow-2xl')}>
-            <h3 className={cn('text-4xl', 'md:text-5xl', 'lg:text-4xl', 'font-semibold', 'text-white', 'mb-4', 'tracking-tight')}>Ready to Experience Luxury Aviation?</h3>
+            <h3 className={cn('text-3xl', 'md:text-5xl', 'lg:text-4xl', 'font-semibold', 'text-white', 'mb-4', 'tracking-tight')}>Ready to Experience Luxury Aviation?</h3>
             <p className={cn('text-blue-100', 'mb-6', 'max-w-md', 'mx-auto', "px-5")}>
               Contact our aviation specialists today and discover
               how we can elevate your travel experience

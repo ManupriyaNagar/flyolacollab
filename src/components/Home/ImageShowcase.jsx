@@ -39,7 +39,7 @@ const ImageShowcase = () => {
 
   return (
     <section className="py-16 md:py-10 bg-white overflow-hidden">
-      <div className="px-4 sm:px-6 lg:px-16">
+      <div className="px-4  lg:px-16">
 
         {/* HEADER */}
         <div className="text-center mb-10">
@@ -50,7 +50,7 @@ const ImageShowcase = () => {
             </span>
           </div>
 
-          <h1 className="text-4xl md:text-5xl lg:text-4xl font-semibold text-slate-900 mb-4 tracking-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-4xl font-semibold text-slate-900 mb-4 tracking-tight">
             Experience the World from <br /> New Heights
           </h1>
 
