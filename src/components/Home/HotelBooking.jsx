@@ -142,7 +142,7 @@ const HotelBooking = forwardRef((props, ref) => {
         {/* Destination */}
         <div className="flex-[1.5] min-w-[250px] space-y-2">
           <label className="text-sm font-semibold text-gray-400 ml-1">Destination</label>
-          <div className="bg-gray-100/80 font-light rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
+          <div className="bg-gray-100/80 font-light rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 group">
             <CityAutocomplete
               cities={cities}
               value={destination}

@@ -38,7 +38,7 @@ export default function ClientLayout({ children }) {
         </main>
 
         {/* Show Footer for non-dashboard pages */}
-        {/* {!isDashboard && <Footer />} */}
+        {!isDashboard && <Footer />}
       </RouteProtection>
 
       {/* Toast Container for notifications */}

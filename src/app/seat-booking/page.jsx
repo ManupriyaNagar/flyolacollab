@@ -137,13 +137,20 @@ function SeatBookingContent() {
 
 
                         {/* Aircraft Visualization with Background Image */}
-                        <div className="relative flex justify-center px-4 md:px-8 lg:px-16 border-x border-b rounded-b-xl overflow-x-auto scrollbar-hide py-4">
+                        <div className="relative flex justify-center px-4 md:px-8 lg:px-16 rounded-b-xl overflow-x-auto scrollbar-hide py-4 md:rotate-0 rotate-270">
                             <div
-                                className="w-full sm:min-w-[580px] md:min-w-0 lg:max-w-4xl h-[160px] sm:h-[220px] md:h-[250px] bg-no-repeat bg-contain bg-center relative flex items-center"
+                                className="w-full 
+             min-w-[320px] 
+             h-[420px] 
+             sm:min-w-[380px] sm:h-[360px] 
+             md:min-w-0 md:h-[300px] 
+             lg:max-w-4xl 
+             bg-no-repeat bg-contain bg-center 
+             relative flex items-center"
                                 style={{ backgroundImage: "url('/flights/Group-flight.svg')" }}
                             >
                                 {/* Passenger Cabin Area - Overlay over SVG */}
-                                <div className="absolute left-[12%] right-[35%] top-1/2 -translate-y-1/2 flex flex-col justify-center gap-6 md:gap-14">
+                                <div className="absolute left-[12%] right-[35%] top-1/2 -translate-y-1/2 flex flex-col justify-center gap-3 md:gap-14">
                                     {/* Top Row Seats */}
                                     <div className="flex justify-center items-center gap-8 md:gap-26">
                                         {seatLayout.top.map(seatId => (
@@ -186,7 +193,7 @@ function SeatBookingContent() {
                     </div>
 
                     {/* Passenger Selection Tabs */}
-                    <div className="inter-font flex flex-wrap gap-4 mt-12">
+                    <div className="inter-font flex flex-wrap md:gap-4 gap-8 mt-12">
                         {passengers.map((p, idx) => (
                             <button
                                 key={p.id}
@@ -283,16 +290,13 @@ function Seat({ id, status, onClick }) {
             {/* Seat Image */}
             <div
                 onClick={onClick}
-                className={`relative w-10 h-10 cursor-pointer transition-all duration-30  z-10 flex items-center justify-center ${status === 'taken' ? 'opacity-40' : ''}`}
+                className={`relative w-10 h-10 cursor-pointer transition-all duration-30 z-10 flex items-center justify-center ${status === 'taken' ? 'opacity-40' : ''}`}
             >
                 <img
                     src={images[status]}
                     alt={`Seat ${id}`}
                     className="lg:w-full lg:h-full w-4 h-4 object-contain rotate-[180deg]"
                 />
-
-                {/* Overlay Checkmark for Selected */}
-
             </div>
         </div>
     );
