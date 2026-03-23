@@ -32,6 +32,7 @@ const FilterSectionTop = ({
 }) => {
     const [isReturnActive, setIsReturnActive] = useState(!!returnDate);
     const [activeDropdown, setActiveDropdown] = useState(null);
+    const [searchTerm, setSearchTerm] = useState("");
 
     const [counts, setCounts] = useState({
         adults: passengers || 1,
@@ -40,7 +41,9 @@ const FilterSectionTop = ({
     });
 
     const locationOptions = FilterManager.getLocationOptions(locations, "flight");
-
+const filteredLocations = locationOptions.filter((option) =>
+    option.label.toLowerCase().includes(searchTerm.toLowerCase())
+);
     const dropdownRef = useRef(null);
 
     useEffect(() => {
@@ -177,12 +180,38 @@ const FilterSectionTop = ({
                                                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
                                                 className="absolute top-full left-0 mt-2 w-[90vw] md:w-[400px] bg-white rounded-3xl shadow-2xl border z-[50] p-6"
                                             >
-                                                <h3 className="text-lg font-bold mb-3">Departure</h3>
-                                                <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                                                    {locationOptions.map((option, i) => (
-                                                        <button key={i} onClick={() => { onDepartureChange?.(option.value); setActiveDropdown(null); }} className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors">{option.label}</button>
-                                                    ))}
-                                                </div>
+                                             <h3 className="text-lg font-bold mb-3">Departure</h3>
+
+{/* 🔍 Search Bar */}
+<div className="flex items-center gap-2 border rounded-full px-4 py-2 mb-4">
+    <Search className="w-4 h-4 text-gray-400" />
+    <input
+        type="text"
+        placeholder="Search airport..."
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        className="w-full outline-none text-sm"
+    />
+</div>
+
+{/* ✈️ Airport List (FILTERED) */}
+<div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
+    {filteredLocations.map((option, i) => (
+        <button
+            key={i}
+            onClick={() => {
+                onDepartureChange?.(option.value);
+                setActiveDropdown(null);
+                setSearchTerm("");
+            }}
+            className="px-4 py-3 rounded-full border text-sm hover:bg-sky-50 transition-colors"
+        >
+            {option.label}
+        </button>
+    ))}
+</div>
+
+
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
@@ -332,6 +361,8 @@ const FilterSectionTop = ({
                                     <span>Search</span>
                                 </button>
                             </div>
+
+
                         </div>
 
 
