@@ -155,7 +155,7 @@ export default function VehicleCard({
     const fetchSettings = async () => {
       try {
         // Use the existing system settings API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'https://app.jetserveaviation.com'}/system-settings/booking-cutoff-time`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_NODE_API_URL || 'https://api.jetserveaviation.com'}/system-settings/booking-cutoff-time`);
         if (response.ok) {
           const data = await response.json();
           const cutoffKey = type === 'helicopter' ? 'helicopter_cutoff_time' : 'flight_cutoff_time';

@@ -114,7 +114,7 @@ const HolidayPackage = forwardRef(({ airports = [], isLoadingAirports = false, a
         {/* From City */}
         <div className="flex-1 min-w-[200px] space-y-2">
           <label className="text-sm font-semibold text-gray-400 ml-1">From City</label>
-          <div className="bg-gray-100/80 rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
+          <div className="bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 group">
             <AirportAutocomplete
               airports={packageAirports}
               value={fromCity}
@@ -128,7 +128,7 @@ const HolidayPackage = forwardRef(({ airports = [], isLoadingAirports = false, a
         {/* To City */}
         <div className="flex-1 min-w-[200px] space-y-2">
           <label className="text-sm font-semibold text-gray-400 ml-1">To City</label>
-          <div className="bg-gray-100/80 rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
+          <div className="bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 group">
             <AirportAutocomplete
               airports={packageAirports}
               value={toCity}
@@ -144,9 +144,9 @@ const HolidayPackage = forwardRef(({ airports = [], isLoadingAirports = false, a
           <label className="text-sm font-semibold text-gray-400 ml-1">Departure Date</label>
           <button
             onClick={() => openCalendarFn && openCalendarFn('packageDate')}
-            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
-            <span className="text-gray-900 font-black text-lg tracking-tighter">
+            <span className="text-gray-900 font-light text-lg tracking-tighter">
               {formatDate(departureDate)}
             </span>
             <FaRegCalendarAlt className="text-gray-400 group-hover:text-blue-500 transition-colors w-5 h-5" />
@@ -158,13 +158,13 @@ const HolidayPackage = forwardRef(({ airports = [], isLoadingAirports = false, a
           <label className="text-sm font-semibold text-gray-400 ml-1">Travellers & Rooms</label>
           <button
             onClick={() => setIsGuestDropdownOpen(!isGuestDropdownOpen)}
-            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
+            className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
             <div className="flex flex-col leading-tight">
-              <span className="text-gray-900 font-black text-lg tracking-tighter">
+              <span className="text-gray-900 font-light text-lg tracking-tighter">
                 {totalGuests} Traveller{totalGuests !== 1 ? "s" : ""}
               </span>
-              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+              <span className="text-[11px] text-gray-400 font-light uppercase tracking-widest">
                 {guests.rooms} Room{guests.rooms !== 1 ? "s" : ""}
               </span>
             </div>
@@ -187,26 +187,26 @@ const HolidayPackage = forwardRef(({ airports = [], isLoadingAirports = false, a
                   ].map((item) => (
                     <div key={item.type} className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="font-black text-gray-900">{item.label}</span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.sub}</span>
+                        <span className="font-light text-gray-900">{item.label}</span>
+                        <span className="text-[10px] font-light text-gray-400 uppercase tracking-widest">{item.sub}</span>
                       </div>
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() => handleGuestChange(item.type, "decrement")}
-                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-light"
                           disabled={item.type === "rooms" ? guests.rooms === 1 : item.type === "adults" ? guests.adults === 1 : guests.children === 0}
                         >–</button>
-                        <span className="font-black text-gray-900 w-4 text-center tracking-tighter">{guests[item.type]}</span>
+                        <span className="font-light text-gray-900 w-4 text-center tracking-tighter">{guests[item.type]}</span>
                         <button
                           onClick={() => handleGuestChange(item.type, "increment")}
-                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-light"
                         >+</button>
                       </div>
                     </div>
                   ))}
                   <Button
                     onClick={() => setIsGuestDropdownOpen(false)}
-                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black mt-2"
+                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-light mt-2"
                   >
                     Done
                   </Button>

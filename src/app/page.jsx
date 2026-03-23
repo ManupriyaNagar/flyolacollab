@@ -14,10 +14,6 @@ const ImageShowcase = dynamic(() => import("@/components/Home/ImageShowcase"), {
 const PrivateJetRental = dynamic(() => import("@/components/Home/Banner"), { ssr: false });
 const AviationHighlights = dynamic(() => import("@/components/Home/Highlights"), { ssr: false });
 const WhyChooseFlyola = dynamic(() => import("@/components/Home/WhyChoose"), { ssr: false });
-const CityCaurasol = dynamic(() => import("@/components/Home/CityCaurasol"), { ssr: false });
-const ArticleSection = dynamic(() => import("@/components/Home/Article"), { ssr: false });
-const HoverEffect = dynamic(() => import("@/components/ui/HoverEffect"), { ssr: false });
-
 const PopularDestinations = dynamic(() => import("@/components/Home/PopularDestinations"), { ssr: false });
 
 export default function Home() {

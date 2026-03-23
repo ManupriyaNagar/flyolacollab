@@ -123,7 +123,7 @@ const PrivateJetRental = () => {
                   Premium Aviation Services • India
                 </span>
 
-                <h3 className="font-bold text-xl text-gray-800 mb-2">
+                <h3 className="font-bold text-xl text-gray-800 md:mb-2">
                   {service.title}
                 </h3>
 

@@ -123,16 +123,15 @@ export default function CityAutocomplete({
                   onKeyDown={handleKeyDown}
                   placeholder={placeholder}
                   disabled={disabled}
-                  className={cn('w-full', 'outline-none', 'bg-transparent', 'text-gray-900', 'font-black', 'text-xl', 'placeholder-gray-400')}
+                  className={cn('w-full', 'outline-none', 'bg-transparent', 'text-gray-900', 'font-light', 'text-lg', 'placeholder-gray-400')}
                   autoFocus
                 />
               ) : (
-                <span className="text-gray-400 font-black text-xl">{placeholder}</span>
+                <span className="text-gray-400 font-light text-lg">{placeholder}</span>
               )}
             </div>
           )}
         </div>
-
         {isOpen && (
           <div
             ref={dropdownRef}

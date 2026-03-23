@@ -51,7 +51,7 @@ const WhyChooseFlyOla = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-5xl lg:text-4xl font-semibold text-slate-900 mb-4 tracking-tight"
+            className="text-4xl md:text-5xl lg:text-4xl font-semibold text-slate-900 md:mb-4 tracking-tight"
           >
             Why Flyola?
           </motion.h2>
@@ -100,7 +100,7 @@ const WhyChooseFlyOla = () => {
             <div className={cn("w-14 h-14 flex items-center justify-center mb-4")}>
               <img src={feature.icon} alt={feature.title} className="" />
             </div>
-            <h3 className="text-2xl font-semibold text-gray-800 mb-4 tracking-tight">
+            <h3 className="text-2xl font-semibold text-gray-800 md:mb-4 tracking-tight">
               {feature.title}
             </h3>
             <p className="text-gray-600 text-sm">

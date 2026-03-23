@@ -142,7 +142,7 @@ const HotelBooking = forwardRef((props, ref) => {
         {/* Destination */}
         <div className="flex-[1.5] min-w-[250px] space-y-2">
           <label className="text-sm font-semibold text-gray-400 ml-1">Destination</label>
-          <div className="bg-gray-100/80 rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
+          <div className="bg-gray-100/80 font-light rounded-2xl px-5 py-3 border border-transparent transition-all hover:bg-gray-200/80 group">
             <CityAutocomplete
               cities={cities}
               value={destination}
@@ -160,7 +160,7 @@ const HotelBooking = forwardRef((props, ref) => {
             onClick={() => openCalendarFn && openCalendarFn('hotelCheckin')}
             className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
-            <span className="text-gray-900 font-black text-lg tracking-tighter">
+            <span className="text-gray-900 text-lg font-light tracking-tighter">
               {formatDate(checkInDate)}
             </span>
             <FaRegCalendarAlt className="text-gray-400 group-hover:text-blue-500 transition-colors w-5 h-5" />
@@ -174,7 +174,7 @@ const HotelBooking = forwardRef((props, ref) => {
             onClick={() => openCalendarFn && openCalendarFn('hotelCheckout')}
             className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
-            <span className="text-gray-900 font-black text-lg tracking-tighter">
+            <span className="text-gray-900 font-light text-lg tracking-tighter">
               {formatDate(checkOutDate)}
             </span>
             <FaRegCalendarAlt className="text-gray-400 group-hover:text-blue-500 transition-colors w-5 h-5" />
@@ -189,10 +189,10 @@ const HotelBooking = forwardRef((props, ref) => {
             className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
             <div className="flex flex-col leading-tight">
-              <span className="text-gray-900 font-black text-lg tracking-tighter truncate max-w-[120px]">
+              <span className="text-gray-900 font-light text-lg tracking-tighter truncate max-w-[120px]">
                 {priceRanges.find(r => r.id === priceRange)?.label || "Any Price"}
               </span>
-              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">Budget</span>
+              <span className="text-[11px] text-gray-400 font-light uppercase tracking-widest">Budget</span>
             </div>
             <FaChevronDown className={cn("text-gray-400 text-xs transition-transform", isPriceDropdownOpen && "rotate-180")} />
           </button>
@@ -214,7 +214,7 @@ const HotelBooking = forwardRef((props, ref) => {
                         setIsPriceDropdownOpen(false);
                       }}
                       className={cn(
-                        "w-full px-6 py-3.5 text-left text-sm font-bold transition-colors",
+                        "w-full px-6 py-3.5 text-left text-sm font-light transition-colors",
                         priceRange === range.id ? "bg-blue-50 text-blue-600" : "text-gray-600 hover:bg-gray-50"
                       )}
                     >
@@ -235,10 +235,10 @@ const HotelBooking = forwardRef((props, ref) => {
             className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-5 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group text-left"
           >
             <div className="flex flex-col leading-tight">
-              <span className="text-gray-900 font-black text-lg tracking-tighter">
+              <span className="text-gray-900 font-light text-lg tracking-tighter">
                 {totalGuests} Guest{totalGuests !== 1 ? "s" : ""}
               </span>
-              <span className="text-[11px] text-gray-400 font-bold uppercase tracking-widest">
+              <span className="text-[11px] text-gray-400 font-light uppercase tracking-widest">
                 {guests.rooms} Room{guests.rooms !== 1 ? "s" : ""}
               </span>
             </div>
@@ -261,26 +261,26 @@ const HotelBooking = forwardRef((props, ref) => {
                   ].map((item) => (
                     <div key={item.type} className="flex items-center justify-between">
                       <div className="flex flex-col">
-                        <span className="font-black text-gray-900">{item.label}</span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{item.sub}</span>
+                        <span className="font-light text-gray-900">{item.label}</span>
+                        <span className="text-[10px] font-light text-gray-400 uppercase tracking-widest">{item.sub}</span>
                       </div>
                       <div className="flex items-center gap-4">
                         <button
                           onClick={() => handleGuestChange(item.type, "decrement")}
-                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-light"
                           disabled={item.type === "rooms" ? guests.rooms === 1 : item.type === "adults" ? guests.adults === 1 : guests.children === 0}
                         >–</button>
-                        <span className="font-black text-gray-900 w-4 text-center tracking-tighter">{guests[item.type]}</span>
+                        <span className="font-light text-gray-900 w-4 text-center tracking-tighter">{guests[item.type]}</span>
                         <button
                           onClick={() => handleGuestChange(item.type, "increment")}
-                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-bold"
+                          className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-gray-600 hover:border-blue-500 hover:text-blue-500 transition-all font-light"
                         >+</button>
                       </div>
                     </div>
                   ))}
                   <Button
                     onClick={() => setIsGuestDropdownOpen(false)}
-                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-black mt-2"
+                    className="w-full h-12 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-light mt-2"
                   >
                     Done
                   </Button>

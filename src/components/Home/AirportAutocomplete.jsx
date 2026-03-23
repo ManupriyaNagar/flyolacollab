@@ -108,7 +108,7 @@ export default function AirportAutocomplete({
           onClick={handleContainerClick}
         >
           {!isOpen && selectedAirport ? (
-            <div className={cn('flex', 'flex-row', 'justify-between')}>
+            <div className={cn('flex', 'flex-col', 'justify-between')}>
               <div className={cn('text-lg', 'font-light', 'text-gray-900', 'tracking-tighter')}>
                 {selectedAirport.city.toUpperCase()}
               </div>
@@ -177,22 +177,22 @@ export default function AirportAutocomplete({
                     onClick={() => handleSelect(airport)}
                     onMouseEnter={() => setHighlightedIndex(index)}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-gray-900 text-sm">
+                    <div className="flex flex-col items-start justify-between">
+                      <span className="font-light text-gray-900 text-sm">
                         {airport.city}
                       </span>
-                      <span className="text-blue-600 font-black tracking-tighter text-sm">
+                      <span className="text-blue-600 font-light tracking-tighter text-sm">
                         {airport.airport_code || airport.helipad_code}
                       </span>
                     </div>
-                    <div className="text-xs font-bold text-gray-400 truncate">
+                    <div className="text-xs font-light text-gray-400 truncate">
                       {airport.airport_name || airport.helipad_name}
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="px-6 py-8 text-center">
-                  <p className="text-gray-500 font-bold">No results found for "{searchTerm}"</p>
+                  <p className="text-gray-500 font-light">No results found for "{searchTerm}"</p>
                 </div>
               )}
             </div>

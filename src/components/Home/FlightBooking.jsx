@@ -496,7 +496,7 @@ export default function FlightBooking() {
                       {/* From Field */}
                       <div className="flex-1 min-w-[200px] space-y-2">
                         <label className="text-sm font-semibold text-gray-400 ml-1">From</label>
-                        <div className="bg-[#EFEFEF] rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 group">
+                        <div className="bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 group">
                           <AirportAutocomplete
                             airports={selectedService === "helicopters" ? helipads : flightAirports}
                             value={selectedService === "helicopters" ? heliDeparture : departure}
@@ -531,7 +531,7 @@ export default function FlightBooking() {
                       {/* To Field */}
                       <div className="flex-1 min-w-[200px] space-y-2">
                         <label className="text-sm font-semibold text-gray-400 ml-1">To</label>
-                        <div className="bg-[#EFEFEF] rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80">
+                        <div className="bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80">
                           <AirportAutocomplete
                             airports={selectedService === "helicopters" ? helipads : flightAirports}
                             value={selectedService === "helicopters" ? heliArrival : arrival}
@@ -551,7 +551,7 @@ export default function FlightBooking() {
                             setCalendarMode(selectedService === "helicopters" ? 'helicopter' : 'flight');
                             setIsCalendarOpen(true);
                           }}
-                          className="w-full h-[72px] bg-[#EFEFEF] rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
+                          className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
                         >
                           <span className="text-gray-900 font-light text-lg">
                             {new Date((selectedService === "helicopters" ? heliDate : date) + 'T00:00:00').toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short' })}
@@ -579,7 +579,7 @@ export default function FlightBooking() {
                               }
                             }
                           }}
-                          className="w-full h-[72px] bg-[#EFEFEF] rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
+                          className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
                         >
                           <span className="text-gray-900 font-light text-lg">
                             {(selectedService === "flights" ? returnDate : heliReturnDate)
@@ -595,7 +595,7 @@ export default function FlightBooking() {
                         <label className="text-sm font-semibold text-gray-400 ml-1">Travellers & Class</label>
                         <button
                           onClick={() => setIsPassengerDropdownOpen(!isPassengerDropdownOpen)}
-                          className="w-full h-[72px] bg-[#EFEFEF] rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
+                          className="w-full h-[72px] bg-gray-100/80 rounded-2xl px-4 py-2 border border-transparent transition-all hover:bg-gray-200/80 flex items-center justify-between group"
                         >
                           <div className="flex flex-col items-start leading-tight">
                             <span className="text-gray-900 font-light text-lg tracking-tighter">
@@ -669,13 +669,6 @@ export default function FlightBooking() {
                             </motion.div>
                           )}
                         </AnimatePresence>
-                      </div>
-
-                      {/* Settings/Filter Icon */}
-                      <div className="mb-2">
-                        <button className="w-11 h-11 flex items-center justify-center text-gray-500 hover:text-gray-800 transition-colors">
-                          <HiOutlineAdjustmentsHorizontal className="w-7 h-7" />
-                        </button>
                       </div>
                     </motion.div>
                   )}

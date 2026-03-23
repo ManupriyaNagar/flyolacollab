@@ -50,7 +50,7 @@ const ImageShowcase = () => {
             </span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl lg:text-4xl font-semibold text-slate-900 mb-4 tracking-tight">
+          <h1 className="text-3xl md:text-5xl lg:text-4xl font-semibold text-slate-900 md:mb-4 tracking-tight">
             Experience the World from <br /> New Heights
           </h1>
 

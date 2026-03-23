@@ -63,7 +63,7 @@ const featuredFlights = [
 
 const AviationHighlights = () => {
   return (
-    <section className="py-4 bg-slate-100">
+    <section className="py-4 bg-slate-100 inter-font">
       <div className="px-4 sm:px-6 lg:px-18">
         {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
@@ -109,9 +109,9 @@ const AviationHighlights = () => {
               <div className="px-1 -mt-8">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
-                    <span className="font-light text-lg text-slate-800">{flight.from}</span>
+                    <span className="font-medium text-lg text-slate-800">{flight.from}</span>
                     <span className="text-orange-500">✈</span>
-                    <span className="font-light text-lg text-slate-800">{flight.to}</span>
+                    <span className="font-medium text-lg text-slate-800">{flight.to}</span>
                   </div>
                   <span className="text-sm font-light text-blue-600">{flight.date}</span>
                 </div>
